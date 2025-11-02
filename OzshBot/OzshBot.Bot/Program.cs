@@ -1,4 +1,4 @@
-﻿namespace Bot;
+﻿namespace OzshBot.Bot;
 
 class Program
 {

@@ -15,7 +15,8 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\BuisnessLogic\BuisnessLogic.csproj" />
+      <ProjectReference Include="..\OzshBot.Application\OzshBot.Application.csproj" />
+      <ProjectReference Include="..\OzshBot.Domain\OzshBot.Domain.csproj" />
     </ItemGroup>
 
 </Project>

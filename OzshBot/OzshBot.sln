@@ -1,15 +1,17 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Bot", "Bot\Bot.csproj", "{DC883EFD-B3DC-4356-99E5-BAC9E55401EC}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OzshBot.Bot", "OzshBot.Bot\OzshBot.Bot.csproj", "{DC883EFD-B3DC-4356-99E5-BAC9E55401EC}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{AB93EA78-2142-482F-A5C0-6C3406BBCCAC}"
 	ProjectSection(SolutionItems) = preProject
 		compose.yaml = compose.yaml
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BuisnessLogic", "BuisnessLogic\BuisnessLogic.csproj", "{1202F093-2A50-42DD-B431-B3DCB2731517}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OzshBot.Application", "OzshBot.Application\OzshBot.Application.csproj", "{1202F093-2A50-42DD-B431-B3DCB2731517}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure", "Infrastructure\Infrastructure.csproj", "{84B559A9-3989-4FDE-991F-6C488FE8E891}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OszhBot.Infrastructure", "OszhBot.Infrastructure\OszhBot.Infrastructure.csproj", "{84B559A9-3989-4FDE-991F-6C488FE8E891}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OzshBot.Domain", "OzshBot.Domain\OzshBot.Domain.csproj", "{FE029632-6E3A-4B9F-958C-CBBB3B7BB573}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,5 +31,9 @@ Global
 		{84B559A9-3989-4FDE-991F-6C488FE8E891}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{84B559A9-3989-4FDE-991F-6C488FE8E891}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{84B559A9-3989-4FDE-991F-6C488FE8E891}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FE029632-6E3A-4B9F-958C-CBBB3B7BB573}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FE029632-6E3A-4B9F-958C-CBBB3B7BB573}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FE029632-6E3A-4B9F-958C-CBBB3B7BB573}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FE029632-6E3A-4B9F-958C-CBBB3B7BB573}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
