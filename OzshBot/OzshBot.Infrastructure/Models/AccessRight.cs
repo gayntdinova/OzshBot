@@ -2,7 +2,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace EntityFrameworkTest.Models;
+namespace OzshBot.Infrastructure.Models;
 
 public enum Access
 {
@@ -22,5 +22,4 @@ public class AccessRight
     [Required]
     [Column(name: "rights", TypeName = "access")]
     public Access Rights { get; set; } = Access.Read;
-
 }

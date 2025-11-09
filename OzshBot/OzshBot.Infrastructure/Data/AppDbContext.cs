@@ -1,19 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using EntityFrameworkTest.Models;
-using Npgsql;
+using OzshBot.Infrastructure.Models;
 
-public class MyTranslator : INpgsqlNameTranslator
-{
-    public string TranslateMemberName(string clrName)
-    {
-        throw new NotImplementedException();
-    }
-
-    public string TranslateTypeName(string clrName)
-    {
-        throw new NotImplementedException();
-    }
-}
+namespace OzshBot.Infrastructure.Data;
 
 public class AppDbContext : DbContext
 {
@@ -73,18 +61,5 @@ public class AppDbContext : DbContext
             entity.HasIndex(p => p.Email).IsUnique();
             entity.HasIndex(p => p.Phone).IsUnique();
         });
-    }
-}
-
-public static class AppDbContextFactory
-{
-    public static AppDbContext CreateContext()
-    {
-        var options = new DbContextOptionsBuilder<AppDbContext>()
-            .UseNpgsql(
-                "Host=localhost;Database=ozsh;Username=postgres;Password=postgres;Port=5433",
-                o => o.MapEnum<Season>("season").MapEnum<Role>("role").MapEnum<Access>("access"))
-            .Options;
-        return new AppDbContext(options);
     }
 }

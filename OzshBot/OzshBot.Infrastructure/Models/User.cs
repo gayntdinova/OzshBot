@@ -2,7 +2,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace EntityFrameworkTest.Models;
+namespace OzshBot.Infrastructure.Models;
 
 [Table("users")]
 public class User
