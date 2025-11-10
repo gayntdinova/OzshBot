@@ -1,4 +1,4 @@
-namespace OzshBot.Domain.ValueObjects;
+namespace OzshBot.Domain.Entities;
 
 public enum Season
 {
