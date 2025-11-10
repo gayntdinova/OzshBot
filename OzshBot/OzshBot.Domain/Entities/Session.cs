@@ -1,5 +1,3 @@
-using OzshBot.Domain.ValueObjects;
-
 namespace OzshBot.Domain.Entities;
 
 public class Session

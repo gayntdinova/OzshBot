@@ -1,6 +1,6 @@
-namespace OzshBot.Domain.Entities;
+namespace OzshBot.Domain.ValueObjects;
 
-public abstract class TelegramUser
+public class TelegramInfo
 {
     public required string TgUsername { get; set; }
     public long? TgId { get; set; }
