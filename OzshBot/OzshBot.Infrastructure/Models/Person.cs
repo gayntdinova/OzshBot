@@ -2,11 +2,12 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using OzshBot.Infrastructure.Enums;
+using OzshBot.Infrastructure.Interfaces;
 
 namespace OzshBot.Infrastructure.Models;
 
 [Table("people")]
-public class Person
+public class Person: IDbPerson
 {
     [Key]
     [Column(name: "person_id")]
