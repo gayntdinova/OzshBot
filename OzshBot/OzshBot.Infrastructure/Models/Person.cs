@@ -7,7 +7,7 @@ using OzshBot.Infrastructure.Interfaces;
 namespace OzshBot.Infrastructure.Models;
 
 [Table("people")]
-public class Person: IDbPerson
+public class Person: IDbStudent, IBdCounsellor
 {
     [Key]
     [Column(name: "person_id")]

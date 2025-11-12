@@ -1,13 +1,9 @@
-using OzshBot.Infrastructure.Enums;
-
 namespace OzshBot.Infrastructure.Interfaces;
 
-public interface IDbPerson
+public interface IDbStudent
 {
     public Guid PersonId { get; set; }
     public Guid UserId { get; set; }
-
-    public Role? Role { get; set; }
 
     public string Name { get; set; }
     public string Surname { get; set; }
