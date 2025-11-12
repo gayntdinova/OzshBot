@@ -1,14 +1,9 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using OzshBot.Infrastructure.Enums;
 
 namespace OzshBot.Infrastructure.Models;
-
-public enum Role
-{
-    Student,
-    Counselor
-}
 
 [Table("people")]
 public class Person

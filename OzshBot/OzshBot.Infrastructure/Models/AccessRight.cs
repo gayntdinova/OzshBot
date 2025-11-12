@@ -1,14 +1,9 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using OzshBot.Infrastructure.Enums;
 
 namespace OzshBot.Infrastructure.Models;
-
-public enum Access
-{
-    Read,
-    WriteRead
-}
 
 [Table("access_rights")]
 public class AccessRight
