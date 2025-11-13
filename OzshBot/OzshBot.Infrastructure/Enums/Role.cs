@@ -1,7 +1,8 @@
-namespace OzshBot.Infrastructure.Enums;
-
-public enum Role
+namespace OzshBot.Infrastructure.Enums
 {
-    Student,
-    Counselor
+    public enum Role
+    {
+        Student,
+        Counselor
+    }
 }

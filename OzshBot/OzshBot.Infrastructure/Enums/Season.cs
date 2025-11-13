@@ -1,9 +1,10 @@
-namespace OzshBot.Infrastructure.Enums;
-
-public enum Season
+namespace OzshBot.Infrastructure.Enums
 {
-    Winter,
-    Spring,
-    Summer,
-    Autumn
+    public enum Season
+    {
+        Winter,
+        Spring,
+        Summer,
+        Autumn
+    }
 }

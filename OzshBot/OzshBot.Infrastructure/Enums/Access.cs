@@ -1,7 +1,8 @@
-namespace OzshBot.Infrastructure.Enums;
-
-public enum Access
+namespace OzshBot.Infrastructure.Enums
 {
-    Read,
-    WriteRead
+    public enum Access
+    {
+        Read,
+        WriteRead
+    }
 }

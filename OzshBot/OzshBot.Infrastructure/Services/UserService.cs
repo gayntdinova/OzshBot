@@ -3,51 +3,52 @@ using OzshBot.Infrastructure.Data;
 using OzshBot.Infrastructure.Models;
 using OzshBot.Infrastructure.Enums;
 
-namespace OzshBot.Infrastructure.Services;
-
-public class UserService(AppDbContext context)
+namespace OzshBot.Infrastructure.Services
 {
-    private readonly AppDbContext context = context;
-
-    public async Task<User?> GetUserByTgIdAsync(long tgId)
+    public class UserService(AppDbContext context)
     {
-        return await context.Users
-            .Include(u => u.Person)
-            .Include(u => u.AccessRight)
-            .FirstOrDefaultAsync(u => u.TgId == tgId);
-    }
+        private readonly AppDbContext context = context;
 
-    public async Task<User?> GetUserByTgNameAsync(string tgName)
-    {
-        return await context.Users
-            .Include(u => u.Person)
-            .Include(u => u.AccessRight)
-            .FirstOrDefaultAsync(u => u.TgName == tgName);
-    }
-
-    public async Task<User> CreateUserAsync(string telegramName, long? telegramId = null)
-    {
-        var user = new User
+        public async Task<User?> GetUserByTgIdAsync(long tgId)
         {
-            TgName = telegramName,
-            TgId = telegramId ?? 0
-        };
+            return await context.Users
+                .Include(u => u.Person)
+                .Include(u => u.AccessRight)
+                .FirstOrDefaultAsync(u => u.TgId == tgId);
+        }
 
-        context.Users.Add(user);
-        await context.SaveChangesAsync();
-        var accessRight = new AccessRight
+        public async Task<User?> GetUserByTgNameAsync(string tgName)
         {
-            UserId = user.UserId,
-            Rights = Access.Read
-        };
-        context.AccessRights.Add(accessRight);
-        await context.SaveChangesAsync();
+            return await context.Users
+                .Include(u => u.Person)
+                .Include(u => u.AccessRight)
+                .FirstOrDefaultAsync(u => u.TgName == tgName);
+        }
+
+        public async Task<User> CreateUserAsync(string telegramName, long? telegramId = null)
+        {
+            var user = new User
+            {
+                TgName = telegramName,
+                TgId = telegramId ?? 0
+            };
+
+            context.Users.Add(user);
+            await context.SaveChangesAsync();
+            var accessRight = new AccessRight
+            {
+                UserId = user.UserId,
+                Rights = Access.Read
+            };
+            context.AccessRights.Add(accessRight);
+            await context.SaveChangesAsync();
         
-        return user;
-    }
+            return user;
+        }
 
-    public async Task<bool> UserExistsAsync(string telegramName)
-    {
-        return await context.Users.AnyAsync(u => u.TgName == telegramName);
+        public async Task<bool> UserExistsAsync(string telegramName)
+        {
+            return await context.Users.AnyAsync(u => u.TgName == telegramName);
+        }
     }
 }
