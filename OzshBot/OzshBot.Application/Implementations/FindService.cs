@@ -11,22 +11,22 @@ public class FindService: IFindService
         throw new NotImplementedException();
     }
 
-    public async Task<UsersDto> FindUsersByFullNameAsync(FullName fullName)
+    public async Task<ManyUsersDto> FindUsersByFullNameAsync(FullName fullName)
     {
         throw new NotImplementedException();
     }
 
-    public async Task<UsersDto> FindUsersByTownAsync(string town)
+    public async Task<ManyUsersDto> FindUsersByTownAsync(string town)
     {
         throw new NotImplementedException();
     }
 
-    public async Task<UsersDto> FindUsersByClassAsync(int classNumber)
+    public async Task<ManyUsersDto> FindUsersByClassAsync(int classNumber)
     {
         throw new NotImplementedException();
     }
 
-    public async Task<UsersDto> FindUsersByGroupAsync(int group)
+    public async Task<ManyUsersDto> FindUsersByGroupAsync(int group)
     {
         throw new NotImplementedException();
     }

@@ -7,8 +7,8 @@ namespace OzshBot.Application.Interfaces;
 public interface IFindService
 {
     public Task<UserDto> FindUserByTgUserNameAsync(string tgName);
-    public Task<UsersDto> FindUsersByFullNameAsync(FullName fullName);
-    public Task<UsersDto> FindUsersByTownAsync(string town);
-    public Task<UsersDto> FindUsersByClassAsync(int classNumber);
-    public Task<UsersDto> FindUsersByGroupAsync(int group);
+    public Task<ManyUsersDto> FindUsersByFullNameAsync(FullName fullName);
+    public Task<ManyUsersDto> FindUsersByTownAsync(string town);
+    public Task<ManyUsersDto> FindUsersByClassAsync(int classNumber);
+    public Task<ManyUsersDto> FindUsersByGroupAsync(int group);
 }
