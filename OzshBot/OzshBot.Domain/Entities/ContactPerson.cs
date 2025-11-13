@@ -1,7 +1,7 @@
 using OzshBot.Domain.ValueObjects;
 namespace OzshBot.Domain.Entities;
 
-public class Parent
+public class ContactPerson
 {
     public Guid Id { get; set; }
     public required FullName FullName { get; set; }

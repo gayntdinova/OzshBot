@@ -1,6 +1,5 @@
 using OzshBot.Domain.Entities;
 using OzshBot.Domain.Enums;
-using OzshBot.Domain.ValueObjects;
 
 namespace OzshBot.Application.DtoModels;
 
