@@ -1,4 +1,4 @@
-namespace OzshBot.Domain.ValueObjects;
+namespace OzshBot.Domain.Enums;
 
 public enum Role
 {

@@ -1,3 +1,4 @@
+using OzshBot.Domain.Enums;
 using OzshBot.Domain.ValueObjects;
 
 namespace OzshBot.Application.Interfaces;

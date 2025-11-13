@@ -1,3 +1,5 @@
+using OzshBot.Domain.Enums;
+
 namespace OzshBot.Domain.Entities;
 
 public class Session
