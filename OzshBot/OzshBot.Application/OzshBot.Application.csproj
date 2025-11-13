@@ -11,4 +11,12 @@
       <ProjectReference Include="..\OzshBot.Domain\OzshBot.Domain.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Converters\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="FluentResults" Version="4.0.0" />
+    </ItemGroup>
+
 </Project>
