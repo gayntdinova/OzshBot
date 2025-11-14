@@ -24,6 +24,6 @@ namespace OzshBot.Infrastructure.DTO
         [Phone]
         public string? Phone { get; set; }
 
-        public List<DbParent> Parents { get; }
+        public List<DbParent> Parents { get; set; }
     }
 }
