@@ -5,7 +5,7 @@ using OzshBot.Domain.Entities;
 
 namespace OzshBot.Application.Implementations;
 
-public class EditService: IEditService
+public class EditService: IEditService 
 {
     public async Task<Result> EditUserAsync(UserDto user)
     {
