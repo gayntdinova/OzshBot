@@ -4,52 +4,59 @@ using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types;
 using Telegram.Bot;
 using System;
+using OzshBot.Application.Interfaces;
+using OzshBot.Application.Implementations;
+using OzshBot.Domain.ValueObjects;
+using OzshBot.Domain.Enums;
+using Ninject;
 namespace OzshBot.Bot;
-
-
-public enum UserRole
-{
-    User,
-    Counselor,
-    Admin
-}
 
 public class UserService
 {
-    private readonly Dictionary<long, UserRole> userRoles = new() { { 1307360984, UserRole.Admin } };
+    public IEditService EditService;
+    public IAccessRightsService AccessRightsService;
+    public IFindService FindService;
 
-    public UserRole GetUserRole(long userId)
-        => userRoles.TryGetValue(userId, out var role) ? role : UserRole.User;
-
-    public void SetUserRole(long userId, UserRole role)
+    public UserService(
+        IEditService editService,
+        IAccessRightsService accessRightsService,
+        IFindService findService)
     {
-        userRoles[userId] = role;
-    }
-
-    public bool IsCounselor(long userId)
-    {
-        return GetUserRole(userId) >= UserRole.Counselor;
+        this.EditService = editService;
+        this.AccessRightsService = accessRightsService;
+        this.FindService = findService;
     }
 }
 
-static class Program
+class BotHandler
 {
-    //клиент для работы с Bot API, позволяет отправлять сообщения, управлять ботом, подписываться на обновления и тд
-    private static ITelegramBotClient botClient;
+        //клиент для работы с Bot API, позволяет отправлять сообщения, управлять ботом, подписываться на обновления и тд
+    private ITelegramBotClient botClient;
 
     //объект с настройками бота, здесь указываем какие типы Update будем получать, Timeout бота и тд
-    private static ReceiverOptions receiverOptions;
+    private ReceiverOptions receiverOptions;
 
     //сервис для работы с правами
-    private static UserService userService;
+    private UserService userService;
 
-    public static async Task SetCommandsForUser(long userId)
+    public BotHandler(
+        ITelegramBotClient botClient,
+        ReceiverOptions receiverOptions,
+        UserService userService)
+    {
+        this.botClient = botClient;
+        this.receiverOptions = receiverOptions;
+        this.userService = userService;
+    }
+
+    public async Task SetCommandsForUser(User user)
     {
         var commands = new List<BotCommand>();
 
-        var role = userService.GetUserRole(userId);
+        var role = userService.AccessRightsService.GetAccessRightsAsync(
+            new TelegramInfo { TgUsername = user.Username, TgId = user.Id });
 
-        if (role == UserRole.Counselor || role == UserRole.Admin)
+        if (role.Result == AccessRights.Write)
         {
             // Команды для вожатых и админов
             commands.AddRange(new[]
@@ -60,18 +67,21 @@ static class Program
             });
         }
 
-        // Общие команды для всех
-        commands.AddRange(new[]
+        if (role.Result == AccessRights.Read)
         {
-            new BotCommand { Command = "help", Description = "Помощь" },
-            new BotCommand { Command = "profile", Description = "Мой профиль" }
-        });
+            // Общие команды для всех
+            commands.AddRange(new[]
+            {
+                new BotCommand { Command = "help", Description = "Помощь" },
+                new BotCommand { Command = "profile", Description = "Мой профиль" }
+            });
+        }
 
         try
         {
             await botClient.SetMyCommands(
                 commands,
-                scope: new BotCommandScopeChat { ChatId = userId });
+                scope: new BotCommandScopeChat { ChatId = user.Id });
         }
         catch (Exception ex)
         {
@@ -79,7 +89,7 @@ static class Program
         }
     }
 
-    private static async Task UpdateHandler(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
+    private async Task UpdateHandler(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
     {
         try
         {
@@ -88,35 +98,62 @@ static class Program
                 case UpdateType.Message:
                     if (update.Message is not { } message) return;
                     if (message.Text is not { } messageText) return;
-                    var role = userService.GetUserRole(message.From.Id);
+                    var role = userService.AccessRightsService.GetAccessRightsAsync(
+                        new TelegramInfo { TgUsername = message.From.Username, TgId = message.From.Id }).Result;
 
                     var chat = message.Chat;
 
-                    Console.WriteLine($"id: {message.From.Id}\nusername {message.From.Username}\nроль: {userService.GetUserRole(message.From.Id)}");
+                    Console.WriteLine($"id: {message.From.Id}\nusername {message.From.Username}\nроль: {role}");
+
+                    //старт
+                    if (messageText == "/start")
+                    {
+                        await SetCommandsForUser(message.From);
+                        return;
+                    }
+
+                    //если нет прав, то отвергаю все остальное
+                    if (role == AccessRights.NoRights) 
+                        return;
 
                     if (messageText.StartsWith("/") == false)
                     {
+                        //todo-----------------------------------------------------------
                         await botClient.SendMessage(
                             chat.Id,
-                            $"бабибо"
+                            $"какая то информация"
                             );
+                            return;
                     }
-                    else if (messageText == "/start")
+                    if (messageText == "/profile")
                     {
-                        await SetCommandsForUser(message.From.Id);
-                    }
-                    else if (messageText == "/profile")
-                    {
+                        //todo------------------------------------------------------------
                         await botClient.SendMessage(
                             chat.Id,
-                            $"ваш id: {message.From.Id}\nваш username {message.From.Username}\nваша роль: {userService.GetUserRole(message.From.Id)}"
+                            $"профиль"
                             );
+                        return;
                     }
-                    else if(messageText.StartsWith("/promote") == true && (role == UserRole.Counselor || role == UserRole.Admin) ) 
-                    {
 
+                    //если нет прав писать(давать права и тд), то отвергаю все остальное
+                    if (role == AccessRights.Read)
+                        return;
+
+                    if (messageText.StartsWith("/promote"))
+                    {
+                        var userToPromote = messageText.Split()[1];
+                        await userService.AccessRightsService.PromoteToCounsellor(
+                            new TelegramInfo { TgUsername = userToPromote });
+                        return;
                     }
-                    return;
+                    
+                    if(messageText.StartsWith("/demote"))
+                    {
+                        var userToPromote = messageText.Split()[1];
+                        await userService.AccessRightsService.DemoteAccessRightsAsync(
+                            new TelegramInfo { TgUsername = userToPromote });
+                        return;
+                    }
                 case UpdateType.InlineQuery:
 
                     return;
@@ -130,7 +167,7 @@ static class Program
         }
     }
 
-    private static Task ErrorHandler(ITelegramBotClient botClient, Exception error, CancellationToken cancellationToken)
+    private Task ErrorHandler(ITelegramBotClient botClient, Exception error, CancellationToken cancellationToken)
     {
         Console.WriteLine(error switch
         {
@@ -140,13 +177,8 @@ static class Program
         return Task.CompletedTask;
     }
 
-    static async Task Main()
+    public async Task Start()
     {
-
-        botClient = new TelegramBotClient("8445241215:AAE-fg7HdNllMonKukdR5T9e_8I4e4FwpXg");
-        receiverOptions = new ReceiverOptions { AllowedUpdates = new[] { UpdateType.Message } };
-        userService = new();
-
         using var cts = new CancellationTokenSource();
 
         botClient.StartReceiving(UpdateHandler, ErrorHandler, receiverOptions, cts.Token);
@@ -154,5 +186,25 @@ static class Program
         Console.WriteLine($"{(await botClient.GetMe()).FirstName} запущен!");
 
         await Task.Delay(-1);
+    }
+}
+
+static class Program
+{
+    static async Task Main()
+    {
+        var container = ConfigureContainer();
+        var botHandler = container.Get<BotHandler>();
+        await botHandler.Start();
+    }
+
+    public static StandardKernel ConfigureContainer()
+    {
+        var container = new StandardKernel();
+
+        container.Bind<TelegramBotClient>().ToConstant(new TelegramBotClient("8445241215:AAE-fg7HdNllMonKukdR5T9e_8I4e4FwpXg"));
+        container.Bind<ReceiverOptions>().ToConstant(new ReceiverOptions { AllowedUpdates = new[] { UpdateType.Message } });
+
+        return container;
     }
 }
