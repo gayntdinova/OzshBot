@@ -2,7 +2,10 @@ namespace OzshBot.Infrastructure.DTO
 {
     public class DbCounsellor
     {
-        public Guid UserId { get; set; }
+        public Guid PersonId { get; set; }
+
+        public string TgName { get; set; }
+        public long TgId { get; set; }
 
         public string Name { get; set; }
         public string Surname { get; set; }

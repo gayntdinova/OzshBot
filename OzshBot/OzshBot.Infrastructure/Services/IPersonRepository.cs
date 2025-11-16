@@ -1,4 +1,5 @@
 using OzshBot.Infrastructure.DTO;
+using OzshBot.Infrastructure.Enums;
 
 namespace OzshBot.Infrastructure.Services;
 
@@ -16,7 +17,5 @@ public interface IPersonRepository
     public void ChangeStudent(DbStudent newStudentData);
     public void AddCounsellor(DbCounsellor counsellor);
     public void ChangeCounsellor(DbCounsellor newCounsellorData);
-
-    public void Promote(string tgname);
-    public void Downgrade(string tgname);
+    public void DeletePerson(Guid personId);
 }
