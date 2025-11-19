@@ -27,5 +27,5 @@ public class Parent
 
     public virtual List<ChildParent>? Relations { get; set; }
     [NotMapped]
-    public List<Person>? Children => Relations?.Select(r => r.Child).ToList();
+    public List<Student>? Children => Relations?.Select(r => r.Child).ToList();
 }

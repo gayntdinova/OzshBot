@@ -12,7 +12,8 @@ namespace OzshBot.Infrastructure.Services
         public async Task<User?> GetUserByTgIdAsync(long tgId)
         {
             return await context.Users
-                .Include(u => u.Person)
+                .Include(u => u.Student)
+                .Include(u => u.Counsellor)
                 .Include(u => u.AccessRight)
                 .FirstOrDefaultAsync(u => u.TgId == tgId);
         }
@@ -20,7 +21,8 @@ namespace OzshBot.Infrastructure.Services
         public async Task<User?> GetUserByTgNameAsync(string tgName)
         {
             return await context.Users
-                .Include(u => u.Person)
+                .Include(u => u.Student)
+                .Include(u => u.Counsellor)
                 .Include(u => u.AccessRight)
                 .FirstOrDefaultAsync(u => u.TgName == tgName);
         }

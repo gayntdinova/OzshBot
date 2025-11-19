@@ -18,6 +18,7 @@ public class User
     [Column(name: "tg_id")]
     public long TgId { get; set; }
 
-    public virtual Person? Person { get; set; }
+    public virtual Student? Student { get; set; }
+    public virtual Counsellor? Counsellor { get; set; }
     public virtual AccessRight? AccessRight { get; set; }
 }

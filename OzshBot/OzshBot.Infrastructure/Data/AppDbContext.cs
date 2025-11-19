@@ -7,7 +7,7 @@ namespace OzshBot.Infrastructure.Data
     public class AppDbContext : DbContext
     {
         public DbSet<User> Users { get; set; }
-        public DbSet<Person> People { get; set; }
+        public DbSet<Student> People { get; set; }
         public DbSet<Parent> Parents { get; set; }
         public DbSet<ChildParent> PeopleParents;
         public DbSet<Session> Sessions { get; set; }
@@ -30,11 +30,8 @@ namespace OzshBot.Infrastructure.Data
             modelBuilder.Entity<Session>(entity =>
             {
                 entity.HasKey(s => s.Id);
-
                 entity.Property(s => s.Year).IsRequired();
-
                 entity.Property(s => s.Season).IsRequired();
-
                 entity.HasIndex(s => new { s.Year, s.Season }).IsUnique();
             });
 
@@ -49,13 +46,34 @@ namespace OzshBot.Infrastructure.Data
                 entity.Property(ar => ar.Rights).IsRequired();
             });
 
-            modelBuilder.Entity<Person>(entity =>
+            modelBuilder.Entity<Student>(entity =>
             {
-                entity.HasKey(p => p.PersonId);
+                entity.HasKey(p => p.StudentId);
                 entity.HasIndex(p => p.UserId).IsUnique();
                 entity.HasOne(p => p.User)
-                      .WithOne(u => u.Person)
-                      .HasForeignKey<Person>(p => p.UserId)
+                      .WithOne(u => u.Student)
+                      .HasForeignKey<Student>(p => p.UserId)
+                      .OnDelete(DeleteBehavior.Cascade);
+
+                entity.Property(p => p.Name).IsRequired();
+                entity.Property(p => p.Surname).IsRequired();
+
+                entity.Property(p => p.BirthDate).IsRequired();
+
+                entity.Property(p => p.Email).IsRequired();
+                entity.HasIndex(p => p.Email).IsUnique();
+
+                entity.Property(p => p.Phone).IsRequired();
+                entity.HasIndex(p => p.Phone).IsUnique();
+            });
+
+            modelBuilder.Entity<Counsellor>(entity =>
+            {
+                entity.HasKey(p => p.CounsellorId);
+                entity.HasIndex(p => p.UserId).IsUnique();
+                entity.HasOne(p => p.User)
+                      .WithOne(u => u.Counsellor)
+                      .HasForeignKey<Student>(p => p.UserId)
                       .OnDelete(DeleteBehavior.Cascade);
 
                 entity.Property(p => p.Name).IsRequired();

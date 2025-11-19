@@ -5,22 +5,19 @@ using OzshBot.Infrastructure.Enums;
 
 namespace OzshBot.Infrastructure.Models;
 
-[Table("people")]
-public class Person
+[Table("students")]
+public class Student
 {
     [Key]
-    [Column(name: "person_id")]
+    [Column(name: "student_id")]
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
-    public Guid PersonId { get; set; } = Guid.NewGuid();
+    public Guid StudentId { get; set; } = Guid.NewGuid();
 
     [Required]
     [ForeignKey("User")]
     [Column(name: "user_id")]
     public Guid UserId { get; set; }
     public virtual User User { get; set; }
-
-    [Column(name: "role", TypeName = "role")]
-    public Role? Role { get; set; }
 
     [Required]
     [Column(name: "name")]
@@ -36,6 +33,7 @@ public class Person
     [Column(name: "school")]
     public string? School { get; set; }
 
+    [Required]
     [Column(name: "birth_date")]
     public DateOnly? BirthDate { get; set; }
 
@@ -44,10 +42,12 @@ public class Person
     [Column(name: "current_group")]
     public int CurrentGroup { get; set; }
 
+    [Required]
     [Column(name: "email")]
     [EmailAddress]
     public string? Email { get; set; }
 
+    [Required]
     [Column(name: "phone")]
     [Phone]
     public string? Phone { get; set; }
