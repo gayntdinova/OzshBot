@@ -1,10 +1,9 @@
-using OzshBot.Infrastructure.DTO;
+using OzshBot.Domain.Entities;
 
-namespace OzshBot.Infrastructure.DTO
+namespace OzshBot.Infrastructure.DTO;
+
+public class DbRequestResult
 {
-    public class DbRequestResult
-    {
-        public List<DbStudent> Students;
-        public List<DbCounsellor> Counsellors;
-    }
+    public List<Child> Students;
+    public List<Counsellor> Counsellors;
 }

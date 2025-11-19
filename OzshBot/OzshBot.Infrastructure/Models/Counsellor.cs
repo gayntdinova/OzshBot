@@ -1,7 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using OzshBot.Infrastructure.Enums;
+using OzshBot.Domain.ValueObjects;
 
 namespace OzshBot.Infrastructure.Models;
 
@@ -32,7 +32,7 @@ public class Counsellor
     public string? City { get; set; }
 
     [Column(name: "birth_date")]
-    public DateOnly? BirthDate { get; set; }
+    public DateOnly BirthDate { get; set; } //TODO мне кажется можно и в домене сделать DateOnly?
 
     [Column(name: "current_group")]
     public int CurrentGroup { get; set; }
@@ -46,4 +46,32 @@ public class Counsellor
     [Column(name: "phone")]
     [Phone]
     public string? Phone { get; set; }
+}
+
+
+public static class CounsellorConverter
+{
+    public static Domain.Entities.Counsellor ToDomainCounsellor(this Counsellor counsellor)
+    {
+        var fullName = new FullName
+        {
+            Name = counsellor.Name,
+            Surname = counsellor.Surname,
+            Patronymic = counsellor.Patronymic
+        };
+        var tgInfo = new TelegramInfo { TgUsername = counsellor.User.TgName, TgId = counsellor.User.TgId};
+        var result = new Domain.Entities.Counsellor
+        {
+            Id = counsellor.CounsellorId,
+            FullName = fullName,
+            TelegramInfo = tgInfo,
+            Birthday = counsellor.BirthDate,
+            Town = counsellor.City,
+            PhoneNumber = counsellor.Phone,
+            Email = counsellor.Email,
+            Group = counsellor.CurrentGroup,
+            Sessions = []
+        };
+        return result;
+    }
 }

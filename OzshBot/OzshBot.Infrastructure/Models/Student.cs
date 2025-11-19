@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using OzshBot.Domain.ValueObjects;
 using OzshBot.Infrastructure.Enums;
 
 namespace OzshBot.Infrastructure.Models;
@@ -28,14 +29,16 @@ public class Student
     [Column(name: "patronymic")]
     public string? Patronymic { get; set; }
 
+    [Required]
     [Column(name: "city")]
-    public string? City { get; set; }
+    public required string City { get; set; }
+    [Required]
     [Column(name: "school")]
-    public string? School { get; set; }
+    public required string School { get; set; }
 
     [Required]
     [Column(name: "birth_date")]
-    public DateOnly? BirthDate { get; set; }
+    public DateOnly BirthDate { get; set; }
 
     [Column(name: "current_class")]
     public int CurrentClass { get; set; }
@@ -45,14 +48,45 @@ public class Student
     [Required]
     [Column(name: "email")]
     [EmailAddress]
-    public string? Email { get; set; }
+    public required string Email { get; set; }
 
     [Required]
     [Column(name: "phone")]
     [Phone]
-    public string? Phone { get; set; }
+    public required string Phone { get; set; }
 
     public virtual List<ChildParent>? Relations { get; set; }
     [NotMapped]
-    public List<Parent>? Parents => Relations?.Select(r => r.Parent).ToList();
+    public List<Parent> Parents => Relations?.Select(r => r.Parent).ToList() ?? [];
+}
+
+
+public static class StudentConverter
+{
+    public static Domain.Entities.Child ToDomainCounsellor(this Student student)
+    {
+        var fullName = new FullName
+        {
+            Name = student.Name,
+            Surname = student.Surname,
+            Patronymic = student.Patronymic
+        };
+        var tgInfo = new TelegramInfo { TgUsername = student.User.TgName, TgId = student.User.TgId };
+        var educationInfo = new EducationInfo { Class = student.CurrentClass, School = student.School};
+        var result = new Domain.Entities.Child
+        {
+            Id = student.StudentId,
+            FullName = fullName,
+            TelegramInfo = tgInfo,
+            Birthday = student.BirthDate,
+            Town = student.City,
+            PhoneNumber = student.Phone,
+            Email = student.Email,
+            Group = student.CurrentGroup,
+            EducationInfo = educationInfo,
+            Parents = student.Parents.Select(p => p.ToDOmainContactPerson()).ToList(),
+            Sessions = []
+        };
+        return result;
+    }
 }
