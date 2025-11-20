@@ -7,7 +7,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\OzshBot.Infrastructure\OzshBot.Infrastructure.csproj" />
       <ProjectReference Include="..\OzshBot.Domain\OzshBot.Domain.csproj" />
     </ItemGroup>
 

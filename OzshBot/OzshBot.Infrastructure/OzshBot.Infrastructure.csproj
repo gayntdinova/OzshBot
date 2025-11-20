@@ -10,6 +10,7 @@
         <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.10" />
         <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
         <ProjectReference Include="../OzshBot.Domain/OzshBot.Domain.csproj"/>
+        <ProjectReference Include="..\OzshBot.Application\OzshBot.Application.csproj" />
     </ItemGroup>
 
 </Project>
