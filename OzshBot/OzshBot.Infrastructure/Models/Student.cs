@@ -63,7 +63,7 @@ public class Student
 
 public static class StudentConverter
 {
-    public static Domain.Entities.Child ToDomainCounsellor(this Student student)
+    public static Domain.Entities.ChildInfo ToDomainChild(this Student student)
     {
         var fullName = new FullName
         {
@@ -71,15 +71,13 @@ public static class StudentConverter
             Surname = student.Surname,
             Patronymic = student.Patronymic
         };
-        var tgInfo = new TelegramInfo { TgUsername = student.User.TgName, TgId = student.User.TgId };
-        var educationInfo = new EducationInfo { Class = student.CurrentClass, School = student.School};
-        var result = new Domain.Entities.Child
+        var educationInfo = new EducationInfo { Class = student.CurrentClass, School = student.School };
+        var result = new Domain.Entities.ChildInfo
         {
             Id = student.StudentId,
             FullName = fullName,
-            TelegramInfo = tgInfo,
             Birthday = student.BirthDate,
-            Town = student.City,
+            City = student.City,
             PhoneNumber = student.Phone,
             Email = student.Email,
             Group = student.CurrentGroup,
@@ -88,5 +86,17 @@ public static class StudentConverter
             Sessions = []
         };
         return result;
+    }
+    
+    public static Domain.Entities.User ToDomainUser (this Student student)
+    {
+        var tgInfo = new TelegramInfo { TgUsername = student.User.TgName, TgId = student.User.TgId };
+        return new Domain.Entities.User
+        {
+            Id = student.User.UserId,
+            TelegramInfo = tgInfo,
+            ChildInfo = student.ToDomainChild(),
+            Role = Domain.Enums.Role.Child
+        };
     }
 }

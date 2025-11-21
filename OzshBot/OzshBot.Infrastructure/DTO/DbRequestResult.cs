@@ -4,6 +4,6 @@ namespace OzshBot.Infrastructure.DTO;
 
 public class DbRequestResult
 {
-    public List<Child> Students;
-    public List<Counsellor> Counsellors;
+    public List<ChildInfo> Children;
+    public List<CounsellorInfo> Counsellors;
 }

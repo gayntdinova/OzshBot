@@ -51,7 +51,7 @@ public class Counsellor
 
 public static class CounsellorConverter
 {
-    public static Domain.Entities.Counsellor ToDomainCounsellor(this Counsellor counsellor)
+    public static Domain.Entities.CounsellorInfo ToCounsellorInfo(this Counsellor counsellor)
     {
         var fullName = new FullName
         {
@@ -59,19 +59,29 @@ public static class CounsellorConverter
             Surname = counsellor.Surname,
             Patronymic = counsellor.Patronymic
         };
-        var tgInfo = new TelegramInfo { TgUsername = counsellor.User.TgName, TgId = counsellor.User.TgId};
-        var result = new Domain.Entities.Counsellor
+        var result = new Domain.Entities.CounsellorInfo
         {
             Id = counsellor.CounsellorId,
             FullName = fullName,
-            TelegramInfo = tgInfo,
             Birthday = counsellor.BirthDate,
-            Town = counsellor.City,
+            City = counsellor.City,
             PhoneNumber = counsellor.Phone,
             Email = counsellor.Email,
             Group = counsellor.CurrentGroup,
             Sessions = []
         };
         return result;
+    }
+    
+    public static Domain.Entities.User ToDomainUser (this Counsellor counsellor)
+    {
+        var tgInfo = new TelegramInfo { TgUsername = counsellor.User.TgName, TgId = counsellor.User.TgId };
+        return new Domain.Entities.User
+        {
+            Id = counsellor.User.UserId,
+            TelegramInfo = tgInfo,
+            CounsellorInfo = counsellor.ToCounsellorInfo(),
+            Role = Domain.Enums.Role.Counsellor
+        };
     }
 }

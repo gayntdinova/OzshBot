@@ -1,7 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using OzshBot.Infrastructure.Enums;
+using OzshBot.Domain.Enums;
 
 namespace OzshBot.Infrastructure.Models;
 
