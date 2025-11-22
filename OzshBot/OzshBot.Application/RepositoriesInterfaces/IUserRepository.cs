@@ -13,5 +13,4 @@ public interface IUserRepository
     Task AddUserAsync(User user);
     Task UpdateUserAsync(User user);
     Task DeleteUserAsync(TelegramInfo telegramInfo);
-    Task<bool> ExistUserAsync(TelegramInfo telegramInfo);
 }

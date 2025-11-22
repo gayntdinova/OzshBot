@@ -4,5 +4,6 @@ public enum Role
 {
     Counsellor,
     Child,
-    Developer
+    Developer,
+    Unknown
 }
