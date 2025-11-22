@@ -34,7 +34,7 @@ public class Parent
 
 public static class ParentConverter
 {
-    public static Domain.Entities.ContactPerson ToDOmainContactPerson(this Parent parent)
+    public static Domain.Entities.ParentInfo ToParentInfo(this Parent parent)
     {
         var fullName = new FullName
         {
@@ -42,7 +42,7 @@ public static class ParentConverter
             Surname = parent.Surname,
             Patronymic = parent.Patronymic
         };
-        var result = new Domain.Entities.ContactPerson
+        var result = new Domain.Entities.ParentInfo
         {
             Id = parent.ParentId,
             FullName = fullName,

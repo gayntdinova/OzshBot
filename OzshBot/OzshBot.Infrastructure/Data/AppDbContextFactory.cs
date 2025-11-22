@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using OzshBot.Infrastructure.Models;
 using OzshBot.Infrastructure.Enums;
+using OzshBot.Domain.Enums;
 
 namespace OzshBot.Infrastructure.Data
 {

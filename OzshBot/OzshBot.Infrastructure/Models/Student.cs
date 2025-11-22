@@ -63,7 +63,7 @@ public class Student
 
 public static class StudentConverter
 {
-    public static Domain.Entities.ChildInfo ToDomainChild(this Student student)
+    public static Domain.Entities.ChildInfo ToChildInfo(this Student student)
     {
         var fullName = new FullName
         {
@@ -82,7 +82,7 @@ public static class StudentConverter
             Email = student.Email,
             Group = student.CurrentGroup,
             EducationInfo = educationInfo,
-            Parents = student.Parents.Select(p => p.ToDOmainContactPerson()).ToList(),
+            Parents = student.Parents.Select(p => p.ToParentInfo()).ToArray(),
             Sessions = []
         };
         return result;
@@ -95,7 +95,7 @@ public static class StudentConverter
         {
             Id = student.User.UserId,
             TelegramInfo = tgInfo,
-            ChildInfo = student.ToDomainChild(),
+            ChildInfo = student.ToChildInfo(),
             Role = Domain.Enums.Role.Child
         };
     }

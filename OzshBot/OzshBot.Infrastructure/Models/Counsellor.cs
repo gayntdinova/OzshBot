@@ -81,6 +81,7 @@ public static class CounsellorConverter
             Id = counsellor.User.UserId,
             TelegramInfo = tgInfo,
             CounsellorInfo = counsellor.ToCounsellorInfo(),
+            ChildInfo = counsellor.User.Student?.ToChildInfo(),
             Role = Domain.Enums.Role.Counsellor
         };
     }

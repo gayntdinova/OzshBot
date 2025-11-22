@@ -7,9 +7,10 @@ namespace OzshBot.Infrastructure.Data
     public class AppDbContext : DbContext
     {
         public DbSet<User> Users { get; set; }
-        public DbSet<Student> People { get; set; }
+        public DbSet<Student> Students { get; set; }
+        public DbSet<Counsellor> Counsellors { get; set; }
         public DbSet<Parent> Parents { get; set; }
-        public DbSet<ChildParent> PeopleParents;
+        public DbSet<ChildParent> PeopleParents { get; set; }
         public DbSet<Session> Sessions { get; set; }
         public DbSet<AccessRight> AccessRights { get; set; }
 
@@ -73,7 +74,7 @@ namespace OzshBot.Infrastructure.Data
                 entity.HasIndex(p => p.UserId).IsUnique();
                 entity.HasOne(p => p.User)
                       .WithOne(u => u.Counsellor)
-                      .HasForeignKey<Student>(p => p.UserId)
+                      .HasForeignKey<Counsellor>(p => p.UserId)
                       .OnDelete(DeleteBehavior.Cascade);
 
                 entity.Property(p => p.Name).IsRequired();

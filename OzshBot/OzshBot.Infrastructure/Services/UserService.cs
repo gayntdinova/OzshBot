@@ -1,56 +1,96 @@
 using Microsoft.EntityFrameworkCore;
 using OzshBot.Infrastructure.Data;
-using OzshBot.Domain.Entities;
-using OzshBot.Infrastructure.Enums;
+using OzshBot.Application.RepositoriesInterfaces;
+using OzshBot.Domain.ValueObjects;
+using OzshBot.Infrastructure.Models;
 
-namespace OzshBot.Infrastructure.Services
+namespace OzshBot.Infrastructure.Services;
+
+public class UserService(AppDbContext context) : IUserRepository
 {
-    public class UserService(AppDbContext context)
+    private readonly AppDbContext context = context;
+
+    public async Task<bool> UserExistsAsync(string telegramName)
     {
-        private readonly AppDbContext context = context;
+        return await context.Users.AnyAsync(u => u.TgName == telegramName);
+    }
 
-        public async Task<User?> GetUserByTgIdAsync(long tgId)
+    public async Task<Domain.Entities.User?> FindUserByTgAsync(TelegramInfo telegramInfo)
+    {
+        var dbUser = await context.Users
+            .Include(u => u.Student)
+                .ThenInclude(s => s.Relations)
+                .ThenInclude(r => r.Parent)
+            .Include(u => u.Counsellor)
+            .Where(u => u.TgName == telegramInfo.TgUsername)
+            .FirstOrDefaultAsync();
+        if (dbUser == null)
+            return null;
+        if (telegramInfo.TgId != 0 && dbUser.TgId != 0 && dbUser.TgId != telegramInfo.TgId)
+            return null;
+        return dbUser.ToDomainUser();
+    }
+
+    public async Task<Domain.Entities.User[]?> FindUsersByFullNameAsync(FullName fullName)
+    {
+        var userQuery = context.Users
+        .Include(u => u.Student)
+            .ThenInclude(s => s.Relations)
+            .ThenInclude(r => r.Parent)
+        .Include(u => u.Counsellor)
+        .Where(u => (u.Student != null &&
+                    u.Student.Name == fullName.Name &&
+                    u.Student.Surname == fullName.Surname) ||
+                   (u.Counsellor != null &&
+                    u.Counsellor.Name == fullName.Name &&
+                    u.Counsellor.Surname == fullName.Surname));
+
+        if (!string.IsNullOrWhiteSpace(fullName.Patronymic))
         {
-            return await context.Users
-                .Include(u => u.Student)
-                .Include(u => u.Counsellor)
-                .Include(u => u.AccessRight)
-                .FirstOrDefaultAsync(u => u.TgId == tgId);
+            userQuery = userQuery.Where(u =>
+                (u.Student != null && u.Student.Patronymic != null &&
+                 u.Student.Patronymic == fullName.Patronymic) ||
+                (u.Counsellor != null && u.Counsellor.Patronymic != null &&
+                 u.Counsellor.Patronymic == fullName.Patronymic));
         }
 
-        public async Task<User?> GetUserByTgNameAsync(string tgName)
-        {
-            return await context.Users
-                .Include(u => u.Student)
-                .Include(u => u.Counsellor)
-                .Include(u => u.AccessRight)
-                .FirstOrDefaultAsync(u => u.TgName == tgName);
-        }
+        var users = await userQuery.ToArrayAsync();
+        var domainUsers = users.Select(u => u.ToDomainUser()).ToArray();
+        return domainUsers.Length > 0 ? domainUsers : null;
+    }
 
-        public async Task<User> CreateUserAsync(string telegramName, long? telegramId = null)
-        {
-            var user = new User
-            {
-                TgName = telegramName,
-                TgId = telegramId ?? 0
-            };
+    public Task<Domain.Entities.User[]?> FindUsersByTownAsync(string town)
+    {
+        throw new NotImplementedException();
+    }
 
-            context.Users.Add(user);
-            await context.SaveChangesAsync();
-            var accessRight = new AccessRight
-            {
-                UserId = user.UserId,
-                Rights = Access.Read
-            };
-            context.AccessRights.Add(accessRight);
-            await context.SaveChangesAsync();
-        
-            return user;
-        }
+    public Task<Domain.Entities.User[]?> FindUsersByClassAsync(int classNumber)
+    {
+        throw new NotImplementedException();
+    }
 
-        public async Task<bool> UserExistsAsync(string telegramName)
-        {
-            return await context.Users.AnyAsync(u => u.TgName == telegramName);
-        }
+    public Task<Domain.Entities.User[]?> FindUsersByGroupAsync(int group)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task AddUserAsync(Domain.Entities.User user)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task UpdateUserAsync(Domain.Entities.User user)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task DeleteUserAsync(TelegramInfo telegramInfo)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<bool> ExistUserAsync(TelegramInfo telegramInfo)
+    {
+        throw new NotImplementedException();
     }
 }
