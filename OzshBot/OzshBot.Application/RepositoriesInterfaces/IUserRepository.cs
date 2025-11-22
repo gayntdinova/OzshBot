@@ -12,6 +12,6 @@ public interface IUserRepository
     Task<User[]?> FindUsersByGroupAsync(int group);
     Task AddUserAsync(User user);
     Task UpdateUserAsync(User user);
-    Task DeleteUserAsync(User user);
+    Task DeleteUserAsync(TelegramInfo telegramInfo);
     Task<bool> ExistUserAsync(TelegramInfo telegramInfo);
 }
