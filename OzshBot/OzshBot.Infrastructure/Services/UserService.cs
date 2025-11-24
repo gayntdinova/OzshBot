@@ -59,19 +59,40 @@ public class UserService(AppDbContext context) : IUserRepository
         return domainUsers.Length > 0 ? domainUsers : null;
     }
 
-    public Task<Domain.Entities.User[]?> FindUsersByTownAsync(string town)
+    public async Task<Domain.Entities.User[]?> FindUsersByTownAsync(string town)
     {
-        throw new NotImplementedException();
+        return await context.Users
+            .Include(u => u.Student)
+                .ThenInclude(s => s.Relations)
+                .ThenInclude(r => r.Parent)
+            .Include(u => u.Counsellor)
+            .Where(u => (u.Student != null && u.Student.City == town) || (u.Counsellor != null && u.Counsellor.City == town))
+            .Select(u => u.ToDomainUser())
+            .ToArrayAsync();
     }
 
-    public Task<Domain.Entities.User[]?> FindUsersByClassAsync(int classNumber)
+    public async Task<Domain.Entities.User[]?> FindUsersByClassAsync(int classNumber)
     {
-        throw new NotImplementedException();
+        return await context.Users
+            .Include(u => u.Student)
+                .ThenInclude(s => s.Relations)
+                .ThenInclude(r => r.Parent)
+            .Include(u => u.Counsellor)
+            .Where(u => u.Student != null && u.Student.CurrentClass == classNumber)
+            .Select(u => u.ToDomainUser())
+            .ToArrayAsync();
     }
 
-    public Task<Domain.Entities.User[]?> FindUsersByGroupAsync(int group)
+    public async Task<Domain.Entities.User[]?> FindUsersByGroupAsync(int group)
     {
-        throw new NotImplementedException();
+        return await context.Users
+            .Include(u => u.Student)
+                .ThenInclude(s => s.Relations)
+                .ThenInclude(r => r.Parent)
+            .Include(u => u.Counsellor)
+            .Where(u => (u.Student != null && u.Student.CurrentGroup == group) || (u.Counsellor != null && u.Counsellor.CurrentGroup == group))
+            .Select(u => u.ToDomainUser())
+            .ToArrayAsync();
     }
 
     public Task AddUserAsync(Domain.Entities.User user)
