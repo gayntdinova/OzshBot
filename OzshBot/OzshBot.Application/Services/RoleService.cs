@@ -1,3 +1,4 @@
+using FluentResults;
 using OzshBot.Application.RepositoriesInterfaces;
 using OzshBot.Application.Services.Interfaces;
 using OzshBot.Domain.Entities;
@@ -19,10 +20,10 @@ public class RoleService: IRoleService
         return user?.Role ?? Role.Unknown;
     }
 
-    public async Task<User> PromoteToCounsellor(TelegramInfo telegramInfo)
+    public async Task<Result<User>> PromoteToCounsellor(TelegramInfo telegramInfo)
     {
-        //обработка null
         var user = await userRepository.FindUserByTgAsync(telegramInfo);
+        if (user == null) return Result.Fail("User not found");
         var counsellorInfo = new CounsellorInfo
         {
             FullName = user.ChildInfo.FullName,
@@ -35,6 +36,6 @@ public class RoleService: IRoleService
         };
         user.CounsellorInfo = counsellorInfo;
         await userRepository.UpdateUserAsync(user);
-        return user;
+        return Result.Ok(user);
     }
 }

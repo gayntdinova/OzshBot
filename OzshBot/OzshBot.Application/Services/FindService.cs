@@ -13,7 +13,8 @@ public class FindService: IFindService
     {
         this.userRepository = userRepository;
     }
-    public async Task<Result<User>> FindUserByTgAsync(TelegramInfo telegramInfo)
+
+    private async Task<Result<User>> FindUserByTgAsync(TelegramInfo telegramInfo)
     {
         var user = await userRepository.FindUserByTgAsync(telegramInfo);
         return user == null 
@@ -21,28 +22,36 @@ public class FindService: IFindService
             : Result.Ok(user);
     }
 
-    public async Task<User[]> FindUsersByFullNameAsync(FullName fullName)
+    private async Task<Result<User[]>> FindUsersByFullNameAsync(FullName fullName)
     {
         var users = await userRepository.FindUsersByFullNameAsync(fullName);
-        return users;
+        return users == null
+            ? Result.Fail($"users with {} was not found")//todo check what exactly was completed in the fullname
+            : Result.Ok(users);
     }
 
-    public async Task<User[]> FindUsersByTownAsync(string town)
+    private async Task<Result<User[]>> FindUsersByTownAsync(string town)
     {
         var users = await userRepository.FindUsersByTownAsync(town);
-        return users;
+        return users == null
+            ? Result.Fail($"users with {town} was not found")
+            : Result.Ok(users);
     }
 
-    public async Task<User[]> FindUsersByClassAsync(int classNumber)
+    public async Task<Result<User[]>> FindUsersByClassAsync(int classNumber)
     {
         var users = await userRepository.FindUsersByClassAsync(classNumber);
-        return users;
+        return users == null
+            ? Result.Fail($"users with {classNumber} was not found")
+            : Result.Ok(users);
     }
 
-    public async Task<User[]> FindUsersByGroupAsync(int group)
+    public async Task<Result<User[]>> FindUsersByGroupAsync(int group)
     {
         var users = await userRepository.FindUsersByGroupAsync(group);
-        return users;
+        return users == null
+            ? Result.Fail($"users with {group} was not found")
+            : Result.Ok(users);
     }
 
     public Task<Result<User[]>> FindUserAsync(string target)
