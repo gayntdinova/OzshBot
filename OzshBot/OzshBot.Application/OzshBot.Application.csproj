@@ -12,10 +12,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Converters\" />
-    </ItemGroup>
-
-    <ItemGroup>
       <PackageReference Include="FluentResults" Version="4.0.0" />
       <PackageReference Include="OneOf" Version="3.0.271" />
     </ItemGroup>
