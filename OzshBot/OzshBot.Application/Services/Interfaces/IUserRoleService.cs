@@ -5,7 +5,7 @@ using OzshBot.Domain.ValueObjects;
 
 namespace OzshBot.Application.Services.Interfaces;
 
-public interface IRoleService
+public interface IUserRoleService
 {
     public Task<Role> GetUserRole(TelegramInfo telegramInfo);
     public Task<Result<User>> PromoteToCounsellor(TelegramInfo telegramInfo);

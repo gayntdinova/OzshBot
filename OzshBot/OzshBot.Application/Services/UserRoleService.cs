@@ -7,10 +7,10 @@ using OzshBot.Domain.ValueObjects;
 
 namespace OzshBot.Application.Services;
 
-public class RoleService: IRoleService
+public class UserRoleService: IUserRoleService
 {
     private readonly IUserRepository userRepository;
-    public RoleService(IUserRepository userRepository)
+    public UserRoleService(IUserRepository userRepository)
     {
         this.userRepository = userRepository;
     }

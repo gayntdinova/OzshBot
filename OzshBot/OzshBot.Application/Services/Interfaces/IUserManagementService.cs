@@ -5,14 +5,15 @@ using OzshBot.Domain.ValueObjects;
 
 namespace OzshBot.Application.Services.Interfaces;
 
-public interface IEditService
+public interface IUserManagementService
 {
     public Task<Result<User>> EditCounsellorAsync(CounsellorDto user);
     public Task<Result<User>> AddCounsellorAsync(CounsellorDto user);
     public Task<Result> DeleteCounsellorAsync(CounsellorDto user);
+    
     public Task<Result<User>> EditChildAsync(ChildDto user);
     public Task<Result<User>> AddChildAsync(ChildDto user);
     public Task<Result> DeleteChildAsync(ChildDto user);
 
-    public Task<Result> LoadTable(DateOfSession date, string link);
+    public Task<Result> LoadTable(string link);
 }

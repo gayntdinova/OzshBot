@@ -6,7 +6,7 @@ using OzshBot.Domain.ValueObjects;
 
 namespace OzshBot.Application.Services;
 
-public class EditService: IEditService 
+public class UserManagementService: IUserManagementService 
 {
     public async Task<Result<User>> EditCounsellorAsync(CounsellorDto user)
     {
@@ -39,7 +39,7 @@ public class EditService: IEditService
         throw new NotImplementedException();
     }
 
-    public Task<Result> LoadTable(DateOfSession date, string link)
+    public Task<Result> LoadTable(string link)
     {
         throw new NotImplementedException();
     }

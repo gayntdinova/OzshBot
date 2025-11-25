@@ -4,7 +4,7 @@ using OzshBot.Domain.ValueObjects;
 
 namespace OzshBot.Application.Services.Interfaces;
 
-public interface IFindService
+public interface IUserFindService
 {
     public Task<Result<User[]>> FindUsersByClassAsync(int classNumber);
     public Task<Result<User[]>> FindUsersByGroupAsync(int group);

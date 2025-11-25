@@ -6,14 +6,35 @@ using OzshBot.Domain.ValueObjects;
 
 namespace OzshBot.Application.Services;
 
-public class FindService: IFindService
+public class UserFindService: IUserFindService
 {
     private readonly IUserRepository userRepository;
-    public FindService(IUserRepository userRepository)
+    public UserFindService(IUserRepository userRepository)
     {
         this.userRepository = userRepository;
     }
 
+    public async Task<Result<User[]>> FindUsersByClassAsync(int classNumber)
+    {
+        var users = await userRepository.FindUsersByClassAsync(classNumber);
+        return users == null
+            ? Result.Fail($"users with {classNumber} was not found")
+            : Result.Ok(users);
+    }
+
+    public async Task<Result<User[]>> FindUsersByGroupAsync(int group)
+    {
+        var users = await userRepository.FindUsersByGroupAsync(group);
+        return users == null
+            ? Result.Fail($"users with {group} was not found")
+            : Result.Ok(users);
+    }
+
+    public Task<Result<User[]>> FindUserAsync(string target)
+    {
+        throw new NotImplementedException();
+    }
+    
     private async Task<Result<User>> FindUserByTgAsync(TelegramInfo telegramInfo)
     {
         var user = await userRepository.FindUserByTgAsync(telegramInfo);
@@ -36,26 +57,5 @@ public class FindService: IFindService
         return users == null
             ? Result.Fail($"users with {town} was not found")
             : Result.Ok(users);
-    }
-
-    public async Task<Result<User[]>> FindUsersByClassAsync(int classNumber)
-    {
-        var users = await userRepository.FindUsersByClassAsync(classNumber);
-        return users == null
-            ? Result.Fail($"users with {classNumber} was not found")
-            : Result.Ok(users);
-    }
-
-    public async Task<Result<User[]>> FindUsersByGroupAsync(int group)
-    {
-        var users = await userRepository.FindUsersByGroupAsync(group);
-        return users == null
-            ? Result.Fail($"users with {group} was not found")
-            : Result.Ok(users);
-    }
-
-    public Task<Result<User[]>> FindUserAsync(string target)
-    {
-        throw new NotImplementedException();
     }
 }
