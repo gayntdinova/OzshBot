@@ -5,13 +5,12 @@ namespace OzshBot.Application.RepositoriesInterfaces;
 
 public interface IUserRepository
 {
-    Task<User?> FindUserByTgAsync(TelegramInfo telegramInfo);
-    Task<User[]?> FindUsersByFullNameAsync(FullName fullName);
-    Task<User[]?> FindUsersByTownAsync(string town);
-    Task<User[]?> FindUsersByClassAsync(int classNumber);
-    Task<User[]?> FindUsersByGroupAsync(int group);
+    Task<User?> GetUserByTgAsync(TelegramInfo telegramInfo);
+    Task<User[]?> GetUsersByFullNameAsync(FullName fullName);
+    Task<User[]?> GetUsersByTownAsync(string town);
+    Task<User[]?> GetUsersByClassAsync(int classNumber);
+    Task<User[]?> GetUsersByGroupAsync(int group);
     Task AddUserAsync(User user);
     Task UpdateUserAsync(User user);
     Task DeleteUserAsync(TelegramInfo telegramInfo);
-    Task<bool> ExistUserAsync(TelegramInfo telegramInfo);
 }
