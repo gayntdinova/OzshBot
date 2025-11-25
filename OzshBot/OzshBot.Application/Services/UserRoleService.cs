@@ -16,13 +16,13 @@ public class UserRoleService: IUserRoleService
     }
     public async Task<Role> GetUserRole(TelegramInfo telegramInfo)
     {
-        var user = await userRepository.FindUserByTgAsync(telegramInfo);
+        var user = await userRepository.GetUserByTgAsync(telegramInfo);
         return user?.Role ?? Role.Unknown;
     }
 
     public async Task<Result<User>> PromoteToCounsellor(TelegramInfo telegramInfo)
     {
-        var user = await userRepository.FindUserByTgAsync(telegramInfo);
+        var user = await userRepository.GetUserByTgAsync(telegramInfo);
         if (user == null) return Result.Fail("User not found");
         var counsellorInfo = new CounsellorInfo
         {
