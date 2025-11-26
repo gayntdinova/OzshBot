@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using OzshBot.Domain.Entities;
 using OzshBot.Domain.ValueObjects;
 
 namespace OzshBot.Infrastructure.Models;
@@ -49,5 +50,17 @@ public static class ParentConverter
             PhoneNumber = parent.Phone
         };
         return result;
+    }
+
+    public static Parent FromParentInfo(ParentInfo parentInfo)
+    {
+        return new Parent
+        {
+            ParentId = parentInfo.Id,
+            Name = parentInfo.FullName.Name,
+            Surname = parentInfo.FullName.Surname,
+            Patronymic = parentInfo.FullName.Patronymic,
+            Phone = parentInfo.PhoneNumber
+        };
     }
 }

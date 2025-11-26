@@ -18,7 +18,7 @@ public class User
     [Column(name: "tg_name")]
     public required string TgName { get; set; }
     [Column(name: "tg_id")]
-    public long TgId { get; set; }
+    public long? TgId { get; set; }
 
     [Column(name: "role")]
     public Role Role { get; set; }
@@ -40,6 +40,16 @@ public static class UserConverter
             Role = user.Role,
             ChildInfo = user.Student?.ToChildInfo(),
             CounsellorInfo = user.Counsellor?.ToCounsellorInfo()
+        };
+    }
+
+    public static User FromDomainUser(Domain.Entities.User user)
+    {
+        return new User
+        {
+            UserId = user.Id,
+            TgId = user.TelegramInfo.TgId,
+            TgName = user.TelegramInfo.TgUsername
         };
     }
 }

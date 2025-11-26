@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using OzshBot.Domain.Entities;
 using OzshBot.Domain.ValueObjects;
 
 namespace OzshBot.Infrastructure.Models;
@@ -35,7 +36,7 @@ public class Counsellor
     public DateOnly BirthDate { get; set; } //TODO мне кажется можно и в домене сделать DateOnly?
 
     [Column(name: "current_group")]
-    public int CurrentGroup { get; set; }
+    public int? CurrentGroup { get; set; }
 
     [Required]
     [Column(name: "email")]
@@ -72,8 +73,8 @@ public static class CounsellorConverter
         };
         return result;
     }
-    
-    public static Domain.Entities.User ToDomainUser (this Counsellor counsellor)
+
+    public static Domain.Entities.User ToDomainUser(this Counsellor counsellor)
     {
         var tgInfo = new TelegramInfo { TgUsername = counsellor.User.TgName, TgId = counsellor.User.TgId };
         return new Domain.Entities.User
@@ -83,6 +84,41 @@ public static class CounsellorConverter
             CounsellorInfo = counsellor.ToCounsellorInfo(),
             ChildInfo = counsellor.User.Student?.ToChildInfo(),
             Role = Domain.Enums.Role.Counsellor
+        };
+    }
+
+    public static Counsellor? FromCounsellorInfo(CounsellorInfo? counsellorInfo)
+    {
+        if (counsellorInfo == null) return null;
+        return new Counsellor
+        {
+            CounsellorId = counsellorInfo.Id,
+            Name = counsellorInfo.FullName.Name,
+            Surname = counsellorInfo.FullName.Surname,
+            Patronymic = counsellorInfo.FullName.Patronymic,
+            City = counsellorInfo.City,
+            BirthDate = counsellorInfo.Birthday,
+            CurrentGroup = counsellorInfo.Group,
+            Email = counsellorInfo.Email,
+            Phone = counsellorInfo.PhoneNumber
+        };
+    }
+    
+    public static Counsellor? FromCounsellorInfo (CounsellorInfo? counsellorInfo, Domain.Entities.User user)
+    {
+        if (counsellorInfo == null) return null;
+        return new Counsellor
+        {
+            UserId = user.Id,
+            CounsellorId = counsellorInfo.Id,
+            Name = counsellorInfo.FullName.Name,
+            Surname = counsellorInfo.FullName.Surname,
+            Patronymic = counsellorInfo.FullName.Patronymic,
+            City = counsellorInfo.City,
+            BirthDate = counsellorInfo.Birthday,
+            CurrentGroup = counsellorInfo.Group,
+            Email = counsellorInfo.Email,
+            Phone = counsellorInfo.PhoneNumber
         };
     }
 }

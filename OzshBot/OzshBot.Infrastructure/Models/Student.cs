@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using OzshBot.Domain.Entities;
 using OzshBot.Domain.ValueObjects;
 using OzshBot.Infrastructure.Enums;
 
@@ -43,7 +44,7 @@ public class Student
     [Column(name: "current_class")]
     public int CurrentClass { get; set; }
     [Column(name: "current_group")]
-    public int CurrentGroup { get; set; }
+    public int? CurrentGroup { get; set; }
 
     [Required]
     [Column(name: "email")]
@@ -87,8 +88,8 @@ public static class StudentConverter
         };
         return result;
     }
-    
-    public static Domain.Entities.User ToDomainUser (this Student student)
+
+    public static Domain.Entities.User ToDomainUser(this Student student)
     {
         var tgInfo = new TelegramInfo { TgUsername = student.User.TgName, TgId = student.User.TgId };
         return new Domain.Entities.User
@@ -97,6 +98,47 @@ public static class StudentConverter
             TelegramInfo = tgInfo,
             ChildInfo = student.ToChildInfo(),
             Role = Domain.Enums.Role.Child
+        };
+    }
+
+    public static Student? FromChildInfo(ChildInfo? childInfo)
+    {
+        if (childInfo == null) return null;
+        var parents = childInfo.Parents?.Select(p => ParentConverter.FromParentInfo(p)).ToList();
+        return new Student
+        {
+            StudentId = childInfo.Id,
+            Name = childInfo.FullName.Name,
+            Surname = childInfo.FullName.Surname,
+            Patronymic = childInfo.FullName.Patronymic,
+            City = childInfo.City,
+            School = childInfo.EducationInfo.School,
+            CurrentClass = childInfo.EducationInfo.Class,
+            BirthDate = childInfo.Birthday,
+            CurrentGroup = childInfo.Group,
+            Email = childInfo.Email,
+            Phone = childInfo.PhoneNumber,
+        };
+    }
+    
+    public static Student? FromChildInfo(ChildInfo? childInfo, Domain.Entities.User user)
+    {
+        if (childInfo == null) return null;
+        var parents = childInfo.Parents?.Select(p => ParentConverter.FromParentInfo(p)).ToList();
+        return new Student
+        {
+            UserId = user.Id,
+            StudentId = childInfo.Id,
+            Name = childInfo.FullName.Name,
+            Surname = childInfo.FullName.Surname,
+            Patronymic = childInfo.FullName.Patronymic,
+            City = childInfo.City,
+            School = childInfo.EducationInfo.School,
+            CurrentClass = childInfo.EducationInfo.Class,
+            BirthDate = childInfo.Birthday,
+            CurrentGroup = childInfo.Group,
+            Email = childInfo.Email,
+            Phone = childInfo.PhoneNumber,
         };
     }
 }
