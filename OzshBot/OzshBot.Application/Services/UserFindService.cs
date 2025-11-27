@@ -13,16 +13,16 @@ public class UserFindService: IUserFindService
     {
         this.userRepository = userRepository;
     }
-
-    public async Task<Result<User[]>> FindUsersByClassAsync(int classNumber)
+    
+    public async Task<Result<IEnumerable<User>>> FindUsersByClassAsync(int classNumber)
     {
         var users = await userRepository.GetUsersByClassAsync(classNumber);
         return users == null
             ? Result.Fail($"users with {classNumber} was not found")
             : Result.Ok(users);
     }
-
-    public async Task<Result<User[]>> FindUsersByGroupAsync(int group)
+    
+    public async Task<Result<IEnumerable<User>>> FindUsersByGroupAsync(int group)
     {
         var users = await userRepository.GetUsersByGroupAsync(group);
         return users == null
@@ -30,47 +30,46 @@ public class UserFindService: IUserFindService
             : Result.Ok(users);
     }
 
-    public async Task<Result<User[]>> FindUserAsync(string target)
+    public async Task<Result<IEnumerable<User>>> FindUserAsync(string input)
     {
-        var splitedTarget = target.Split(" ");
-        if (splitedTarget.Length == 1)
+        var splitedInput = input.Split(" ");
+        if (splitedInput.Length == 1)
         {
-            target = target.Replace("@", "");
-            var userByTg = await FindUserByTgAsync(new TelegramInfo() { TgId = null, TgUsername = target });
-            if (userByTg.IsSuccess) return Result.Ok(new []{userByTg.Value});
+            input = input.Replace("@", "");
+            var userByTg = await FindUserByTgAsync(new TelegramInfo { TgId = null, TgUsername = input });
+            if (userByTg.IsSuccess) return Result.Ok<IEnumerable<User>>([userByTg.Value]);
         }
 
-        var usersByTown = await FindUsersByTownAsync(target);
+        var usersByTown = await FindUsersByTownAsync(input);
         if (usersByTown.IsSuccess) return Result.Ok(usersByTown.Value);
-        var combinations = MakeCombinationsFIOBystring(splitedTarget);
+        
+        var combinations = GenerateFullNameCombinationsByInput(splitedInput);
         foreach (var combination in combinations)
         {
-            var userByFullName = await FindUsersByFullNameAsync(null);
+            var userByFullName = await FindUsersByFullNameAsync(combination);
             if (userByFullName.IsSuccess) return Result.Ok(userByFullName.Value);
         }
-        return Result.Fail($"users with {target} was not found");
+        return Result.Fail($"users with {input} was not found");
     }
 
-    private List<FullName> MakeCombinationsFIOBystring(string[] splitedTarget)
+    private static List<FullName> GenerateFullNameCombinationsByInput(string[] splitedTarget)
     {
         var fullNameCombinations = new List<FullName>();
-        if (splitedTarget.Length == 1)
+        switch (splitedTarget.Length)
         {
-            fullNameCombinations.Add(new FullName(name: splitedTarget[0]));
-            fullNameCombinations.Add(new FullName(surname: splitedTarget[0]));
-            fullNameCombinations.Add(new FullName(patronymic: splitedTarget[0]));
-        }
-
-        if (splitedTarget.Length == 2)
-        {
-            fullNameCombinations.Add(new FullName(name: splitedTarget[0], surname: splitedTarget[1]));
-            fullNameCombinations.Add(new FullName(name: splitedTarget[1], surname: splitedTarget[0]));
-            fullNameCombinations.Add(new FullName(name: splitedTarget[0], patronymic: splitedTarget[1]));
-        }
-
-        if (splitedTarget.Length == 3)
-        {
-            fullNameCombinations.Add(new FullName(name: splitedTarget[1], surname: splitedTarget[0], patronymic: splitedTarget[2]));
+            case 1:
+                fullNameCombinations.Add(new FullName(name: splitedTarget[0]));
+                fullNameCombinations.Add(new FullName(surname: splitedTarget[0]));
+                fullNameCombinations.Add(new FullName(patronymic: splitedTarget[0]));
+                break;
+            case 2:
+                fullNameCombinations.Add(new FullName(name: splitedTarget[0], surname: splitedTarget[1]));
+                fullNameCombinations.Add(new FullName(name: splitedTarget[1], surname: splitedTarget[0]));
+                fullNameCombinations.Add(new FullName(name: splitedTarget[0], patronymic: splitedTarget[1]));
+                break;
+            case 3:
+                fullNameCombinations.Add(new FullName(name: splitedTarget[1], surname: splitedTarget[0], patronymic: splitedTarget[2]));
+                break;
         }
 
         return fullNameCombinations;
@@ -84,7 +83,7 @@ public class UserFindService: IUserFindService
             : Result.Ok(user);
     }
 
-    private async Task<Result<User[]>> FindUsersByFullNameAsync(FullName fullName)
+    private async Task<Result<IEnumerable<User>>> FindUsersByFullNameAsync(FullName fullName)
     {
         var users = await userRepository.GetUsersByFullNameAsync(fullName);
         return users == null
@@ -92,7 +91,7 @@ public class UserFindService: IUserFindService
             : Result.Ok(users);
     }
 
-    private async Task<Result<User[]>> FindUsersByTownAsync(string town)
+    private async Task<Result<IEnumerable<User>>> FindUsersByTownAsync(string town)
     {
         var users = await userRepository.GetUsersByTownAsync(town);
         return users == null
