@@ -78,7 +78,7 @@ public class DbRepository(AppDbContext context) : IUserRepository
             .ToArrayAsync();
     }
 
-    public async Task<Domain.Entities.User[]?> GetUsersByGroupAsync(int group)
+    public async Task<Domain.Entities.User?[]> GetUsersByGroupAsync(int group)
     {
         return await context.Users
             .Include(u => u.Student)

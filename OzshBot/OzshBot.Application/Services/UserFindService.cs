@@ -47,7 +47,7 @@ public class UserFindService: IUserFindService
     {
         var users = await userRepository.GetUsersByFullNameAsync(fullName);
         return users == null
-            ? Result.Fail($"users with {} was not found")//todo check what exactly was completed in the fullname
+            ? Result.Fail($"users with {fullName.Name} {fullName.Surname} {fullName.Patronymic} was not found")//todo check what exactly was completed in the fullname
             : Result.Ok(users);
     }
 
