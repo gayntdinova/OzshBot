@@ -32,7 +32,7 @@ public class UserRoleService: IUserRoleService
             PhoneNumber = user.ChildInfo.PhoneNumber,
             Email = user.ChildInfo.Email,
             Group = user.ChildInfo.Group,
-            Sessions = new Session[0]
+            Sessions = []
         };
         user.CounsellorInfo = counsellorInfo;
         await userRepository.UpdateUserAsync(user);
