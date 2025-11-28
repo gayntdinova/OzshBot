@@ -35,7 +35,7 @@ public class Parent
 
 public static class ParentConverter
 {
-    public static Domain.Entities.ParentInfo ToParentInfo(this Parent parent)
+    public static ContactPerson ToContactPerson(this Parent parent)
     {
         var fullName = new FullName
         {
@@ -43,7 +43,7 @@ public static class ParentConverter
             Surname = parent.Surname,
             Patronymic = parent.Patronymic
         };
-        var result = new Domain.Entities.ParentInfo
+        var result = new ContactPerson
         {
             Id = parent.ParentId,
             FullName = fullName,
@@ -52,7 +52,7 @@ public static class ParentConverter
         return result;
     }
 
-    public static Parent FromParentInfo(ParentInfo parentInfo)
+    public static Parent FromParentInfo(ContactPerson parentInfo)
     {
         return new Parent
         {

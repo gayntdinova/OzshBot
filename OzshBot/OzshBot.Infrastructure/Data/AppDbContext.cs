@@ -10,7 +10,7 @@ public class AppDbContext : DbContext
     public DbSet<Student> Students { get; set; }
     public DbSet<Counsellor> Counsellors { get; set; }
     public DbSet<Parent> Parents { get; set; }
-    public DbSet<ChildParent> PeopleParents { get; set; }
+    public DbSet<ChildParent> ChildrenParents { get; set; }
     public DbSet<Session> Sessions { get; set; }
     public DbSet<AccessRight> AccessRights { get; set; }
 

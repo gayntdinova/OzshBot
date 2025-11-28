@@ -63,81 +63,46 @@ public class Student
 
 public static class StudentConverter
 {
-    public static Domain.Entities.ChildInfo ToChildInfo(this Student student)
+    public static ChildInfo ToChildInfo(this Student student)
     {
+        var educationInfo = new EducationInfo { Class = student.CurrentClass, School = student.School };
+        var result = new ChildInfo
+        {
+            Group = student.CurrentGroup,
+            EducationInfo = educationInfo,
+            ContactPeople = student.Parents.Select(p => p.ToContactPerson()).ToArray(),
+            Sessions = []
+        };
+        return result;
+    }
+
+    public static void UpdateFromChildInfo(this Student student, ChildInfo childInfo)
+    {
+        student.School = childInfo.EducationInfo.School;
+        student.CurrentClass = childInfo.EducationInfo.Class;
+        student.CurrentGroup = childInfo.Group;
+    }
+
+    public static Domain.Entities.User ToDomainUser(this Student student)
+    {
+        var tgInfo = new TelegramInfo { TgUsername = student.User.TgName, TgId = student.User.TgId };
         var fullName = new FullName
         {
             Name = student.Name,
             Surname = student.Surname,
             Patronymic = student.Patronymic
         };
-        var educationInfo = new EducationInfo { Class = student.CurrentClass, School = student.School };
-        var result = new Domain.Entities.ChildInfo
-        {
-            Id = student.StudentId,
-            FullName = fullName,
-            Birthday = student.BirthDate,
-            City = student.City,
-            PhoneNumber = student.Phone,
-            Email = student.Email,
-            Group = student.CurrentGroup,
-            EducationInfo = educationInfo,
-            Parents = student.Parents.Select(p => p.ToParentInfo()).ToArray(),
-            Sessions = []
-        };
-        return result;
-    }
-
-    public static Domain.Entities.User ToDomainUser(this Student student)
-    {
-        var tgInfo = new TelegramInfo { TgUsername = student.User.TgName, TgId = student.User.TgId };
         return new Domain.Entities.User
         {
             Id = student.User.UserId,
             TelegramInfo = tgInfo,
+            FullName = fullName,
             ChildInfo = student.ToChildInfo(),
-            Role = Domain.Enums.Role.Child
-        };
-    }
-
-    public static Student? FromChildInfo(ChildInfo? childInfo)
-    {
-        if (childInfo == null) return null;
-        var parents = childInfo.Parents?.Select(p => ParentConverter.FromParentInfo(p)).ToList();
-        return new Student
-        {
-            StudentId = childInfo.Id,
-            Name = childInfo.FullName.Name,
-            Surname = childInfo.FullName.Surname,
-            Patronymic = childInfo.FullName.Patronymic,
-            City = childInfo.City,
-            School = childInfo.EducationInfo.School,
-            CurrentClass = childInfo.EducationInfo.Class,
-            BirthDate = childInfo.Birthday,
-            CurrentGroup = childInfo.Group,
-            Email = childInfo.Email,
-            Phone = childInfo.PhoneNumber,
-        };
-    }
-    
-    public static Student? FromChildInfo(ChildInfo? childInfo, Domain.Entities.User user)
-    {
-        if (childInfo == null) return null;
-        var parents = childInfo.Parents?.Select(p => ParentConverter.FromParentInfo(p)).ToList();
-        return new Student
-        {
-            UserId = user.Id,
-            StudentId = childInfo.Id,
-            Name = childInfo.FullName.Name,
-            Surname = childInfo.FullName.Surname,
-            Patronymic = childInfo.FullName.Patronymic,
-            City = childInfo.City,
-            School = childInfo.EducationInfo.School,
-            CurrentClass = childInfo.EducationInfo.Class,
-            BirthDate = childInfo.Birthday,
-            CurrentGroup = childInfo.Group,
-            Email = childInfo.Email,
-            Phone = childInfo.PhoneNumber,
+            Role = Domain.Enums.Role.Child,
+            Birthday = student.BirthDate,
+            City = student.City,
+            PhoneNumber = student.Phone,
+            Email = student.Email,
         };
     }
 }

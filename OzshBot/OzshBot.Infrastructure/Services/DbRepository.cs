@@ -3,6 +3,8 @@ using OzshBot.Infrastructure.Data;
 using OzshBot.Application.RepositoriesInterfaces;
 using OzshBot.Domain.ValueObjects;
 using OzshBot.Infrastructure.Models;
+using OzshBot.Domain.Entities;
+using OzshBot.Domain.Enums;
 
 namespace OzshBot.Infrastructure.Services;
 
@@ -54,7 +56,7 @@ public class DbRepository(AppDbContext context) : IUserRepository
         return domainUsers.Length > 0 ? domainUsers : null;
     }
 
-    public async Task<Domain.Entities.User[]?> GetUsersByTownAsync(string town)
+    public async Task<Domain.Entities.User[]?> GetUsersByCityAsync(string town)
     {
         return await context.Users
             .Include(u => u.Student)
@@ -90,22 +92,29 @@ public class DbRepository(AppDbContext context) : IUserRepository
             .ToArrayAsync();
     }
 
+    public async Task<Domain.Entities.User[]?> GetUsersBySchoolAsync(string school)
+    {
+        return await context.Users
+            .Include(u => u.Student)
+                .ThenInclude(s => s.Relations)
+                .ThenInclude(r => r.Parent)
+            .Include(u => u.Counsellor)
+            .Where(u => u.Student != null && u.Student.School == school)
+            .Select(u => u.ToDomainUser())
+            .ToArrayAsync();
+    }
+
     public async Task AddUserAsync(Domain.Entities.User user)
     {
         var existingUser = await GetUserByTgAsync(user.TelegramInfo);
         if (existingUser != null) throw new InvalidOperationException("Пользователь с такими telegram данными уже существует");
-        Student? dbStudent = StudentConverter.FromChildInfo(user.ChildInfo);
-        Counsellor? dbCounsellor = CounsellorConverter.FromCounsellorInfo(user.CounsellorInfo);
-        var dbUser = new User
-        {
-            UserId = user.Id,
-            TgName = user.TelegramInfo.TgUsername,
-            TgId = user.TelegramInfo.TgId,
-            Role = user.Role,
-            Student = dbStudent,
-            Counsellor = dbCounsellor
-        };
+
+        var dbUser = UserConverter.FromDomainUser(user);
         await context.Users.AddAsync(dbUser);
+        if (user.ChildInfo != null && user.ChildInfo.ContactPeople.Length != 0)
+        {
+            await UpdateContactPeopleAsync(dbUser.Student, user.ChildInfo.ContactPeople);
+        }
         await context.SaveChangesAsync();
     }
 
@@ -122,59 +131,45 @@ public class DbRepository(AppDbContext context) : IUserRepository
         existingUser.TgName = user.TelegramInfo.TgUsername;
         existingUser.TgId = user.TelegramInfo.TgId;
         existingUser.Role = user.Role;
-        switch (user.Role)
+        if (existingUser.Counsellor != null)
         {
-            case Domain.Enums.Role.Child when user.ChildInfo != null:
-                if (existingUser.Student != null)
-                {
-                    UpdateStudentFromChildInfo(existingUser.Student, user.ChildInfo);
-                }
-                else
-                {
-                    existingUser.Student = StudentConverter.FromChildInfo(user.ChildInfo, user);
-                }
-                break;
-
-            case Domain.Enums.Role.Counsellor when user.CounsellorInfo != null:
-                if (existingUser.Counsellor != null)
-                {
-                    UpdateCounsellorFromCounsellorInfo(existingUser.Counsellor, user.CounsellorInfo);
-                }
-                else
-                {
-                    existingUser.Counsellor = CounsellorConverter.FromCounsellorInfo(user.CounsellorInfo, user);
-                }
-                break;
+            existingUser.Counsellor.Name = user.FullName.Name;
+            existingUser.Counsellor.Surname = user.FullName.Surname;
+            existingUser.Counsellor.Patronymic = user.FullName.Patronymic;
+            existingUser.Counsellor.City = user.City;
+            existingUser.Counsellor.Email = user.Email;
+            existingUser.Counsellor.Phone = user.PhoneNumber;
+            existingUser.Counsellor.BirthDate = user.Birthday ?? default;
         }
+        if (existingUser.Student != null)
+        {
+            existingUser.Student.Name = user.FullName.Name;
+            existingUser.Student.Surname = user.FullName.Surname;
+            existingUser.Student.Patronymic = user.FullName.Patronymic;
+            existingUser.Student.City = user.City;
+            existingUser.Student.Email = user.Email;
+            existingUser.Student.Phone = user.PhoneNumber;
+            existingUser.Student.BirthDate = user.Birthday ?? default;
+        }
+        switch (user.Role)
+    {
+        case Role.Child when user.ChildInfo != null:
+            if (existingUser.Student != null)
+            {
+                existingUser.Student.UpdateFromChildInfo(user.ChildInfo);
+                await UpdateContactPeopleAsync(existingUser.Student, user.ChildInfo.ContactPeople);
+            }
+            break;
+
+        case Role.Counsellor when user.CounsellorInfo != null:
+            if (existingUser.Counsellor != null)
+            {
+                existingUser.Counsellor.UpdateFromCounsellorInfo(user.CounsellorInfo);
+            }
+            break;
+    }
         await context.SaveChangesAsync();
     }
-
-    private void UpdateStudentFromChildInfo(Student student, Domain.Entities.ChildInfo childInfo)
-    {
-        student.Name = childInfo.FullName.Name;
-        student.Surname = childInfo.FullName.Surname;
-        student.Patronymic = childInfo.FullName.Patronymic;
-        student.City = childInfo.City;
-        student.School = childInfo.EducationInfo.School;
-        student.CurrentClass = childInfo.EducationInfo.Class;
-        student.BirthDate = childInfo.Birthday;
-        student.CurrentGroup = childInfo.Group;
-        student.Email = childInfo.Email;
-        student.Phone = childInfo.PhoneNumber;
-    }
-
-    private void UpdateCounsellorFromCounsellorInfo(Counsellor counsellor, Domain.Entities.CounsellorInfo counsellorInfo)
-    {
-        counsellor.Name = counsellorInfo.FullName.Name;
-        counsellor.Surname = counsellorInfo.FullName.Surname;
-        counsellor.Patronymic = counsellorInfo.FullName.Patronymic;
-        counsellor.City = counsellorInfo.City;
-        counsellor.BirthDate = counsellorInfo.Birthday;
-        counsellor.CurrentGroup = counsellorInfo.Group;
-        counsellor.Email = counsellorInfo.Email;
-        counsellor.Phone = counsellorInfo.PhoneNumber;
-    }
-
 
     public async Task DeleteUserAsync(TelegramInfo telegramInfo)
     {
@@ -184,5 +179,54 @@ public class DbRepository(AppDbContext context) : IUserRepository
         if (user == null) throw new InvalidOperationException("Нет пользователя с такими данными telegram");
         context.Users.Remove(user);
         await context.SaveChangesAsync();
+    }
+
+    private async Task UpdateContactPeopleAsync(Student student, ContactPerson[] contactPeople)
+    {
+        if (student.Relations != null && student.Relations.Any())
+        {
+            context.ChildrenParents.RemoveRange(student.Relations);
+        }
+        if (contactPeople != null && contactPeople.Length != 0)
+        {
+            foreach (var contactPerson in contactPeople)
+            {
+                var parent = await FindOrCreateParentAsync(contactPerson);
+
+                student.Relations ??= new List<ChildParent>();
+                student.Relations.Add(new ChildParent
+                {
+                    ChildId = student.StudentId,
+                    ParentId = parent.ParentId
+                });
+            }
+        }
+    }
+
+    private async Task<Parent> FindOrCreateParentAsync(ContactPerson contactPerson)
+    {
+        var existingParent = await context.Parents
+            .FirstOrDefaultAsync(p => p.Phone == contactPerson.PhoneNumber);
+
+        if (existingParent != null)
+        {
+            existingParent.Name = contactPerson.FullName.Name;
+            existingParent.Surname = contactPerson.FullName.Surname;
+            existingParent.Patronymic = contactPerson.FullName.Patronymic;
+            return existingParent;
+        }
+        else
+        {
+            var newParent = new Parent
+            {
+                ParentId = Guid.NewGuid(),
+                Name = contactPerson.FullName.Name,
+                Surname = contactPerson.FullName.Surname,
+                Patronymic = contactPerson.FullName.Patronymic,
+                Phone = contactPerson.PhoneNumber
+            };
+            await context.Parents.AddAsync(newParent);
+            return newParent;
+        }
     }
 }
