@@ -17,6 +17,7 @@ public class UserRoleService: IUserRoleService
     public async Task<Role> GetUserRole(TelegramInfo telegramInfo)
     {
         var user = await userRepository.GetUserByTgAsync(telegramInfo);
+        if (user != null) UpdateTelegramInfo(user, telegramInfo);
         return user?.Role ?? Role.Unknown;
     }
 
@@ -26,16 +27,17 @@ public class UserRoleService: IUserRoleService
         if (user == null) return Result.Fail("User not found");
         var counsellorInfo = new CounsellorInfo
         {
-            FullName = user.ChildInfo.FullName,
-            Birthday = user.ChildInfo.Birthday,
-            City = user.ChildInfo.City,
-            PhoneNumber = user.ChildInfo.PhoneNumber,
-            Email = user.ChildInfo.Email,
-            Group = user.ChildInfo.Group,
-            Sessions = new Session[0]
+            Group = null,
+            Sessions = null
         };
         user.CounsellorInfo = counsellorInfo;
         await userRepository.UpdateUserAsync(user);
         return Result.Ok(user);
+    }
+
+    private void UpdateTelegramInfo(User user, TelegramInfo telegramInfo)
+    {
+        user.TelegramInfo = telegramInfo;
+        userRepository.UpdateUserAsync(user);
     }
 }
