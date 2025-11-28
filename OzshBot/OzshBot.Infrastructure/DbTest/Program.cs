@@ -11,11 +11,11 @@ class Program
     static async Task Main(string[] args)
     {
         var dbContext = AppDbContextFactory.CreateContext();
-        var Repository = new DbRepository(dbContext);
-        
+        var dbRepository = new DbRepository(dbContext);
+        await ModifyUserFunc(dbRepository);
     }
 
-    private async static void AddUserFunc(DbRepository dbRepository)
+    private async static Task AddUserFunc(DbRepository dbRepository)
     {
         var counsellor = new CounsellorInfo
         {
@@ -37,9 +37,11 @@ class Program
         await dbRepository.AddUserAsync(user);
     }
 
-    private async static void ModifyUserFunc(DbRepository dbRepository)
+    private async static Task ModifyUserFunc(DbRepository dbRepository)
     {
-        var user = dbRepository.GetUserByTgAsync(new TelegramInfo { TgUsername = "ivan_ivanov" });
+        var user = await dbRepository.GetUserByTgAsync(new TelegramInfo { TgUsername = "ivan_ivanov" });
+        user.TelegramInfo.TgId = 1234567890;
+        await dbRepository.UpdateUserAsync(user);
     }
 }
 

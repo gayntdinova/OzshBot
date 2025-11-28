@@ -3,7 +3,6 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using OzshBot.Domain.Entities;
 using OzshBot.Domain.ValueObjects;
-using OzshBot.Infrastructure.Enums;
 
 namespace OzshBot.Infrastructure.Models;
 
