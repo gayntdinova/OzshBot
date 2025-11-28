@@ -4,8 +4,6 @@ using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types;
 using Telegram.Bot;
 using System;
-using OzshBot.Application.Interfaces;
-using OzshBot.Application.Implementations;
 using OzshBot.Domain.ValueObjects;
 using OzshBot.Domain.Enums;
 using Ninject;
@@ -14,21 +12,26 @@ using OzshBot.Domain.Entities;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
 using System.Formats.Asn1;
+using UserDomain = OzshBot.Domain.Entities.User;
+using UserTg = Telegram.Bot.Types.User;
+using OzshBot.Application.RepositoriesInterfaces;
+using OzshBot.Application.Services.Interfaces;
+using OzshBot.Application.Services;
 namespace OzshBot.Bot;
 
 public class UserService
 {
-    public IEditService EditService;
-    public IAccessRightsService AccessRightsService;
-    public IFindService FindService;
+    public IUserManagementService ManagementService;
+    public IUserRoleService RoleService;
+    public IUserFindService FindService;
 
     public UserService(
-        IEditService editService,
-        IAccessRightsService accessRightsService,
-        IFindService findService)
+        IUserManagementService managementService,
+        IUserRoleService roleService,
+        IUserFindService findService)
     {
-        EditService = editService;
-        AccessRightsService = accessRightsService;
+        ManagementService = managementService;
+        RoleService = roleService;
         FindService = findService;
     }
 }
@@ -54,44 +57,34 @@ class BotHandler
         this.userService = userService;
     }
 
-    public async Task SetCommandsForUser(User user)
+    public async Task SetCommandsForUser(UserTg user)
     {
         var commands = new List<BotCommand>();
-
-        var rights = userService.AccessRightsService.GetAccessRightsAsync(
+        var role = await userService.RoleService.GetUserRole(
             new TelegramInfo { TgUsername = user.Username, TgId = user.Id });
 
-        if (rights.Result == AccessRights.Write)
-        {
-            // Команды для вожатых и админов
-            commands.AddRange(new[]
-            {
-                new BotCommand { Command = "promote", Description = "Выдать права вожатого" },
-                new BotCommand { Command = "demote", Description = "Забрать права вожатого" },
-                new BotCommand { Command = "list", Description = "Список вожатых" }
-            });
-        }
-
-        if (rights.Result == AccessRights.Read)
+        if (role != Role.Unknown)
         {
             // Общие команды для всех
             commands.AddRange(new[]
+                {
+                    new BotCommand { Command = "help", Description = "Помощь" },
+                    new BotCommand { Command = "profile", Description = "Мой профиль" }
+                });
+            if (role != Role.Child)
             {
-                new BotCommand { Command = "help", Description = "Помощь" },
-                new BotCommand { Command = "profile", Description = "Мой профиль" }
-            });
+                // Команды для вожатых и админов
+                commands.AddRange(new[]
+                {
+                    new BotCommand { Command = "promote", Description = "Выдать права вожатого" },
+                    new BotCommand { Command = "demote", Description = "Забрать права вожатого" }
+                });
+            }
         }
 
-        try
-        {
-            await botClient.SetMyCommands(
-                commands,
-                scope: new BotCommandScopeChat { ChatId = user.Id });
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Ошибка установки команд: {ex.Message}");
-        }
+        await botClient.SetMyCommands(
+            commands,
+            scope: new BotCommandScopeChat { ChatId = user.Id });
     }
 
     private async Task UpdateHandler(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
@@ -104,77 +97,92 @@ class BotHandler
                     if (update.Message is not { } message) return;
                     if (message.Text is not { } messageText) return;
 
-                    var rights = userService.AccessRightsService.GetAccessRightsAsync(
+                    var role = userService.RoleService.GetUserRole(
                         new TelegramInfo { TgUsername = message.From.Username, TgId = message.From.Id }).Result;
                     var chat = message.Chat;
 
-                    Console.WriteLine($"id: {message.From.Id}\nusername {message.From.Username}\nроль: {rights}");
+                    Console.WriteLine($"id: {message.From.Id}\nusername {message.From.Username}\nроль: {role}");
+
+
 
                     //часть для которой не нужны права ======================================================================
-
-
                     if (messageText == "/start")
                     {
                         await SetCommandsForUser(message.From);
                         return;
                     }
-
+                    //=======================================================================================================
 
                     //если нет прав, то отвергаю все остальное ==============================================================
-                    if (rights == AccessRights.NoRights) return;
+                    if (role == Role.Unknown) return;
 
                     if (messageText.StartsWith("/") == false)
                     {
-                        (var children, var counsellors) = FindUsersAsync(messageText).Result;
+                        var result = await userService.FindService.FindUserAsync(messageText);
 
-                        if (counsellors.Length == 0 && counsellors.Length == 0)
-                            await botClient.SendMessage(
-                                chat.Id,
-                                $"никто не найден"
-                                );
-                        else if (counsellors.Length == 0 && children.Length == 1)
-                            await botClient.SendMessage(
-                                chat.Id,
-                                FormChildDataAnswer(children[0], rights)
-                                );
-                        else if (counsellors.Length == 1 && children.Length == 0)
-                            await botClient.SendMessage(
-                                chat.Id,
-                                FormCounsellorDataAnswer(counsellors[0], rights)
-                                );
-                        else
-                            await botClient.SendMessage(
-                                chat.Id,
-                                FormManyPeopleDataAnswer(children, counsellors)
-                                );
+                        switch (result)
+                        {
+                            case {IsSuccess:true}:
+                                var users = result.Value;
+                                var children = users.GetChildren();
+                                var counsellors = users.GetCounsellors();
+                                if (users.Count() == 1)
+                                    await botClient.SendMessage(
+                                        chat.Id,
+                                        FormDataAnswer(users.First(), role),
+                                        parseMode: ParseMode.MarkdownV2
+                                        );
+                                else
+                                    await botClient.SendMessage(
+                                        chat.Id,
+                                        FormManyPeopleDataAnswer(children.ToArray(), counsellors.ToArray()),
+                                        parseMode: ParseMode.MarkdownV2
+                                        );
+                                return;
+
+                            case{IsFailed:true}:
+                                await botClient.SendMessage(
+                                    chat.Id,
+                                    $"никто не найден",
+                                    parseMode: ParseMode.MarkdownV2
+                                    );
+                                return;
+                        }
                     }
                     if (messageText == "/profile")
                     {
-                        //todo------------------------------------------------------------
-                        await botClient.SendMessage(
-                            chat.Id,
-                            $"профиль"
-                            );
+                        var you = await userService.FindService.FindUserByTgAsync(new TelegramInfo{
+                            TgUsername = message.From.Username,
+                            TgId = null});
+                        if(you.IsFailed)
+                            await botClient.SendMessage(
+                                chat.Id,
+                                $"вас не существует",
+                                parseMode: ParseMode.MarkdownV2
+                                );
+                        else if (you.Value.Role == Role.Child)
+                            await botClient.SendMessage(
+                                chat.Id,
+                                FormDataAnswer(you.Value, role),
+                                parseMode: ParseMode.MarkdownV2
+                                );
                         return;
                     }
-
+                    //=======================================================================================================
 
                     //если нет прав писать(давать права и тд), то отвергаю все остальное ====================================
-                    if (rights == AccessRights.Read) return;
-
+                    if (role == Role.Child) return;
                     if (messageText.StartsWith("/promote"))
-                        await userService.AccessRightsService.PromoteToCounsellor(
+                        await userService.RoleService.PromoteToCounsellor(
                             new TelegramInfo { TgUsername = messageText.Split()[1] });
+                    //=======================================================================================================
 
-                    if (messageText.StartsWith("/demote"))
-                        await userService.AccessRightsService.DemoteAccessRightsAsync(
-                            new TelegramInfo { TgUsername = messageText.Split()[1] });
-                    return;
+                    break;
 
                 case UpdateType.InlineQuery:
-                    return;
+                    break;
                 default:
-                    return;
+                    break;
             }
         }
         catch (Exception ex)
@@ -182,155 +190,72 @@ class BotHandler
             Console.WriteLine(ex.ToString());
         }
     }
+    
 
-    private string FormChildDataAnswer(Child child, AccessRights rights)
+    private string FormDataAnswer(UserDomain user, Role role)
     {
-        var answer =
-            $"{child.FullName.Name} {child.FullName.Surname} {child.FullName.Surname}\n" +
-            $"@{child.TelegramInfo.TgUsername}" +
-            $"Группа {child.Group}\n" +
-            $"Город: `{child.Town}`\n" +
-            $"Школа: `{child.EducationInfo.School}`, {child.EducationInfo.Class} класс\n\n" +
-            $"Дата рождения: {child.Birthday}";
-
-        if (rights == AccessRights.Write)
+        var answer = "";
+        if(user.Role == Role.Child)
         {
-            answer += "\n\n" +
-                $"Почта: `{child.Email}`\n" +
-                $"Телефон: `{child.PhoneNumber}`";
+            var childInfo = user.ChildInfo;
+            answer +=
+                $"{childInfo.FullName}\n" +
+                $"@{user.TelegramInfo.TgUsername}\n" +
+                $"Группа {childInfo.Group}\n" +
+                $"Город: `{childInfo.City}`\n" +
+                $"Школа: `{childInfo.EducationInfo.School}`, {childInfo.EducationInfo.Class} класс\n\n" +
+                $"Дата рождения: {childInfo.Birthday}";
 
-            if (child.Parents != null)
+            if (role == Role.Counsellor || role == Role.Developer)
+            {
                 answer += "\n\n" +
-                    "Родители:\n" +
-                    String.Join("\n", child.Parents
-                        .Select(parent =>
-                            $" - {parent.FullName.Name} {parent.FullName.Surname} {parent.FullName.Patronymic}\n" +
-                            $"   `{parent.PhoneNumber}`"));
+                    $"Почта: `{childInfo.Email}`\n" +
+                    $"Телефон: `{childInfo.PhoneNumber}`";
+
+                if (childInfo.Parents.Length != 0)
+                    answer += "\n\n" +
+                        "Родители:\n" +
+                        String.Join("\n", childInfo.Parents
+                            .Select(parent =>
+                                $" -{parent.FullName}\n" +
+                                $"   `{parent.PhoneNumber}`"));
+            }
         }
-        return answer;
+        else if (user.Role == Role.Counsellor)
+        {
+            var counsellorInfo = user.CounsellorInfo;
+            answer +=
+                $"{counsellorInfo.FullName}\n" +
+                $"@{user.TelegramInfo.TgUsername}\n" +
+                $"Группа {counsellorInfo.Group}\n" +
+                $"Город: `{counsellorInfo.City}`\n\n" +
+                $"Дата рождения: {counsellorInfo.Birthday}";
+
+            if (role == Role.Counsellor || role == Role.Developer)
+                answer += "\n\n" +
+                    $"Почта: `{counsellorInfo.Email}`\n" +
+                    $"Телефон: `{counsellorInfo.PhoneNumber}`";
+
+        }
+        return answer.Replace(".","\\.").Replace("-","\\-");
     }
 
-    private string FormCounsellorDataAnswer(Counsellor counsellor, AccessRights rights)
-    {
-        var answer =
-            $"{counsellor.FullName.Name} {counsellor.FullName.Surname} {counsellor.FullName.Surname}\n" +
-            $"@{counsellor.TelegramInfo.TgUsername}" +
-            $"Группа {counsellor.Group}\n" +
-            $"Город: `{counsellor.Town}`\n\n" +
-            $"Дата рождения: {counsellor.Birthday}";
-
-        if (rights == AccessRights.Write)
-            answer += "\n\n" +
-                $"Почта: `{counsellor.Email}`\n" +
-                $"Телефон: `{counsellor.PhoneNumber}`";
-
-        return answer;
-    }
-
-    private string FormManyPeopleDataAnswer(Child[] children, Counsellor[] counsellors)
+    private string FormManyPeopleDataAnswer(ChildDto[] children, CounsellorDto[] counsellors)
     {
         var answer = "";
         if (children.Length != 0)
             answer += "Дети:\n" +
                 String.Join("\n", children
                         .Select(child =>
-                            $" - `{child.FullName.Name} {child.FullName.Surname} {child.FullName.Patronymic}` {child.Birthday} {child.TelegramInfo.TgUsername} группа {child.Group}"
-                        ));
+                            $" -`{child.ChildInfo.FullName}` @{child.TelegramInfo.TgUsername} группа {child.ChildInfo.Group}"
+                        ))+"\n\n";
         if (counsellors.Length != 0)
             answer += "Вожатые:\n" +
                 String.Join("\n", counsellors
                         .Select(counsellor =>
-                            $" - `{counsellor.FullName.Name} {counsellor.FullName.Surname} {counsellor.FullName.Patronymic}` {counsellor.Birthday} {counsellor.TelegramInfo.TgUsername} группа {counsellor.Group}"
+                            $" -`{counsellor.CounsellorInfo.FullName}` @{counsellor.TelegramInfo.TgUsername} группа {counsellor.CounsellorInfo.Group}"
                         ));
-        return answer;
-    }
-
-    private async Task<(Child[], Counsellor[])> FindUsersAsync(string message)
-    {
-        var splittedMessage = message.Split(" ");
-        var children = new List<Child>();
-        var counsellors = new List<Counsellor>();
-
-        if (message.StartsWith("@"))
-        {
-            await AddUsesByUsername(children, counsellors, message.Substring(1));
-        }
-        else if (splittedMessage.Length == 1)
-        {
-            await AddUsersByPartOfFullName(children, counsellors, splittedMessage[0], null, null);
-            await AddUsersByPartOfFullName(children, counsellors, null, splittedMessage[0], null);
-            await AddUsersByPartOfFullName(children, counsellors, null, null, splittedMessage[0]);
-        }
-        else if (splittedMessage.Length == 2)
-        {
-            await AddUsersByPartOfFullName(children, counsellors, splittedMessage[0], splittedMessage[1], null);
-            await AddUsersByPartOfFullName(children, counsellors, splittedMessage[1], splittedMessage[0], null);
-            await AddUsersByPartOfFullName(children, counsellors, null, splittedMessage[0], splittedMessage[1]);
-            await AddUsersByPartOfFullName(children, counsellors, null, splittedMessage[1], splittedMessage[0]);
-            await AddUsersByPartOfFullName(children, counsellors, splittedMessage[0], null, splittedMessage[1]);
-            await AddUsersByPartOfFullName(children, counsellors, splittedMessage[1], null, splittedMessage[0]);
-        }
-        else if (splittedMessage.Length == 3)
-        {
-            await AddUsersByPartOfFullName(children, counsellors, splittedMessage[0], splittedMessage[1], splittedMessage[2]);
-            await AddUsersByPartOfFullName(children, counsellors, splittedMessage[0], splittedMessage[2], splittedMessage[1]);
-            await AddUsersByPartOfFullName(children, counsellors, splittedMessage[1], splittedMessage[0], splittedMessage[2]);
-            await AddUsersByPartOfFullName(children, counsellors, splittedMessage[1], splittedMessage[2], splittedMessage[0]);
-            await AddUsersByPartOfFullName(children, counsellors, splittedMessage[2], splittedMessage[0], splittedMessage[1]);
-            await AddUsersByPartOfFullName(children, counsellors, splittedMessage[2], splittedMessage[1], splittedMessage[0]);
-        }
-
-        await AddUsersByTown(children, counsellors, message);
-        await AddUsersByClass(children, counsellors, message);
-        await AddUsersByGroup(children, counsellors, message);
-
-        return (children.ToArray(), counsellors.ToArray());
-    }
-
-    private async Task AddUsesByUsername(List<Child> children, List<Counsellor> counsellors, string username)
-    {
-        var dts = userService.FindService.FindUserByTgUserNameAsync(username).Result;
-        if (dts.Child != null)
-            children.Add(dts.Child);
-        if (dts.Counsellor != null)
-            counsellors.Add(dts.Counsellor);
-    }
-
-    private async Task AddUsersByPartOfFullName(List<Child> children, List<Counsellor> counsellors, string? name, string? surname, string? patronymic)
-    {
-        var usersByPartOfFullName = userService.FindService.FindUsersByFullNameAsync(
-            new FullName { Name = name, Surname = surname, Patronymic = patronymic });
-        if (usersByPartOfFullName.Result.Child != null)
-            children.AddRange(usersByPartOfFullName.Result.Child);
-        if (usersByPartOfFullName.Result.Counsellor != null)
-            counsellors.AddRange(usersByPartOfFullName.Result.Counsellor);
-    }
-
-    private async Task AddUsersByTown(List<Child> children, List<Counsellor> counsellors, string town)
-    {
-        var usersByPartOfFullName = userService.FindService.FindUsersByTownAsync(town);
-        if (usersByPartOfFullName.Result.Child != null)
-            children.AddRange(usersByPartOfFullName.Result.Child);
-        if (usersByPartOfFullName.Result.Counsellor != null)
-            counsellors.AddRange(usersByPartOfFullName.Result.Counsellor);
-    }
-
-    private async Task AddUsersByClass(List<Child> children, List<Counsellor> counsellors, string className)
-    {
-        var usersByPartOfFullName = userService.FindService.FindUsersByClassAsync(int.Parse(className));
-        if (usersByPartOfFullName.Result.Child != null)
-            children.AddRange(usersByPartOfFullName.Result.Child);
-        if (usersByPartOfFullName.Result.Counsellor != null)
-            counsellors.AddRange(usersByPartOfFullName.Result.Counsellor);
-    }
-
-    private async Task AddUsersByGroup(List<Child> children, List<Counsellor> counsellors, string group)
-    {
-        var usersByPartOfFullName = userService.FindService.FindUsersByGroupAsync(int.Parse(group));
-        if (usersByPartOfFullName.Result.Child != null)
-            children.AddRange(usersByPartOfFullName.Result.Child);
-        if (usersByPartOfFullName.Result.Counsellor != null)
-            counsellors.AddRange(usersByPartOfFullName.Result.Counsellor);
+        return answer.Replace(".","\\.").Replace("-","\\-");
     }
 
     private Task ErrorHandler(ITelegramBotClient botClient, Exception error, CancellationToken cancellationToken)
@@ -368,12 +293,36 @@ static class Program
     {
         var container = new StandardKernel();
 
-        container.Bind<TelegramBotClient>().ToConstant(new TelegramBotClient("8445241215:AAE-fg7HdNllMonKukdR5T9e_8I4e4FwpXg"));
+        container.Bind<ITelegramBotClient>().ToConstant(new TelegramBotClient("8445241215:AAE-fg7HdNllMonKukdR5T9e_8I4e4FwpXg"));
         container.Bind<ReceiverOptions>().ToConstant(new ReceiverOptions { AllowedUpdates = new[] { UpdateType.Message } });
-        container.Bind<IFindService>().To<MyFindServise>();
-        container.Bind<IEditService>().To<MyEditServise>();
+        container.Bind<UserService>().ToSelf();
+        container.Bind<IUserManagementService>().To<UserManagementService>();
+        container.Bind<IUserRoleService>().To<MyUserRoleService>();
+        container.Bind<IUserFindService>().To<UserFindService>();
+        container.Bind<IUserRepository>().To<MyUserRepository>();
         container.Bind<MadeUpData>().ToConstant(new MadeUpData());
 
         return container;
+    }
+}
+
+static class Extention
+{
+    public static IEnumerable<ChildDto> GetChildren(this IEnumerable<UserDomain> users)
+    {
+        return users.Where(user => user.Role==Role.Child).Select(user=> new ChildDto
+        {
+            TelegramInfo = user.TelegramInfo,
+            ChildInfo = user.ChildInfo
+        });
+    }
+
+    public static IEnumerable<CounsellorDto> GetCounsellors(this IEnumerable<UserDomain> users)
+    {
+        return users.Where(user => user.Role==Role.Counsellor).Select(user=> new CounsellorDto
+        {
+            TelegramInfo = user.TelegramInfo,
+            CounsellorInfo = user.CounsellorInfo
+        });
     }
 }

@@ -4,8 +4,6 @@ using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types;
 using Telegram.Bot;
 using System;
-using OzshBot.Application.Interfaces;
-using OzshBot.Application.Implementations;
 using OzshBot.Domain.ValueObjects;
 using OzshBot.Domain.Enums;
 using Ninject;
@@ -15,6 +13,9 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using System.Formats.Asn1;
 using FluentResults;
+using OzshBot.Application.Services.Interfaces;
+using UserDomain = OzshBot.Domain.Entities.User;
+using OzshBot.Application.RepositoriesInterfaces;
 namespace OzshBot.Bot;
 
 
@@ -56,76 +57,117 @@ public class MadeUpData
         "Владиславовна", "Кирилловна", "Матвеевна", "Никитовна", "Артёмовна"
     };
 
-    public List<Child> Children;
-    public List<Counsellor> Counsellors;
+    public List<UserDomain> Users;
 
     public MadeUpData()
     {
-        Children = new();
-        Counsellors = new();
-
-        var rand = new Random();
-        for (int i = 0; i < 100; i++)
+        Users = new()
         {
-            Children.Append(GenerateRandomChild(rand));
-            Counsellors.Append(GenerateRandomCounsellor(rand));
+            new UserDomain
+            {
+                CounsellorInfo = null,
+                ChildInfo = new()
+                {
+                    FullName = new()
+                    {
+                        Name = "Сергей",
+                        Surname = "Сергеевич",
+                        Patronymic = "Сергеев"
+                    },
+                    Birthday = new DateOnly(),
+                    City = "Екатеринбург",
+                    PhoneNumber = $"+792826457546",
+                    Email = $"child@child.com",
+                    EducationInfo = new EducationInfo
+                    {
+                        Class = 11,
+                        School = "Сунц УрФУ"
+                    },
+                    Group = 1000 + id,
+                    Sessions = new Session[] { },
+                    Parents = new ParentInfo[]{}
+                },
+                TelegramInfo = new()
+                {
+                    TgUsername = "ITimIlin",
+                    TgId = 10
+                },
+                Role = Role.Child
+            }
+        };
+        var rand = new Random();
+        for(var i = 0; i < 100; i++)
+        {
+            Users.Add(GenerateRandomChild(rand));
+            Users.Add(GenerateRandomCounsellor(rand));
         }
     }
     private int id = 0;
-    private Child GenerateRandomChild(Random random)
-    => new Child
+    private UserDomain GenerateRandomChild(Random random)
+    => new UserDomain
     {
-        FullName = GenerateRandomFullName(random),
-        Birthday = new DateOnly(),
-        Town = Towns[random.Next(Towns.Length)],
         TelegramInfo = new TelegramInfo
         {
             TgId = id++,
             TgUsername = "child" + id.ToString()
         },
-        PhoneNumber = $"+79{(random.Next(100000000, 999999999))}",
-        Email = $"child{id}@child{id}.com",
-        EducationInfo = new EducationInfo
+        CounsellorInfo = null,
+        ChildInfo = new ChildInfo
         {
-            Class = random.Next(1, 11),
-            School = Schools[random.Next(Schools.Length)]
+            FullName = GenerateRandomFullName(random),
+            Birthday = new DateOnly(),
+            City = Towns[random.Next(Towns.Length)],
+            PhoneNumber = $"+79{(random.Next(100000000, 999999999))}",
+            Email = $"child{id}@child{id}.com",
+            EducationInfo = new EducationInfo
+            {
+                Class = random.Next(1, 11),
+                School = Schools[random.Next(Schools.Length)]
+            },
+            Group = 1000 + id,
+            Sessions = new Session[] { },
+            Parents = GenerateContactPersonList(random)
         },
-        Group = 1000 + id,
-        Sessions = new List<Session> { },
-        Parents = GenerateContactPersonList(random)
+        Role = Role.Child
     };
 
-    private Counsellor GenerateRandomCounsellor(Random random)
-    => new Counsellor
+    private UserDomain GenerateRandomCounsellor(Random random)
+    => new UserDomain
     {
-        FullName = GenerateRandomFullName(random),
-        Birthday = new DateOnly(),
-        Town = Towns[random.Next(Towns.Length)],
         TelegramInfo = new TelegramInfo
         {
             TgId = id++,
             TgUsername = "counsellor" + id.ToString()
         },
-        PhoneNumber = $"+79{(random.Next(100000000, 999999999))}",
-        Email = $"counsellor{id}@counsellor{id}.com",
-        Group = 1000 + id,
-        Sessions = new List<Session> { }
+        ChildInfo = null,
+        CounsellorInfo = new CounsellorInfo
+        {
+            FullName = GenerateRandomFullName(random),
+            Birthday = new DateOnly(),
+            City = Towns[random.Next(Towns.Length)],
+            
+            PhoneNumber = $"+79{(random.Next(100000000, 999999999))}",
+            Email = $"counsellor{id}@counsellor{id}.com",
+            Group = 1000 + id,
+            Sessions = new Session[] { }
+        },
+        Role = Role.Counsellor
     };
 
-    private List<ContactPerson> GenerateContactPersonList(Random random)
+    private ParentInfo[] GenerateContactPersonList(Random random)
     {
         var length = random.Next(0, 2);
-        var list = new List<ContactPerson>();
+        var list = new List<ParentInfo>();
         for (int i = 0; i < length; i++)
         {
-            list.Add(new ContactPerson
+            list.Add(new ParentInfo
             {
                 FullName = GenerateRandomFullName(random),
                 Id = new Guid(),
                 PhoneNumber = $"+79{(random.Next(100000000, 999999999))}"
             });
         }
-        return list;
+        return list.ToArray();
     }
 
     private FullName GenerateRandomFullName(Random random)
@@ -137,101 +179,94 @@ public class MadeUpData
     };
 }
 
-
-
-
-
-
-
-
-public class MyEditServise : IEditService
+public class MyUserRepository : IUserRepository
 {
-    public Task<Result> AddUserAsync(UserDto user)
+    private readonly MadeUpData madeUpData;
+    public MyUserRepository(MadeUpData madeUpData)
+    {
+        this.madeUpData = madeUpData;
+    }
+
+    public Task AddUserAsync(UserDomain user)
     {
         throw new NotImplementedException();
     }
 
-    public Task<Result> DeleteUserAsync(UserDto user)
+    public Task DeleteUserAsync(TelegramInfo telegramInfo)
     {
         throw new NotImplementedException();
     }
 
-    public Task<Result> EditUserAsync(UserDto user)
+    public async Task<UserDomain?> GetUserByTgAsync(TelegramInfo telegramInfo)
+    {
+        var users = madeUpData.Users.Where(user => user.TelegramInfo.TgUsername.ToLower() == telegramInfo.TgUsername.ToLower());
+
+        return users.FirstOrDefault();
+    }
+
+    public async Task<IEnumerable<UserDomain>?> GetUsersByClassAsync(int classNumber)
+    {
+        var users = madeUpData.Users.Where(user => user.ChildInfo!=null && user.ChildInfo.EducationInfo.Class == classNumber);
+        
+        return users.Any()?users.ToArray():null;
+    }
+
+    public async Task<IEnumerable<UserDomain>?> GetUsersByFullNameAsync(FullName fullName)
+    {
+        var users = madeUpData.Users;
+
+        if (fullName.Name != null)
+            users = users.Where(user 
+            => (user.CounsellorInfo!=null && user.CounsellorInfo.FullName.Name?.ToLower() == fullName.Name.ToLower())||(user.ChildInfo!=null && user.ChildInfo.FullName.Name?.ToLower() == fullName.Name.ToLower())).ToList();
+
+        if (fullName.Surname != null)
+            users = users.Where(user 
+            => (user.CounsellorInfo!=null && user.CounsellorInfo.FullName.Surname?.ToLower() == fullName.Surname.ToLower())||(user.ChildInfo!=null && user.ChildInfo.FullName.Surname?.ToLower() == fullName.Surname.ToLower())).ToList();
+
+        if (fullName.Patronymic != null)
+            users = users.Where(user 
+            => (user.CounsellorInfo!=null && user.CounsellorInfo.FullName.Patronymic?.ToLower() == fullName.Patronymic.ToLower())||(user.ChildInfo!=null && user.ChildInfo.FullName.Patronymic?.ToLower() == fullName.Patronymic.ToLower())).ToList();
+        
+        return users.Any()?users.ToArray():null;
+    }
+
+    public async Task<IEnumerable<UserDomain>?> GetUsersByGroupAsync(int group)
+    {
+        var users = madeUpData.Users.Where(user 
+            => (user.CounsellorInfo!=null && user.CounsellorInfo.Group == group)||(user.ChildInfo!=null && user.ChildInfo.Group == group));
+
+
+        return users.Any()?users.ToArray():null;
+    }
+
+    public async Task<IEnumerable<UserDomain>?> GetUsersByTownAsync(string city)
+    {
+        var users = madeUpData.Users.Where(user 
+            => (user.CounsellorInfo!=null && user.CounsellorInfo.City?.ToLower() == city.ToLower())||(user.ChildInfo!=null && user.ChildInfo.City.ToLower() == city.ToLower()));
+
+        return users.Any()?users.ToArray():null;
+    }
+
+    public Task UpdateUserAsync(UserDomain user)
     {
         throw new NotImplementedException();
     }
 }
 
-public class MyFindServise : IFindService
+public class MyUserRoleService: IUserRoleService
 {
-    private readonly MadeUpData madeUpData;
-    public MyFindServise(MadeUpData madeUpData)
+    private readonly IUserRepository userRepository;
+    public MyUserRoleService(IUserRepository userRepository)
     {
-        this.madeUpData = madeUpData;
+        this.userRepository = userRepository;
     }
-    public Task<UserDto> FindUserByTgUserNameAsync(string tgName)
+    public async Task<Role> GetUserRole(TelegramInfo telegramInfo)
+    {
+        return Role.Counsellor;
+    }
+
+    public async Task<Result<UserDomain>> PromoteToCounsellor(TelegramInfo telegramInfo)
     {
         throw new NotImplementedException();
-    }
-
-    public Task<ManyUsersDto> FindUsersByClassAsync(int classNumber)
-    {
-        var children = madeUpData.Children.Where(child => child.EducationInfo.Class == classNumber);
-        var result = new ManyUsersDto
-        {
-            Child = children.ToArray(),
-            Counsellor = new Counsellor[] { }
-        };
-        return Task.FromResult(result);
-    }
-
-    public Task<ManyUsersDto> FindUsersByFullNameAsync(FullName fullName)
-    {
-        var children = madeUpData.Children;
-        if(fullName.Name!=null)
-            children = children.Where(child => child.FullName.Name == fullName.Name).ToList();
-        if (fullName.Surname != null)
-            children = children.Where(child => child.FullName.Surname == fullName.Surname).ToList();
-        if (fullName.Patronymic != null)
-            children = children.Where(child => child.FullName.Patronymic == fullName.Patronymic).ToList();
-
-        var counsellors = madeUpData.Counsellors;
-        if (fullName.Name != null)
-            counsellors = counsellors.Where(counsellor => counsellor.FullName.Name == fullName.Name).ToList();
-        if (fullName.Surname != null)
-            counsellors = counsellors.Where(counsellor => counsellor.FullName.Surname == fullName.Surname).ToList();
-        if (fullName.Patronymic != null)
-            counsellors = counsellors.Where(counsellor => counsellor.FullName.Patronymic == fullName.Patronymic).ToList();
-
-        var result = new ManyUsersDto
-        {
-            Child = children.ToArray(),
-            Counsellor = counsellors.ToArray()
-        };
-        return Task.FromResult(result);
-    }
-
-    public Task<ManyUsersDto> FindUsersByGroupAsync(int group)
-    {
-        var children = madeUpData.Children.Where(child => child.Group == group);
-        var counsellors = madeUpData.Counsellors.Where(counsellors => counsellors.Group == group);
-        var result = new ManyUsersDto
-        {
-            Child = children.ToArray(),
-            Counsellor = counsellors.ToArray()
-        };
-        return Task.FromResult(result);
-    }
-
-    public Task<ManyUsersDto> FindUsersByTownAsync(string town)
-    {
-        var children = madeUpData.Children.Where(child => child.Town == town);
-        var counsellors = madeUpData.Counsellors.Where(counsellors => counsellors.Town == town);
-        var result = new ManyUsersDto
-        {
-            Child = children.ToArray(),
-            Counsellor = counsellors.ToArray()
-        };
-        return Task.FromResult(result);
     }
 }

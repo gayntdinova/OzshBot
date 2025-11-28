@@ -75,7 +75,7 @@ public class UserFindService: IUserFindService
         return fullNameCombinations;
     }
     
-    private async Task<Result<User>> FindUserByTgAsync(TelegramInfo telegramInfo)
+    public async Task<Result<User>> FindUserByTgAsync(TelegramInfo telegramInfo)
     {
         var user = await userRepository.GetUserByTgAsync(telegramInfo);
         return user == null 
