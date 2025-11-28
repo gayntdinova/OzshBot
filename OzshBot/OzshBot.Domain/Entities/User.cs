@@ -10,4 +10,12 @@ public class User
     public ChildInfo? ChildInfo { get; set; }
     public CounsellorInfo? CounsellorInfo { get; set; }
     public Role Role { get; set; }
+
+    public void UpdateBy(User userUpdate)
+    {
+        TelegramInfo = userUpdate.TelegramInfo;
+        ChildInfo = userUpdate.ChildInfo ?? ChildInfo;
+        CounsellorInfo = userUpdate.CounsellorInfo ?? CounsellorInfo;
+        Role = userUpdate.Role;
+    }
 }
