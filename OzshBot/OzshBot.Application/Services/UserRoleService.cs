@@ -17,6 +17,7 @@ public class UserRoleService: IUserRoleService
     public async Task<Role> GetUserRole(TelegramInfo telegramInfo)
     {
         var user = await userRepository.GetUserByTgAsync(telegramInfo);
+        if (user != null) UpdateTelegramInfo(user, telegramInfo);
         return user?.Role ?? Role.Unknown;
     }
 
@@ -37,5 +38,11 @@ public class UserRoleService: IUserRoleService
         user.CounsellorInfo = counsellorInfo;
         await userRepository.UpdateUserAsync(user);
         return Result.Ok(user);
+    }
+
+    private void UpdateTelegramInfo(User user, TelegramInfo telegramInfo)
+    {
+        user.TelegramInfo = telegramInfo;
+        userRepository.UpdateUserAsync(user);
     }
 }
