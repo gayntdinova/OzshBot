@@ -7,4 +7,5 @@ public interface ISessionRepository
     Task AddSessionAsync(Session session);
     Task UpdateSessionAsync(Session session);
     Task DeleteSessionAsync(Session session);
+    // переработать
 }

@@ -14,7 +14,7 @@ public class UserFindService: IUserFindService
         this.userRepository = userRepository;
     }
     
-    public async Task<Result<IEnumerable<User>>> FindUsersByClassAsync(int classNumber)
+    public async Task<Result<User[]>> FindUsersByClassAsync(int classNumber)
     {
         var users = await userRepository.GetUsersByClassAsync(classNumber);
         return users == null
@@ -22,7 +22,7 @@ public class UserFindService: IUserFindService
             : Result.Ok(users);
     }
     
-    public async Task<Result<IEnumerable<User>>> FindUsersByGroupAsync(int group)
+    public async Task<Result<User[]>> FindUsersByGroupAsync(int group)
     {
         var users = await userRepository.GetUsersByGroupAsync(group);
         return users == null
@@ -30,18 +30,21 @@ public class UserFindService: IUserFindService
             : Result.Ok(users);
     }
 
-    public async Task<Result<IEnumerable<User>>> FindUserAsync(string input)
+    public async Task<Result<User[]>> FindUserAsync(string input)
     {
         var splitedInput = input.Split(" ");
         if (splitedInput.Length == 1)
         {
             input = input.Replace("@", "");
             var userByTg = await FindUserByTgAsync(new TelegramInfo { TgId = null, TgUsername = input });
-            if (userByTg.IsSuccess) return Result.Ok<IEnumerable<User>>([userByTg.Value]);
+            if (userByTg.IsSuccess) return Result.Ok(new[] {userByTg.Value});
         }
 
-        var usersByTown = await FindUsersByTownAsync(input);
+        var usersByTown = await FindUsersByCityAsync(input);
         if (usersByTown.IsSuccess) return Result.Ok(usersByTown.Value);
+        
+        var usersBySchool = await FindUsersBySchoolAsync(input);
+        if (usersBySchool.IsSuccess) return Result.Ok(usersBySchool.Value);
         
         var combinations = GenerateFullNameCombinationsByInput(splitedInput);
         foreach (var combination in combinations)
@@ -50,6 +53,14 @@ public class UserFindService: IUserFindService
             if (userByFullName.IsSuccess) return Result.Ok(userByFullName.Value);
         }
         return Result.Fail($"users with {input} was not found");
+    }
+    
+    public async Task<Result<User>> FindUserByTgAsync(TelegramInfo telegramInfo)
+    {
+        var user = await userRepository.GetUserByTgAsync(telegramInfo);
+        return user == null 
+            ? Result.Fail($"user with {telegramInfo.TgUsername} was not found") 
+            : Result.Ok(user);
     }
 
     private static List<FullName> GenerateFullNameCombinationsByInput(string[] splitedTarget)
@@ -74,16 +85,8 @@ public class UserFindService: IUserFindService
 
         return fullNameCombinations;
     }
-    
-    public async Task<Result<User>> FindUserByTgAsync(TelegramInfo telegramInfo)
-    {
-        var user = await userRepository.GetUserByTgAsync(telegramInfo);
-        return user == null 
-            ? Result.Fail($"user with {telegramInfo.TgUsername} was not found") 
-            : Result.Ok(user);
-    }
 
-    private async Task<Result<IEnumerable<User>>> FindUsersByFullNameAsync(FullName fullName)
+    private async Task<Result<User[]>> FindUsersByFullNameAsync(FullName fullName)
     {
         var users = await userRepository.GetUsersByFullNameAsync(fullName);
         return users == null
@@ -91,11 +94,19 @@ public class UserFindService: IUserFindService
             : Result.Ok(users);
     }
 
-    private async Task<Result<IEnumerable<User>>> FindUsersByTownAsync(string town)
+    private async Task<Result<User[]>> FindUsersByCityAsync(string city)
     {
-        var users = await userRepository.GetUsersByTownAsync(town);
+        var users = await userRepository.GetUsersByCityAsync(city);
         return users == null
-            ? Result.Fail($"users with {town} was not found")
+            ? Result.Fail($"users with {city} was not found")
+            : Result.Ok(users);
+    }
+
+    private async Task<Result<User[]>> FindUsersBySchoolAsync(string school)
+    {
+        var users = await userRepository.GetUsersBySchoolAsync(school);
+        return users == null
+            ? Result.Fail($"users with {school} was not found")
             : Result.Ok(users);
     }
 }
