@@ -17,7 +17,7 @@ public class UserManagementService: IUserManagementService
         this.tableParser = tableParser;
     }
 
-    public async Task<Result<User>> AddUser<T>(T user) where T: Dto
+    public async Task<Result<User>> AddUser<T>(T user) where T: BotUserDto
     {
         if (await userRepository.GetUserByTgAsync(user.TelegramInfo) != null) return Result.Fail("User has already been added");
         await userRepository.AddUserAsync(user.ToUser());
@@ -57,5 +57,6 @@ public class UserManagementService: IUserManagementService
         }
         else return Result.Fail("Error loading and parsing table");
         return Result.Ok();
+        // надо добавить про смены
     }
 }

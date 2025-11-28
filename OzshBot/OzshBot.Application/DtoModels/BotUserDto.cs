@@ -3,7 +3,7 @@ using OzshBot.Domain.ValueObjects;
 
 namespace OzshBot.Application.DtoModels;
 
-public interface Dto
+public interface BotUserDto
 {
     public TelegramInfo TelegramInfo { get; set; }
     public User ToUser();

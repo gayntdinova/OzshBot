@@ -4,7 +4,7 @@ using OzshBot.Domain.ValueObjects;
 
 namespace OzshBot.Application.DtoModels;
 
-public class CounsellorDto: Dto
+public class CounsellorDto: BotUserDto
 {
     public TelegramInfo TelegramInfo { get; set; }
     public CounsellorInfo CounsellorInfo { get; set; }
