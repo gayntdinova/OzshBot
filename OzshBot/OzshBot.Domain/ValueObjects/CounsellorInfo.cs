@@ -1,7 +1,6 @@
-using System.ComponentModel.DataAnnotations;
-using OzshBot.Domain.ValueObjects;
+using OzshBot.Domain.Entities;
 
-namespace OzshBot.Domain.Entities;
+namespace OzshBot.Domain.ValueObjects;
 
 public class CounsellorInfo
 {
