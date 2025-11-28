@@ -17,7 +17,7 @@ public class UserManagementService: IUserManagementService
         this.tableParser = tableParser;
     }
 
-    public async Task<Result<User>> AddUser<T>(T user) where T: BotUserDto
+    public async Task<Result<User>> AddUserAsync<T>(T user) where T: IUserDtoModel
     {
         if (await userRepository.GetUserByTgAsync(user.TelegramInfo) != null) return Result.Fail("User has already been added");
         await userRepository.AddUserAsync(user.ToUser());

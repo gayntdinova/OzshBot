@@ -8,7 +8,7 @@ namespace OzshBot.Application.Services.Interfaces;
 public interface IUserManagementService
 {
     public Task<Result<User>> EditUser(TelegramInfo telegramInfo, User user);
-    public Task<Result<User>> AddUser<T>(T user) where T: BotUserDto;
+    public Task<Result<User>> AddUserAsync<T>(T user) where T: IUserDtoModel;
     public Task<Result> DeleteUserAsync(TelegramInfo telegramInfo);
 
     public Task<Result> LoadTable(string link);

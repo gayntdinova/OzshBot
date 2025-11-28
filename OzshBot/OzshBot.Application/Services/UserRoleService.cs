@@ -27,13 +27,8 @@ public class UserRoleService: IUserRoleService
         if (user == null) return Result.Fail("User not found");
         var counsellorInfo = new CounsellorInfo
         {
-            FullName = user.ChildInfo.FullName,
-            Birthday = user.ChildInfo.Birthday,
-            City = user.ChildInfo.City,
-            PhoneNumber = user.ChildInfo.PhoneNumber,
-            Email = user.ChildInfo.Email,
-            Group = user.ChildInfo.Group,
-            Sessions = []
+            Group = null,
+            Sessions = null
         };
         user.CounsellorInfo = counsellorInfo;
         await userRepository.UpdateUserAsync(user);
