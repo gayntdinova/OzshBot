@@ -6,7 +6,8 @@ namespace OzshBot.Application.Services.Interfaces;
 
 public interface IUserFindService
 {
-    public Task<Result<IEnumerable<User>>> FindUsersByClassAsync(int classNumber);
-    public Task<Result<IEnumerable<User>>> FindUsersByGroupAsync(int group);
-    public Task<Result<IEnumerable<User>>> FindUserAsync(string input);
+    public Task<Result<User[]>> FindUsersByClassAsync(int classNumber);
+    public Task<Result<User[]>> FindUsersByGroupAsync(int group);
+    public Task<Result<User>> FindUserByTgAsync(TelegramInfo telegramInfo);
+    public Task<Result<User[]>> FindUserAsync(string input);
 }
