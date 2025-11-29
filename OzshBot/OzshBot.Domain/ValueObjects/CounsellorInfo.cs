@@ -5,5 +5,5 @@ namespace OzshBot.Domain.ValueObjects;
 public class CounsellorInfo
 {
     public int? Group { get; set; }
-    public Session[] Sessions { get; init; } = [];
+    public List<Session> Sessions { get; init; } = [];
 }
