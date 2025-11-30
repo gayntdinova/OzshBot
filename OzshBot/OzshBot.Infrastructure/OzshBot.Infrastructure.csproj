@@ -6,4 +6,9 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\OzshBot.Application\OzshBot.Application.csproj" />
+      <ProjectReference Include="..\OzshBot.Domain\OzshBot.Domain.csproj" />
+    </ItemGroup>
+
 </Project>
