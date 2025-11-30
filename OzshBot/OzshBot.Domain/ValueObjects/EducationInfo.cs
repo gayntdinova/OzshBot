@@ -1,12 +1,7 @@
 namespace OzshBot.Domain.ValueObjects;
 
-public class EducationInfo (string school, int currentClass)
+public class EducationInfo
 {
-    public required int Class { get; set; } = currentClass;
-    public required string School { get; set; } = school;
-
-    public override string ToString()
-    {
-        return $"EducationInfo({School}, {Class})";
-    }
+    public required int Class { get; set; }
+    public required string School { get; set; }
 }
