@@ -30,30 +30,59 @@ public class DbRepository(AppDbContext context) : IUserRepository
 
     public async Task<Domain.Entities.User[]?> GetUsersByFullNameAsync(FullName fullName)
     {
-        var userQuery = context.Users
-        .Include(u => u.Student)
-            .ThenInclude(s => s.Relations)
-            .ThenInclude(r => r.Parent)
-        .Include(u => u.Counsellor)
-        .Where(u => (u.Student != null &&
-                    u.Student.Name == fullName.Name &&
-                    u.Student.Surname == fullName.Surname) ||
-                   (u.Counsellor != null &&
-                    u.Counsellor.Name == fullName.Name &&
-                    u.Counsellor.Surname == fullName.Surname));
+        if (fullName.Name == null && fullName.Surname == null && fullName.Patronymic == null)
+            return [];
 
-        if (!string.IsNullOrWhiteSpace(fullName.Patronymic))
-        {
-            userQuery = userQuery.Where(u =>
-                (u.Student != null && u.Student.Patronymic != null &&
-                 u.Student.Patronymic == fullName.Patronymic) ||
-                (u.Counsellor != null && u.Counsellor.Patronymic != null &&
-                 u.Counsellor.Patronymic == fullName.Patronymic));
-        }
+        var userQuery = context.Users
+            .Include(u => u.Student)
+                .ThenInclude(s => s.Relations)
+                .ThenInclude(r => r.Parent)
+            .Include(u => u.Counsellor)
+            .Where(u =>
+                (string.IsNullOrWhiteSpace(fullName.Name) ||
+                 (u.Student != null && u.Student.Name == fullName.Name) ||
+                 (u.Counsellor != null && u.Counsellor.Name == fullName.Name)) &&
+                (string.IsNullOrWhiteSpace(fullName.Surname) ||
+                 (u.Student != null && u.Student.Surname == fullName.Surname) ||
+                 (u.Counsellor != null && u.Counsellor.Surname == fullName.Surname)) &&
+                (string.IsNullOrWhiteSpace(fullName.Patronymic) ||
+                 (u.Student != null && u.Student.Patronymic == fullName.Patronymic) ||
+                 (u.Counsellor != null && u.Counsellor.Patronymic == fullName.Patronymic))
+            );
 
         var users = await userQuery.ToArrayAsync();
         var domainUsers = users.Select(u => u.ToDomainUser()).ToArray();
-        return domainUsers.Length > 0 ? domainUsers : null;
+        return domainUsers;
+    }
+
+    public async Task<Domain.Entities.User[]?> GetUsersByNameAsync(string Name)
+    {
+        return await context.Users
+            .Include(u => u.Student)
+                .ThenInclude(s => s.Relations)
+                .ThenInclude(r => r.Parent)
+            .Include(u => u.Counsellor)
+            .Where(u => (u.Student != null &&
+                        u.Student.Name == Name) ||
+                    (u.Counsellor != null &&
+                        u.Counsellor.Name == Name))
+            .Select(u => u.ToDomainUser())
+            .ToArrayAsync();
+    }
+
+    public async Task<Domain.Entities.User[]?> GetUsersBySurnameAsync(string Surname)
+    {
+        return await context.Users
+            .Include(u => u.Student)
+                .ThenInclude(s => s.Relations)
+                .ThenInclude(r => r.Parent)
+            .Include(u => u.Counsellor)
+            .Where(u => (u.Student != null &&
+                        u.Student.Surname == Surname) ||
+                    (u.Counsellor != null &&
+                        u.Counsellor.Surname == Surname))
+            .Select(u => u.ToDomainUser())
+            .ToArrayAsync();
     }
 
     public async Task<Domain.Entities.User[]?> GetUsersByCityAsync(string town)
@@ -152,22 +181,22 @@ public class DbRepository(AppDbContext context) : IUserRepository
             existingUser.Student.BirthDate = user.Birthday ?? default;
         }
         switch (user.Role)
-    {
-        case Role.Child when user.ChildInfo != null:
-            if (existingUser.Student != null)
-            {
-                existingUser.Student.UpdateFromChildInfo(user.ChildInfo);
-                await UpdateContactPeopleAsync(existingUser.Student, user.ChildInfo.ContactPeople);
-            }
-            break;
+        {
+            case Role.Child when user.ChildInfo != null:
+                if (existingUser.Student != null)
+                {
+                    existingUser.Student.UpdateFromChildInfo(user.ChildInfo);
+                    await UpdateContactPeopleAsync(existingUser.Student, user.ChildInfo.ContactPeople);
+                }
+                break;
 
-        case Role.Counsellor when user.CounsellorInfo != null:
-            if (existingUser.Counsellor != null)
-            {
-                existingUser.Counsellor.UpdateFromCounsellorInfo(user.CounsellorInfo);
-            }
-            break;
-    }
+            case Role.Counsellor when user.CounsellorInfo != null:
+                if (existingUser.Counsellor != null)
+                {
+                    existingUser.Counsellor.UpdateFromCounsellorInfo(user.CounsellorInfo);
+                }
+                break;
+        }
         await context.SaveChangesAsync();
     }
 

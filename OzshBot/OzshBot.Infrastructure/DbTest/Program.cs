@@ -13,7 +13,11 @@ class Program
     {
         var dbContext = AppDbContextFactory.CreateContext();
         var dbRepository = new DbRepository(dbContext);
-        var res = await dbRepository.GetUserByTgAsync(new TelegramInfo { TgUsername = "student_ozsh" });
+        var res = await dbRepository.GetUsersByFullNameAsync(new FullName(surname: "Озшов"));
+        foreach (var user in res)
+        {
+            Console.WriteLine(user.TelegramInfo);
+        }
     }
 
     static async Task AddStudent(DbRepository dbRepository)
