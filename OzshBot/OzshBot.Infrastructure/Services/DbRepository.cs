@@ -23,7 +23,7 @@ public class DbRepository(AppDbContext context) : IUserRepository
             .FirstOrDefaultAsync();
         if (dbUser == null)
             return null;
-        if (telegramInfo.TgId != 0 && dbUser.TgId != 0 && dbUser.TgId != telegramInfo.TgId)
+        if (telegramInfo.TgId != null && dbUser.TgId != 0 && dbUser.TgId != telegramInfo.TgId)
             return null;
         return dbUser.ToDomainUser();
     }
@@ -111,7 +111,7 @@ public class DbRepository(AppDbContext context) : IUserRepository
 
         var dbUser = UserConverter.FromDomainUser(user);
         await context.Users.AddAsync(dbUser);
-        if (user.ChildInfo != null && user.ChildInfo.ContactPeople.Length != 0)
+        if (user.ChildInfo != null && user.ChildInfo.ContactPeople.Count != 0)
         {
             await UpdateContactPeopleAsync(dbUser.Student, user.ChildInfo.ContactPeople);
         }
@@ -181,13 +181,13 @@ public class DbRepository(AppDbContext context) : IUserRepository
         await context.SaveChangesAsync();
     }
 
-    private async Task UpdateContactPeopleAsync(Student student, ContactPerson[] contactPeople)
+    private async Task UpdateContactPeopleAsync(Student student, List<ContactPerson> contactPeople)
     {
         if (student.Relations != null && student.Relations.Any())
         {
             context.ChildrenParents.RemoveRange(student.Relations);
         }
-        if (contactPeople != null && contactPeople.Length != 0)
+        if (contactPeople != null && contactPeople.Count != 0)
         {
             foreach (var contactPerson in contactPeople)
             {

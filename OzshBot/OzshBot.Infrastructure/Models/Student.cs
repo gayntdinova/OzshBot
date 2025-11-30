@@ -70,7 +70,7 @@ public static class StudentConverter
         {
             Group = student.CurrentGroup,
             EducationInfo = educationInfo,
-            ContactPeople = student.Parents.Select(p => p.ToContactPerson()).ToArray(),
+            ContactPeople = student.Parents.Select(p => p.ToContactPerson()).ToList(),
             Sessions = []
         };
         return result;
