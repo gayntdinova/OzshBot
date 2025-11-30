@@ -3,5 +3,7 @@
 	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=6c56b6cf_002D0264_002D4872_002D8a55_002D6fecb89405ef/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" IsActive="True" Name="FindUserByTgAsync_UnknownUser_ReturnsResultFail" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
   &lt;TestAncestor&gt;&#xD;
     &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserFindServiceTests.FindUserByTgAsync_UnknownUser_ReturnsResultFail&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserFindServiceTests.FindUserByTgAsync_KnownUser_ReturnsResultOk&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserFindServiceTests.FindUsersByClassAsync_EmptyClass_ReturnsResultFail&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>

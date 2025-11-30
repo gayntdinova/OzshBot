@@ -40,8 +40,8 @@ public class UserFindService: IUserFindService
             if (userByTg.IsSuccess) return Result.Ok(new[] {userByTg.Value});
         }
 
-        var usersByTown = await FindUsersByCityAsync(input);
-        if (usersByTown.IsSuccess) return Result.Ok(usersByTown.Value);
+        var usersByCity = await FindUsersByCityAsync(input);
+        if (usersByCity.IsSuccess) return Result.Ok(usersByCity.Value);
         
         var usersBySchool = await FindUsersBySchoolAsync(input);
         if (usersBySchool.IsSuccess) return Result.Ok(usersBySchool.Value);
