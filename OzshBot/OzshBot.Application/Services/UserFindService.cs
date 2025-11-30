@@ -90,7 +90,7 @@ public class UserFindService: IUserFindService
     {
         var users = await userRepository.GetUsersByFullNameAsync(fullName);
         return users == null
-            ? Result.Fail($"users with {fullName} was not found")
+            ? Result.Fail($"users with {fullName.ToString()} was not found")
             : Result.Ok(users);
     }
 
