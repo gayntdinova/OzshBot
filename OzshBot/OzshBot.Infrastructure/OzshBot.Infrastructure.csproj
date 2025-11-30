@@ -7,7 +7,15 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Google.Apis.Sheets.v4" Version="1.70.0.3819" />
+        <ProjectReference Include="..\OzshBot.Application\OzshBot.Application.csproj" />
+        <PackageReference Include="Google.Apis.Sheets.v4" Version="1.70.0.3819" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="core-song-477709-a0-db7e8f5a3e78.json" />
+      <Content Include="core-song-477709-a0-db7e8f5a3e78.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </Content>
     </ItemGroup>
 
 </Project>
