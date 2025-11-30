@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OzshBot.Infrastructure", "O
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OzshBot.Domain", "OzshBot.Domain\OzshBot.Domain.csproj", "{FE029632-6E3A-4B9F-958C-CBBB3B7BB573}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{141B571E-56B0-486F-B46E-84F4C8FEC3F7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -35,5 +37,9 @@ Global
 		{FE029632-6E3A-4B9F-958C-CBBB3B7BB573}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FE029632-6E3A-4B9F-958C-CBBB3B7BB573}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FE029632-6E3A-4B9F-958C-CBBB3B7BB573}.Release|Any CPU.Build.0 = Release|Any CPU
+		{141B571E-56B0-486F-B46E-84F4C8FEC3F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{141B571E-56B0-486F-B46E-84F4C8FEC3F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{141B571E-56B0-486F-B46E-84F4C8FEC3F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{141B571E-56B0-486F-B46E-84F4C8FEC3F7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
