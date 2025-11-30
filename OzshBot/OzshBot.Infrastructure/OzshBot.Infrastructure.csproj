@@ -9,6 +9,7 @@
     <ItemGroup>
         <ProjectReference Include="..\OzshBot.Application\OzshBot.Application.csproj" />
         <PackageReference Include="Google.Apis.Sheets.v4" Version="1.70.0.3819" />
+        <ProjectReference Include="..\OzshBot.Domain\OzshBot.Domain.csproj" />
     </ItemGroup>
 
     <ItemGroup>
