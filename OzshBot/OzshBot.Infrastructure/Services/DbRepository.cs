@@ -133,6 +133,18 @@ public class DbRepository(AppDbContext context) : IUserRepository
             .ToArrayAsync();
     }
 
+    public async Task<Domain.Entities.User[]?> GetUsersByPhoneNumberAsync(string phone)
+    {
+        return await context.Users
+            .Include(u => u.Student)
+                .ThenInclude(s => s.Relations)
+                .ThenInclude(r => r.Parent)
+            .Include(u => u.Counsellor)
+            .Where(u => (u.Student != null && u.Student.Phone == phone) || (u.Counsellor != null && u.Counsellor.Phone == phone))
+            .Select(u => u.ToDomainUser())
+            .ToArrayAsync();
+    }
+
     public async Task AddUserAsync(Domain.Entities.User user)
     {
         var existingUser = await GetUserByTgAsync(user.TelegramInfo);
