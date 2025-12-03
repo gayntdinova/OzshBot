@@ -13,11 +13,12 @@ class Program
     {
         var dbContext = AppDbContextFactory.CreateContext();
         var dbRepository = new DbRepository(dbContext);
-        var res = await dbRepository.GetUsersByFullNameAsync(new FullName(surname: "Озшов"));
+        var res = await dbRepository.GetUsersBySchoolAsync("СУНЦ");
         foreach (var user in res)
         {
             Console.WriteLine(user.TelegramInfo);
         }
+        // await AddStudent(dbRepository);
     }
 
     static async Task AddStudent(DbRepository dbRepository)
@@ -27,19 +28,19 @@ class Program
             Id = Guid.NewGuid(),
             FullName = new FullName
             {
-                Name = "Ученик",
-                Surname = "ВТорой",
+                Name = "Сестра",
+                Surname = "Озшова",
                 Patronymic = null
             },
             TelegramInfo = new TelegramInfo
             {
-                TgUsername = "student_2",
-                TgId = 1200000000
+                TgUsername = "sister",
+                TgId = 1000000003
             },
-            Email = "stdent2@ozsh.ru",
-            PhoneNumber = "+79992234567",
+            Email = "sister@ozsh.ru",
+            PhoneNumber = "+79993456789",
             City = "Екатеринбург",
-            Birthday = new DateOnly(2010, 5, 15),
+            Birthday = new DateOnly(2011, 6, 16),
             Role = Role.Child,
             ChildInfo = new ChildInfo
             {
@@ -47,8 +48,9 @@ class Program
                 EducationInfo = new EducationInfo
                 {
                     School = "СУНЦ",
-                    Class = 9
-                }
+                    Class = 8
+                },
+                ContactPeople = [new ContactPerson {FullName = new FullName("Мама", "Озшова"), PhoneNumber="+79001000000"}]
             }
         };
         await dbRepository.AddUserAsync(user);
