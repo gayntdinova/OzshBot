@@ -65,19 +65,22 @@ public class MadeUpData
         {
             new UserDomain
             {
+
+                FullName = new()
+                {
+                    Name = "Сергей",
+                    Surname = "Сергеевич",
+                    Patronymic = "Сергеев"
+                },
+                Birthday = new DateOnly(),
+                City = "Екатеринбург",
+                PhoneNumber = $"+792826457546",
+                Email = $"child@child.com",
                 CounsellorInfo = null,
                 ChildInfo = new()
                 {
-                    FullName = new()
-                    {
-                        Name = "Сергей",
-                        Surname = "Сергеевич",
-                        Patronymic = "Сергеев"
-                    },
-                    Birthday = new DateOnly(),
-                    City = "Екатеринбург",
-                    PhoneNumber = $"+792826457546",
-                    Email = $"child@child.com",
+                    
+                    
                     EducationInfo = new EducationInfo
                     {
                         Class = 11,
@@ -85,7 +88,7 @@ public class MadeUpData
                     },
                     Group = 1000 + id,
                     Sessions = new Session[] { },
-                    Parents = new ParentInfo[]{}
+                    ContactPeople = new ContactPerson[]{}
                 },
                 TelegramInfo = new()
                 {
@@ -106,6 +109,11 @@ public class MadeUpData
     private UserDomain GenerateRandomChild(Random random)
     => new UserDomain
     {
+        FullName = GenerateRandomFullName(random),
+        Birthday = new DateOnly(),
+        City = Towns[random.Next(Towns.Length)],
+        PhoneNumber = $"+79{(random.Next(100000000, 999999999))}",
+        Email = $"child{id}@child{id}.com",
         TelegramInfo = new TelegramInfo
         {
             TgId = id++,
@@ -114,11 +122,6 @@ public class MadeUpData
         CounsellorInfo = null,
         ChildInfo = new ChildInfo
         {
-            FullName = GenerateRandomFullName(random),
-            Birthday = new DateOnly(),
-            City = Towns[random.Next(Towns.Length)],
-            PhoneNumber = $"+79{(random.Next(100000000, 999999999))}",
-            Email = $"child{id}@child{id}.com",
             EducationInfo = new EducationInfo
             {
                 Class = random.Next(1, 11),
@@ -126,7 +129,7 @@ public class MadeUpData
             },
             Group = 1000 + id,
             Sessions = new Session[] { },
-            Parents = GenerateContactPersonList(random)
+            ContactPeople = GenerateContactPersonList(random)
         },
         Role = Role.Child
     };
@@ -134,6 +137,12 @@ public class MadeUpData
     private UserDomain GenerateRandomCounsellor(Random random)
     => new UserDomain
     {
+        FullName = GenerateRandomFullName(random),
+        Birthday = new DateOnly(),
+        City = Towns[random.Next(Towns.Length)],
+            
+        PhoneNumber = $"+79{(random.Next(100000000, 999999999))}",
+        Email = $"counsellor{id}@counsellor{id}.com",
         TelegramInfo = new TelegramInfo
         {
             TgId = id++,
@@ -142,25 +151,19 @@ public class MadeUpData
         ChildInfo = null,
         CounsellorInfo = new CounsellorInfo
         {
-            FullName = GenerateRandomFullName(random),
-            Birthday = new DateOnly(),
-            City = Towns[random.Next(Towns.Length)],
-            
-            PhoneNumber = $"+79{(random.Next(100000000, 999999999))}",
-            Email = $"counsellor{id}@counsellor{id}.com",
             Group = 1000 + id,
             Sessions = new Session[] { }
         },
         Role = Role.Counsellor
     };
 
-    private ParentInfo[] GenerateContactPersonList(Random random)
+    private ContactPerson[] GenerateContactPersonList(Random random)
     {
         var length = random.Next(0, 2);
-        var list = new List<ParentInfo>();
+        var list = new List<ContactPerson>();
         for (int i = 0; i < length; i++)
         {
-            list.Add(new ParentInfo
+            list.Add(new ContactPerson
             {
                 FullName = GenerateRandomFullName(random),
                 Id = new Guid(),
@@ -204,33 +207,33 @@ public class MyUserRepository : IUserRepository
         return users.FirstOrDefault();
     }
 
-    public async Task<IEnumerable<UserDomain>?> GetUsersByClassAsync(int classNumber)
+    public async Task<UserDomain[]?> GetUsersByClassAsync(int classNumber)
     {
         var users = madeUpData.Users.Where(user => user.ChildInfo!=null && user.ChildInfo.EducationInfo.Class == classNumber);
         
         return users.Any()?users.ToArray():null;
     }
 
-    public async Task<IEnumerable<UserDomain>?> GetUsersByFullNameAsync(FullName fullName)
+    public async Task<UserDomain[]?> GetUsersByFullNameAsync(FullName fullName)
     {
         var users = madeUpData.Users;
 
         if (fullName.Name != null)
             users = users.Where(user 
-            => (user.CounsellorInfo!=null && user.CounsellorInfo.FullName.Name?.ToLower() == fullName.Name.ToLower())||(user.ChildInfo!=null && user.ChildInfo.FullName.Name?.ToLower() == fullName.Name.ToLower())).ToList();
+            => user.FullName.Name?.ToLower() == fullName.Name.ToLower()).ToList();
 
         if (fullName.Surname != null)
             users = users.Where(user 
-            => (user.CounsellorInfo!=null && user.CounsellorInfo.FullName.Surname?.ToLower() == fullName.Surname.ToLower())||(user.ChildInfo!=null && user.ChildInfo.FullName.Surname?.ToLower() == fullName.Surname.ToLower())).ToList();
+            => user.FullName.Surname?.ToLower() == fullName.Surname.ToLower()).ToList();
 
         if (fullName.Patronymic != null)
             users = users.Where(user 
-            => (user.CounsellorInfo!=null && user.CounsellorInfo.FullName.Patronymic?.ToLower() == fullName.Patronymic.ToLower())||(user.ChildInfo!=null && user.ChildInfo.FullName.Patronymic?.ToLower() == fullName.Patronymic.ToLower())).ToList();
+            => user.FullName.Patronymic?.ToLower() == fullName.Patronymic.ToLower()).ToList();
         
         return users.Any()?users.ToArray():null;
     }
 
-    public async Task<IEnumerable<UserDomain>?> GetUsersByGroupAsync(int group)
+    public async Task<UserDomain[]?> GetUsersByGroupAsync(int group)
     {
         var users = madeUpData.Users.Where(user 
             => (user.CounsellorInfo!=null && user.CounsellorInfo.Group == group)||(user.ChildInfo!=null && user.ChildInfo.Group == group));
@@ -239,10 +242,18 @@ public class MyUserRepository : IUserRepository
         return users.Any()?users.ToArray():null;
     }
 
-    public async Task<IEnumerable<UserDomain>?> GetUsersByTownAsync(string city)
+    public async Task<UserDomain[]?> GetUsersByCityAsync(string city)
     {
         var users = madeUpData.Users.Where(user 
-            => (user.CounsellorInfo!=null && user.CounsellorInfo.City?.ToLower() == city.ToLower())||(user.ChildInfo!=null && user.ChildInfo.City.ToLower() == city.ToLower()));
+            => user.City!=null && user.City.ToLower() == city.ToLower());
+
+        return users.Any()?users.ToArray():null;
+    }
+
+    public async Task<UserDomain[]?> GetUsersBySchoolAsync(string school)
+    {
+        var users = madeUpData.Users.Where(user 
+            => user.ChildInfo != null && user.ChildInfo.EducationInfo.School.ToLower() == school.ToLower());
 
         return users.Any()?users.ToArray():null;
     }
@@ -268,5 +279,13 @@ public class MyUserRoleService: IUserRoleService
     public async Task<Result<UserDomain>> PromoteToCounsellor(TelegramInfo telegramInfo)
     {
         throw new NotImplementedException();
+    }
+}
+
+public class MyTableParser: ITableParser
+{
+    public async Task<Result<ChildDto[]>> GetChildrenAsync(string tableName)
+    {
+        return new Result<ChildDto[]>();
     }
 }
