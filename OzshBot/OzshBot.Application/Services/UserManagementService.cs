@@ -24,9 +24,8 @@ public class UserManagementService: IUserManagementService
         return Result.Ok(user.ToUser());
     }
 
-    public async Task<Result<User>> EditUser(TelegramInfo telegramInfo, User user)
+    public async Task<Result<User>> EditUser(User user)
     {
-        if (await userRepository.GetUserByTgAsync(telegramInfo) == null) return Result.Fail("User not found");
         await userRepository.UpdateUserAsync(user);
         return Result.Ok(user);
     }
@@ -58,5 +57,6 @@ public class UserManagementService: IUserManagementService
         else return Result.Fail("Error loading and parsing table");
         return Result.Ok();
         // надо добавить про смены
+        //тут еще будет про обработку старнных строк
     }
 }
