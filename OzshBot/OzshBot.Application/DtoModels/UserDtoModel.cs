@@ -4,7 +4,7 @@ using OzshBot.Domain.ValueObjects;
 
 namespace OzshBot.Application.DtoModels;
 
-public interface IUserDtoModel
+public abstract class UserDtoModel
 {
     public Guid Id { get; init; }
     public FullName FullName { get; set; }
@@ -16,5 +16,5 @@ public interface IUserDtoModel
     [EmailAddress]
     public string? Email { get; set; }
 
-    public User ToUser();
+    public abstract User ToUser();
 }
