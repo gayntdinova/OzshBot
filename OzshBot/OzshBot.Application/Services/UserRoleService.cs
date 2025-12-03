@@ -14,11 +14,18 @@ public class UserRoleService: IUserRoleService
     {
         this.userRepository = userRepository;
     }
-    public async Task<Role> GetUserRole(TelegramInfo telegramInfo)
+    public async Task<Role> GetUserRoleByTgAsync(TelegramInfo telegramInfo)
     {
         var user = await userRepository.GetUserByTgAsync(telegramInfo);
         if (user != null) UpdateTelegramInfo(user, telegramInfo);
         return user?.Role ?? Role.Unknown;
+    }
+
+    public async Task<Role> ActivateUserByPhoneNumber(string phoneNumber, TelegramInfo telegramInfo)
+    {
+        var user = await userRepository.GetUsersByPhoneNumberAsync(phoneNumber);
+        if (user != null) UpdateTelegramInfo(user, telegramInfo);
+        return user?.Role ?? Role.Unknown; 
     }
 
     public async Task<Result<User>> PromoteToCounsellor(TelegramInfo telegramInfo)
@@ -28,7 +35,7 @@ public class UserRoleService: IUserRoleService
         var counsellorInfo = new CounsellorInfo
         {
             Group = null,
-            Sessions = null
+            Sessions = []
         };
         user.CounsellorInfo = counsellorInfo;
         await userRepository.UpdateUserAsync(user);

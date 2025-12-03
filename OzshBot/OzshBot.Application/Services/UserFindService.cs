@@ -30,6 +30,14 @@ public class UserFindService: IUserFindService
             : Result.Ok(users);
     }
 
+    public async Task<Result<User>> FindUserByPhoneNumberAsync(string phoneNumber)
+    {
+        var users = await userRepository.GetUsersByPhoneNumberAsync(phoneNumber);
+        return users == null
+            ? Result.Fail($"users with { phoneNumber } was not found")
+            : Result.Ok(users);
+    }
+
     public async Task<Result<User[]>> FindUserAsync(string input)
     {
         var splitedInput = input.Split(" ");

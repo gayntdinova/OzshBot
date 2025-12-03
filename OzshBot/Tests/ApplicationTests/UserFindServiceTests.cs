@@ -156,5 +156,5 @@ public class UserFindServiceTests
     {
         
     }
-    
+    //еще нужны тесты с Fail
 }
