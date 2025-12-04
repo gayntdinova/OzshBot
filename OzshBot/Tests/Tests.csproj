@@ -31,7 +31,6 @@
 
     <ItemGroup>
       <Folder Include="InfrastructureTests\" />
-      <Folder Include="OzshBotUseCaseTests\" />
     </ItemGroup>
 
 </Project>

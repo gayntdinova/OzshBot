@@ -2,6 +2,7 @@ using OzshBot.Application.RepositoriesInterfaces;
 using OzshBot.Application.Services;
 using FakeItEasy;
 using FluentAssertions;
+using OzshBot.Application.AppErrors;
 using OzshBot.Domain.Entities;
 using OzshBot.Domain.ValueObjects;
 
@@ -51,7 +52,6 @@ public class UserFindServiceTests
         var user = await userFindService.FindUserByTgAsync(telegramInfo);
         
         user.IsSuccess.Should().BeFalse();
-        user.Errors[0].Message.Should().Be("user with testUser1 was not found");
     }
 
     [Test]
@@ -85,7 +85,6 @@ public class UserFindServiceTests
         
         var users = await userFindService.FindUsersByClassAsync(1);
         users.IsSuccess.Should().BeFalse();
-        users.Errors[0].Message.Should().Be("users with 1 was not found");
     }
 
     [Test]
@@ -115,7 +114,6 @@ public class UserFindServiceTests
         
         var users = await userFindService.FindUsersByGroupAsync(0);
         users.IsSuccess.Should().BeFalse();
-        users.Errors[0].Message.Should().Be("users with 0 was not found");
     }
 
     [Test]
