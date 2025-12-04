@@ -30,12 +30,19 @@ public class UserFindService: IUserFindService
             : Result.Ok(users);
     }
 
+    public async Task<Result<User>> FindUserByPhoneNumberAsync(string phoneNumber)
+    {
+        var users = await userRepository.GetUsersByPhoneNumberAsync(phoneNumber);
+        return users == null
+            ? Result.Fail($"users with { phoneNumber } was not found")
+            : Result.Ok(users);
+    }
+
     public async Task<Result<User[]>> FindUserAsync(string input)
     {
         var splitedInput = input.Split(" ");
         if (splitedInput.Length == 1)
         {
-            input = input.Replace("@", "");
             var userByTg = await FindUserByTgAsync(new TelegramInfo { TgId = null, TgUsername = input });
             if (userByTg.IsSuccess) return Result.Ok(new[] {userByTg.Value});
         }
@@ -57,9 +64,10 @@ public class UserFindService: IUserFindService
     
     public async Task<Result<User>> FindUserByTgAsync(TelegramInfo telegramInfo)
     {
+        telegramInfo.TgUsername  = telegramInfo.TgUsername.Replace("@", "");
         var user = await userRepository.GetUserByTgAsync(telegramInfo);
         return user == null 
-            ? Result.Fail($"user with {telegramInfo.TgUsername} was not found") 
+            ? Result.Fail($"user with @{telegramInfo.TgUsername} was not found") 
             : Result.Ok(user);
     }
 

@@ -5,5 +5,8 @@
     &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserFindServiceTests.FindUserByTgAsync_UnknownUser_ReturnsResultFail&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserFindServiceTests.FindUserByTgAsync_KnownUser_ReturnsResultOk&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserFindServiceTests.FindUsersByClassAsync_EmptyClass_ReturnsResultFail&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserFindServiceTests.FindUsersByClassAsync_ClassWithChildren_ReturnsResultOk&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserFindServiceTests.FindUsersByGroupAsync_GroupWithChildren_ReturnsResultOk&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserFindServiceTests.FindUsersAsync_ByTelegram_ReturnsResultOk&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>
