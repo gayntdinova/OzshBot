@@ -47,35 +47,16 @@ class BotHandler
         this.userService = userService;
     }
 
-    public async Task SetCommandsForUser(string username, long userId)
+    //================================CoolMethods===================================
+    public async Task Start()
     {
-        var commands = new List<BotCommand>();
-        var role = await userService.RoleService.GetUserRole(
-            new TelegramInfo { TgUsername = username, TgId = userId });
+        using var cts = new CancellationTokenSource();
 
-        if (role != Role.Unknown)
-        {
-            // Общие команды для всех
-            commands.AddRange(new[]
-                {
-                    new BotCommand { Command = "help", Description = "Помощь" },
-                    new BotCommand { Command = "profile", Description = "Мой профиль" }
-                });
-            if (role != Role.Child){
-                // Команды для вожатых и админов
-                commands.AddRange(new[]
-                {
-                    new BotCommand { Command = "promote", Description = "Выдать права вожатого" },
-                    new BotCommand { Command = "demote", Description = "Забрать права вожатого" },
-                    new BotCommand { Command = "list", Description = "Список вожатых" }
-                });
-            }
+        botClient.StartReceiving(UpdateHandler, ErrorHandler, receiverOptions, cts.Token);
 
-            
-        }
-        await botClient.SetMyCommands(
-            commands,
-            scope: new BotCommandScopeChat { ChatId = userId });
+        Console.WriteLine($"{(await botClient.GetMe()).FirstName} запущен!");
+
+        await Task.Delay(-1);
     }
 
     private async Task UpdateHandler(ITelegramBotClient botClient, Update update, CancellationToken cancellationToken)
@@ -102,6 +83,17 @@ class BotHandler
         }
     }
 
+    private Task ErrorHandler(ITelegramBotClient botClient, Exception error, CancellationToken cancellationToken)
+    {
+        Console.WriteLine(error switch
+        {
+            _ => error.ToString()
+        });
+
+        return Task.CompletedTask;
+    }
+
+    //================================MessageMethods=================================
     private async Task HandleMessage(Update update)
     {
         if (update.Message is not { } message) return;
@@ -126,7 +118,10 @@ class BotHandler
             );
 
         if (stateDict.Keys.Contains(message.From.Id))
+        {
             await HandleMessageIfState(chat,role,message,message.From.Id);
+            return;
+        }
 
         switch (splittedMessage[0])
         {
@@ -157,13 +152,15 @@ class BotHandler
         switch (state.StateName)
         {
             case UserState.EditingUser_SelectField:
-                CancelEditing(userId,chat);
+                await CancelEditing(userId,chat);
                 break;
 
             case UserState.EditingUser_WaitingFullName:
                 state.messagesIds.Push(message.Id);
+                
                 if (Regex.IsMatch(messageText, @"^[А-ЯЁ][а-яё]+ [А-ЯЁ][а-яё]+ [А-ЯЁ][а-яё]+$"))
                 {
+                    state.numberOfDeletable = 0;
                     var splittedMessage = messageText.Split(" ");
                     state.StateName = UserState.EditingUser_SelectField;
                     state.Data.FullName.Surname = splittedMessage[0];
@@ -171,40 +168,53 @@ class BotHandler
                     state.Data.FullName.Patronymic = splittedMessage[2];
                 }
                 else
-                    SendEditInfoMessage(state,chat,
+                {
+                    state.numberOfDeletable+=2;
+                    await SendEditInfoMessage(state,chat,
                         "Некорректный формат\nВведите новое имя полностью (корректный формат: Фамилия Имя Отчество)",
-                        UserState.EditingUser_WaitingBirthday);
+                        UserState.EditingUser_WaitingFullName);
+                }
                 return;
 
             case UserState.EditingUser_WaitingTgUsername:
                 state.messagesIds.Push(message.Id);
                 if (Regex.IsMatch(messageText, @"^@[A-Za-z0-9_]+$"))
                 {
+                    state.numberOfDeletable = 0;
                     state.StateName = UserState.EditingUser_SelectField;
                     state.Data.TelegramInfo.TgUsername = messageText.Substring(1);
                 }
                 else
-                    SendEditInfoMessage(state,chat,
+                {
+                    state.numberOfDeletable+=2;
+                    await SendEditInfoMessage(state,chat,
                         "Некорректный формат\nВведите новый юзернейм телеграма(корректный формат: @username)",
                         UserState.EditingUser_WaitingTgUsername);
+                }
                 return;
 
             case UserState.EditingUser_WaitingBirthday:
                 state.messagesIds.Push(message.Id);
                 if (Regex.IsMatch(messageText, @"^(0[1-9]|[12]\d|3[01])\.(0[1-9]|1[0-2])\.(19\d{2}|20\d{2})$"))
                 {
+                    state.numberOfDeletable = 0;
                     state.StateName = UserState.EditingUser_SelectField;
                     state.Data.Birthday = DateOnly.ParseExact(messageText, "dd.MM.yyyy");
                 }
                 else
-                    SendEditInfoMessage(state,chat,
+                {
+                    state.numberOfDeletable = 0;
+                    state.numberOfDeletable+=2;
+                    await SendEditInfoMessage(state,chat,
                         "Некорректный формат\nВведите новый день рождения(корректный формат: день.месяц.год)",
                         UserState.EditingUser_WaitingBirthday);
+                }
                 return;
 
             case UserState.EditingUser_WaitingCity:
                 state.messagesIds.Push(message.Id);
 
+                state.numberOfDeletable = 0;
                 state.StateName = UserState.EditingUser_SelectField;
                 state.Data.City = messageText;
                 return;
@@ -213,45 +223,58 @@ class BotHandler
                 state.messagesIds.Push(message.Id);
                 if (Regex.IsMatch(messageText, @"^(\+7|8)\s?\(?\d{3}\)?[\s-]?\d{3}[\s-]?\d{2}[\s-]?\d{2}$"))
                 {
+                    state.numberOfDeletable = 0;
                     state.StateName = UserState.EditingUser_SelectField;
                     state.Data.PhoneNumber = messageText;
                 }
                 else
-                    SendEditInfoMessage(state,chat,
+                {
+                    state.numberOfDeletable+=2;
+                    await SendEditInfoMessage(state,chat,
                         "Некорректный формат\nВведите новый номер телефона(корректный формат: +7**********)",
                         UserState.EditingUser_WaitingPhoneNumber);
+                }
                 return;
                 
             case UserState.EditingUser_WaitingEmail:
                 state.messagesIds.Push(message.Id);
                 if (Regex.IsMatch(messageText, @"^[\w\.\-]+@[\w\-]+\.[A-Za-z]{2,}$"))
                 {
+                    state.numberOfDeletable = 0;
                     state.StateName = UserState.EditingUser_SelectField;
                     state.Data.Email = messageText;
                 }
                 else
-                    SendEditInfoMessage(state,chat,
+                {
+                    state.numberOfDeletable+=2;
+                    await SendEditInfoMessage(state,chat,
                         "Некорректный формат\nВведите новый email(корректный формат: чтото@чтото.чтото)",
                         UserState.EditingUser_WaitingEmail);
+                }
                 return;
 
             case UserState.EditingUser_WaitingClass:
                 state.messagesIds.Push(message.Id);
                 if (Regex.IsMatch(messageText, @"^(?:[1-9]|10|11)$"))
                 {
+                    state.numberOfDeletable = 0;
                     state.StateName = UserState.EditingUser_SelectField;
                     if (state.Data.ChildInfo!=null)
                         state.Data.ChildInfo.EducationInfo.Class =int.Parse(messageText);
                 }
                 else
-                    SendEditInfoMessage(state,chat,
+                {
+                    state.numberOfDeletable+=2;
+                    await SendEditInfoMessage(state,chat,
                         "Некорректный формат\nВведите новый номер класса(год обучения)",
                         UserState.EditingUser_WaitingClass);
+                }
                 return;
 
             case UserState.EditingUser_WaitingSchool:
                 state.messagesIds.Push(message.Id);
 
+                state.numberOfDeletable = 0;
                 state.StateName = UserState.EditingUser_SelectField;
                 if (state.Data.ChildInfo!=null)
                     state.Data.ChildInfo.EducationInfo.School = messageText;
@@ -261,6 +284,7 @@ class BotHandler
                 state.messagesIds.Push(message.Id);
                 if (Regex.IsMatch(messageText, @"^\d+$"))
                 {
+                    state.numberOfDeletable = 0;
                     state.StateName = UserState.EditingUser_SelectField;
                     if (state.Data.ChildInfo!=null)
                         state.Data.ChildInfo.Group = int.Parse(messageText);
@@ -268,9 +292,12 @@ class BotHandler
                         state.Data.CounsellorInfo.Group = int.Parse(messageText);
                 }
                 else
-                    SendEditInfoMessage(state,chat,
+                {
+                    state.numberOfDeletable+=2;
+                    await SendEditInfoMessage(state,chat,
                         "Некорректный формат\nВведите новый номер группы",
                         UserState.EditingUser_WaitingGroup);
+                }
                 return;
         }
     }
@@ -286,7 +313,7 @@ class BotHandler
                 $"вас не существует",
                 parseMode: ParseMode.MarkdownV2
                 );
-        else if (you.Value.Role == Role.Child)
+        else
             await botClient.SendMessage(
                 chat.Id,
                 FormDataAnswer(you.Value, role),
@@ -314,7 +341,7 @@ class BotHandler
                 parseMode: ParseMode.MarkdownV2
                 );
         }
-        else if (result.IsCompleted)
+        else
         {
             await botClient.SendMessage(
                 chat.Id,
@@ -368,6 +395,7 @@ class BotHandler
                 }
     }
 
+    //================================CallbackQueryMethods============================
     private async Task HandleCallbackQuery(Update update)
     {
         if (update.CallbackQuery is not { } callback) return;
@@ -395,12 +423,22 @@ class BotHandler
         {
             case "editMenu":
                 if(stateDict.Keys.Contains(userId))
-                    CancelEditing(userId, chat);
+                    await CancelEditing(userId, chat);
 
                 var username = splittedCommand[1];
                 var redactedUser = await userService.FindService.FindUserByTgAsync(new TelegramInfo{TgUsername = username});
 
-                messageId = (await botClient.SendMessage(
+                if (redactedUser.IsFailed)
+                {
+                    await botClient.SendMessage(
+                        chat.Id,
+                        "Юзернейм этого человека сменился или его уже не существует",
+                        parseMode: ParseMode.MarkdownV2
+                        );
+                }
+                else
+                {
+                    messageId = (await botClient.SendMessage(
                     chat.Id,
                     "Выбирите что редактировать, если вы напишете сообщение не по теме редактирование отменится",
                     replyMarkup: new InlineKeyboardMarkup(
@@ -446,86 +484,97 @@ class BotHandler
                             }
 
                         }).ToArray()
-                    ),
-                    parseMode: ParseMode.MarkdownV2
-                )).Id;
-                var newState = new State(UserState.EditingUser_SelectField, redactedUser.Value);
-                newState.messagesIds.Push(messageId);
-                stateDict[userId] = newState;
+                        ),
+                        parseMode: ParseMode.MarkdownV2
+                    )).Id;
+                    var newState = new State(UserState.EditingUser_SelectField, redactedUser.Value);
+                    newState.messagesIds.Push(messageId);
+                    stateDict[userId] = newState;
+                }
                 break;
 
             case "edit":
                 var state = stateDict[userId];
                 if(stateDict.Keys.Contains(userId) && state.StateName != UserState.EditingUser_SelectField)
-                    await botClient.DeleteMessage(chat, state.messagesIds.Pop());
+                    while(state.numberOfDeletable > 0)
+                    {
+                        await botClient.DeleteMessage(chat, state.messagesIds.Pop());
+                        state.numberOfDeletable-=1;
+                    }
 
                 switch (splittedCommand[1])
                 {
                     case "name":
-                        SendEditInfoMessage(state,chat,
+                        state.numberOfDeletable+=1;
+                        await SendEditInfoMessage(state,chat,
                             "Введите новое имя полностью (корректный формат: Фамилия Имя Отчество)",
                             UserState.EditingUser_WaitingFullName);
                         break;
                     case "telegram":
-                        SendEditInfoMessage(state,chat,
+                        state.numberOfDeletable+=1;
+                        await SendEditInfoMessage(state,chat,
                             "Введите новый юзернейм телеграма(корректный формат: @username)",
                             UserState.EditingUser_WaitingTgUsername);
                         break;
                     case "birth":
-                        SendEditInfoMessage(state,chat,
+                        state.numberOfDeletable+=1;
+                        await SendEditInfoMessage(state,chat,
                             "Введите новый день рождения(корректный формат: день.месяц.год)",
                             UserState.EditingUser_WaitingBirthday);
                         break;
                     case "city":
-                        SendEditInfoMessage(state,chat,
+                        state.numberOfDeletable+=1;
+                        await SendEditInfoMessage(state,chat,
                             "Введите новое название города",
                             UserState.EditingUser_WaitingCity);
                         break;
                     case "phone":
-                        SendEditInfoMessage(state,chat,
+                        state.numberOfDeletable+=1;
+                        await SendEditInfoMessage(state,chat,
                             "Введите новый номер телефона(корректный формат: +7**********)",
                             UserState.EditingUser_WaitingPhoneNumber);
                         break;
                     case "email":
-                        SendEditInfoMessage(state,chat,
+                        state.numberOfDeletable+=1;
+                        await SendEditInfoMessage(state,chat,
                             "Введите новый email(корректный формат: чтото@чтото.чтото)",
                             UserState.EditingUser_WaitingEmail);
                         break;
                     case "class":
-                        SendEditInfoMessage(state,chat,
+                        state.numberOfDeletable+=1;
+                        await SendEditInfoMessage(state,chat,
                             "Введите новый номер класса(год обучения)",
                             UserState.EditingUser_WaitingClass);
                         break;
                     case "school":
-                        SendEditInfoMessage(state,chat,
+                        state.numberOfDeletable+=1;
+                        await SendEditInfoMessage(state,chat,
                             "Введите новое название школы",
                             UserState.EditingUser_WaitingSchool);
                         break;
                     case "group":
-                        SendEditInfoMessage(state,chat,
+                        state.numberOfDeletable+=1;
+                        await SendEditInfoMessage(state,chat,
                             "Введите новый номер группы",
                             UserState.EditingUser_WaitingGroup);
                         break;
                     case "cancel":
-                        CancelEditing(userId,chat);
+                        await CancelEditing(userId,chat);
                         break;
                     case "apply":
-                        await userService.ManagementService.EditUser(new TelegramInfo
-                            {
-                                TgUsername = callback.From.Username,
-                                TgId = callback.From.Id
-                            }
-                            ,state.Data);
-                        CancelEditing(userId,chat);
+                        await userService.ManagementService.EditUser(state.Data.TelegramInfo ,state.Data);
+                        await CancelEditing(userId,chat);
+                        await HandleUsersSearching(chat,role,"@" + state.Data.TelegramInfo.TgUsername);
                         break;
                 }
                 break;
         }
-        
+
         await botClient.AnswerCallbackQuery(callback.Id);
     }
 
-    private async void SendEditInfoMessage(State state,Chat chat,string text,UserState newState)
+    //================================AdditionalMethods===============================
+    private async Task SendEditInfoMessage(State state,Chat chat,string text,UserState newState)
     {
         var messageId = (await botClient.SendMessage(
             chat.Id,
@@ -536,7 +585,36 @@ class BotHandler
         state.StateName = newState;
     }
     
-    private async void CancelEditing(long id, Chat chat)
+    public async Task SetCommandsForUser(string username, long userId)
+    {
+        var commands = new List<BotCommand>();
+        var role = await userService.RoleService.GetUserRole(
+            new TelegramInfo { TgUsername = username, TgId = userId });
+
+        if (role != Role.Unknown)
+        {
+            // Общие команды для всех
+            commands.AddRange(new[]
+                {
+                    new BotCommand { Command = "help", Description = "Помощь" },
+                    new BotCommand { Command = "profile", Description = "Мой профиль" }
+                });
+            if (role != Role.Child){
+                // Команды для вожатых и админов
+                commands.AddRange(new[]
+                {
+                    new BotCommand { Command = "promote", Description = "Выдать права вожатого" },
+                    new BotCommand { Command = "demote", Description = "Забрать права вожатого" },
+                    new BotCommand { Command = "list", Description = "Список вожатых" }
+                });
+            }
+        }
+        await botClient.SetMyCommands(
+            commands,
+            scope: new BotCommandScopeChat { ChatId = userId });
+    }
+
+    private async Task CancelEditing(long id, Chat chat)
     {
         while(stateDict[id].messagesIds.Count!=0)
             await botClient.DeleteMessage(chat, stateDict[id].messagesIds.Pop());
@@ -614,25 +692,4 @@ class BotHandler
     private string FormatString(string text)
     => text.Replace(".","\\.").Replace("-","\\-").Replace("+","\\+").Replace("*","\\*")
         .Replace("(","\\(").Replace(")","\\)");
-
-    private Task ErrorHandler(ITelegramBotClient botClient, Exception error, CancellationToken cancellationToken)
-    {
-        Console.WriteLine(error switch
-        {
-            _ => error.ToString()
-        });
-
-        return Task.CompletedTask;
-    }
-
-    public async Task Start()
-    {
-        using var cts = new CancellationTokenSource();
-
-        botClient.StartReceiving(UpdateHandler, ErrorHandler, receiverOptions, cts.Token);
-
-        Console.WriteLine($"{(await botClient.GetMe()).FirstName} запущен!");
-
-        await Task.Delay(-1);
-    }
 }

@@ -8,6 +8,7 @@ public class State
     public UserState StateName;
     public UserDomain Data;
     public Stack<MessageId> messagesIds = new();
+    public int numberOfDeletable;
 
     public State(UserState name, UserDomain? user = null)
     {

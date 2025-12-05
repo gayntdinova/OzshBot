@@ -16,6 +16,7 @@ using FluentResults;
 using OzshBot.Application.Services.Interfaces;
 using UserDomain = OzshBot.Domain.Entities.User;
 using OzshBot.Application.RepositoriesInterfaces;
+using Telegram.Bot.Types.Passport;
 namespace OzshBot.Bot;
 
 
@@ -258,9 +259,9 @@ public class MyUserRepository : IUserRepository
         return users.Any()?users.ToArray():null;
     }
 
-    public Task UpdateUserAsync(UserDomain user)
+    public async Task UpdateUserAsync(UserDomain user)
     {
-        throw new NotImplementedException();
+        return;
     }
 }
 
