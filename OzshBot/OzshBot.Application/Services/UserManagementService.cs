@@ -34,19 +34,20 @@ public class UserManagementService: IUserManagementService
 
     public async Task<Result> DeleteUserAsync(string phoneNumber)
     {
-        if (await userRepository.GetUsersByPhoneNumberAsync(phoneNumber) == null) return Result.Fail(new NotFoundError());
+        if (await userRepository.GetUsersByPhoneNumberAsync(phoneNumber) == null)
+            return Result.Fail(new NotFoundError());
         await userRepository.DeleteUserAsync(phoneNumber);
         return Result.Ok();
     }
 
     public async Task<Result> LoadTable(string link)
     {
-        var children = await tableParser.GetChildrenAsync(link);
-        if (children.IsSuccess)
+        var result = await tableParser.GetChildrenAsync(link);
+        if (result.IsSuccess)
         {
-            foreach (var child in children.Value)
+            foreach (var child in result.Value)
             {
-                var existUser = await userRepository.GetUserByTgAsync(child.TelegramInfo);
+                var existUser = await userRepository.GetUsersByPhoneNumberAsync(child.PhoneNumber);
                 if (existUser == null)
                     await userRepository.AddUserAsync(child.ToUser());
                 else
@@ -56,8 +57,8 @@ public class UserManagementService: IUserManagementService
                 }
             }
         }
-        if (children.HasError<IncorrectUrlError>()) return Result.Fail(new IncorrectUrlError());
-        if (children.HasError<IncorrectRowError>()) return Result.Fail(children.Errors);
+        if (result.HasError<IncorrectUrlError>()) return Result.Fail(new IncorrectUrlError());
+        if (result.HasError<IncorrectRowError>()) return Result.Fail(result.Errors);
         return Result.Ok();
     }
 }

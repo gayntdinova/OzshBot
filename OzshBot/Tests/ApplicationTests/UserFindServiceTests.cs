@@ -33,10 +33,10 @@ public class UserFindServiceTests
         A.CallTo(() => userRepository.GetUserByTgAsync(telegramInfo))!
             .Returns(Task.FromResult(foundUser));
         
-        var user = await userFindService.FindUserByTgAsync(telegramInfo);
+        var result = await userFindService.FindUserByTgAsync(telegramInfo);
         
-        user.IsSuccess.Should().BeTrue();
-        user.Value.Should().BeEquivalentTo(foundUser);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeEquivalentTo(foundUser);
     }
     
     [Test]
@@ -46,9 +46,9 @@ public class UserFindServiceTests
         A.CallTo(() => userRepository.GetUserByTgAsync(telegramInfo))!
             .Returns(Task.FromResult<User>(null!));
         
-        var user = await userFindService.FindUserByTgAsync(telegramInfo);
+        var result = await userFindService.FindUserByTgAsync(telegramInfo);
         
-        user.IsSuccess.Should().BeFalse();
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Test]
@@ -71,10 +71,10 @@ public class UserFindServiceTests
         A.CallTo(() => userRepository.GetUsersByClassAsync(6))!
             .Returns(Task.FromResult<User[]>([firstChild]));
         
-        var children = await userFindService.FindUsersByClassAsync(6);
+        var result = await userFindService.FindUsersByClassAsync(6);
         
-        children.IsSuccess.Should().BeTrue();
-        children.Value.Should().BeEquivalentTo([firstChild]);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeEquivalentTo([firstChild]);
     }
 
     [Test]
@@ -83,9 +83,9 @@ public class UserFindServiceTests
         A.CallTo(() => userRepository.GetUsersByClassAsync(1))!
             .Returns(Task.FromResult<User[]>(null));
         
-        var users = await userFindService.FindUsersByClassAsync(1);
+        var result = await userFindService.FindUsersByClassAsync(1);
         
-        users.IsSuccess.Should().BeFalse();
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Test]
@@ -104,10 +104,10 @@ public class UserFindServiceTests
         A.CallTo(() => userRepository.GetUsersByGroupAsync(1))!
             .Returns(Task.FromResult<User[]>([firstChild]));
         
-        var children = await userFindService.FindUsersByGroupAsync(1);
+        var result = await userFindService.FindUsersByGroupAsync(1);
         
-        children.IsSuccess.Should().BeTrue();
-        children.Value.Should().BeEquivalentTo([firstChild]);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeEquivalentTo([firstChild]);
     }
     
     [Test]
@@ -116,9 +116,9 @@ public class UserFindServiceTests
         A.CallTo(() => userRepository.GetUsersByGroupAsync(0))!
             .Returns(Task.FromResult<User[]>(null));
         
-        var users = await userFindService.FindUsersByGroupAsync(0);
+        var result = await userFindService.FindUsersByGroupAsync(0);
         
-        users.IsSuccess.Should().BeFalse();
+        result.IsSuccess.Should().BeFalse();
     }
 
     [Test]
@@ -137,10 +137,10 @@ public class UserFindServiceTests
                     t.TgId == null)))!
             .Returns(Task.FromResult(foundUser));
         
-        var users = await userFindService.FindUserAsync("testUser1");
+        var result = await userFindService.FindUserAsync("testUser1");
         
-        users.IsSuccess.Should().BeTrue();
-        users.Value.Should().BeEquivalentTo([foundUser]);
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeEquivalentTo([foundUser]);
     }
     
     
@@ -162,10 +162,10 @@ public class UserFindServiceTests
         A.CallTo(() => userRepository.GetUsersByCityAsync("Екатеринбург"))
             .Returns(Task.FromResult<User[]>([foundUser]));
         
-        var users = await userFindService.FindUserAsync("Екатеринбург");
+        var result = await userFindService.FindUserAsync("Екатеринбург");
         
-        users.IsSuccess.Should().BeTrue();
-        users.Value.Should().BeEquivalentTo([foundUser]); 
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeEquivalentTo([foundUser]); 
     }
     
     [Test]
@@ -195,10 +195,10 @@ public class UserFindServiceTests
         A.CallTo(() => userRepository.GetUsersBySchoolAsync("СУНЦ"))
             .Returns(Task.FromResult<User[]>([foundUser]));
         
-        var users = await userFindService.FindUserAsync("СУНЦ");
+        var result = await userFindService.FindUserAsync("СУНЦ");
         
-        users.IsSuccess.Should().BeTrue();
-        users.Value.Should().BeEquivalentTo([foundUser]); 
+        result.IsSuccess.Should().BeTrue();
+        result.Value.Should().BeEquivalentTo([foundUser]); 
     }
     
     [Test]
