@@ -39,6 +39,7 @@ public class UserRoleService: IUserRoleService
             Sessions = []
         };
         user.CounsellorInfo = counsellorInfo;
+        user.Role = Role.Counsellor;
         await userRepository.UpdateUserAsync(user);
         return Result.Ok(user);
     }
