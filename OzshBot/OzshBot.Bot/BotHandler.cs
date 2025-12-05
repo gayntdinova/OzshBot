@@ -106,7 +106,7 @@ class BotHandler
             new TelegramInfo { TgUsername = message.From.Username, TgId = message.From.Id }).Result;
         var chat = message.Chat;
 
-        Console.WriteLine($"id: {message.From.Id}\nusername {message.From.Username}\nроль: {role}"+(stateDict.Keys.Contains(message.From.Id)?("\nсостояние: "+ stateDict[message.From.Id]):""));
+        Console.WriteLine($"id: {message.From.Id}\nusername {message.From.Username}\nроль: {role}"+(stateDict.Keys.Contains(message.From.Id)?("\nсостояние: "+ stateDict[message.From.Id].StateName):""));
 
         //==================================================================================================
 
