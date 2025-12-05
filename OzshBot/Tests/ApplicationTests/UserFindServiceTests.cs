@@ -2,7 +2,6 @@ using OzshBot.Application.RepositoriesInterfaces;
 using OzshBot.Application.Services;
 using FakeItEasy;
 using FluentAssertions;
-using OzshBot.Application.AppErrors;
 using OzshBot.Domain.Entities;
 using OzshBot.Domain.ValueObjects;
 
@@ -29,6 +28,7 @@ public class UserFindServiceTests
         {
             FullName = null,
             TelegramInfo = telegramInfo,
+            PhoneNumber = null,
         };
         A.CallTo(() => userRepository.GetUserByTgAsync(telegramInfo))!
             .Returns(Task.FromResult(foundUser));
@@ -65,7 +65,8 @@ public class UserFindServiceTests
                 },
             },
             FullName = null,
-            TelegramInfo = null
+            TelegramInfo = null,
+            PhoneNumber = null
         };
         A.CallTo(() => userRepository.GetUsersByClassAsync(6))!
             .Returns(Task.FromResult<User[]>([firstChild]));
@@ -97,7 +98,8 @@ public class UserFindServiceTests
                 Group = 1,
             },
             FullName = null,
-            TelegramInfo = null
+            TelegramInfo = null,
+            PhoneNumber = null
         };
         A.CallTo(() => userRepository.GetUsersByGroupAsync(1))!
             .Returns(Task.FromResult<User[]>([firstChild]));
@@ -127,6 +129,7 @@ public class UserFindServiceTests
         {
             FullName = null,
             TelegramInfo = telegramInfo,
+            PhoneNumber = null,
         };
         A.CallTo(() => userRepository.GetUserByTgAsync(
                 A<TelegramInfo>.That.Matches(t => 
@@ -149,6 +152,7 @@ public class UserFindServiceTests
             FullName = null,
             City = "Екатеринбург",
             TelegramInfo = null,
+            PhoneNumber = null,
         };
         A.CallTo(() => userRepository.GetUserByTgAsync(
                 A<TelegramInfo>.That.Matches(t => 
@@ -178,7 +182,8 @@ public class UserFindServiceTests
                     School = "СУНЦ"
                 }
             },
-            TelegramInfo = null
+            TelegramInfo = null,
+            PhoneNumber = null
         };
         A.CallTo(() => userRepository.GetUserByTgAsync(
                 A<TelegramInfo>.That.Matches(t => 

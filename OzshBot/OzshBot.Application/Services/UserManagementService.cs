@@ -32,10 +32,10 @@ public class UserManagementService: IUserManagementService
         return Result.Ok(user);
     }
 
-    public async Task<Result> DeleteUserAsync(TelegramInfo telegramInfo)
+    public async Task<Result> DeleteUserAsync(string phoneNumber)
     {
-        if (await userRepository.GetUserByTgAsync(telegramInfo) == null) return Result.Fail(new NotFoundError());
-        await userRepository.DeleteUserAsync(telegramInfo);
+        if (await userRepository.GetUsersByPhoneNumberAsync(phoneNumber) == null) return Result.Fail(new NotFoundError());
+        await userRepository.DeleteUserAsync(phoneNumber);
         return Result.Ok();
     }
 

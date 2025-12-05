@@ -29,9 +29,9 @@ public class UserRoleService: IUserRoleService
         return user?.Role ?? Role.Unknown; 
     }
 
-    public async Task<Result<User>> PromoteToCounsellor(TelegramInfo telegramInfo)
+    public async Task<Result<User>> PromoteToCounsellor(string phoneNumber)
     {
-        var user = await userRepository.GetUserByTgAsync(telegramInfo);
+        var user = await userRepository.GetUsersByPhoneNumberAsync(phoneNumber);
         if (user == null) return Result.Fail(new NotFoundError());
         var counsellorInfo = new CounsellorInfo
         {

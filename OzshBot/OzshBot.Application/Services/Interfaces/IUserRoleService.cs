@@ -10,5 +10,5 @@ public interface IUserRoleService
     public Task<Role> GetUserRoleByTgAsync(TelegramInfo telegramInfo);
     public Task<Role> ActivateUserByPhoneNumber(string phoneNumber, TelegramInfo telegramInfo);
     
-    public Task<Result<User>> PromoteToCounsellor(TelegramInfo telegramInfo);
+    public Task<Result<User>> PromoteToCounsellor(string phoneNumber);
  }
