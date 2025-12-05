@@ -1,4 +1,5 @@
 using FluentResults;
+using OzshBot.Application.AppErrors;
 using OzshBot.Application.DtoModels;
 using OzshBot.Application.RepositoriesInterfaces;
 using OzshBot.Application.Services.Interfaces;
@@ -19,7 +20,8 @@ public class UserManagementService: IUserManagementService
 
     public async Task<Result<User>> AddUserAsync<T>(T user) where T: UserDtoModel
     {
-        if (await userRepository.GetUserByTgAsync(user.TelegramInfo) != null) return Result.Fail("User has already been added");
+        if (await userRepository.GetUserByTgAsync(user.TelegramInfo) != null) 
+            return Result.Fail(new UserAlreadyExistsError());
         await userRepository.AddUserAsync(user.ToUser());
         return Result.Ok(user.ToUser());
     }
@@ -32,7 +34,7 @@ public class UserManagementService: IUserManagementService
 
     public async Task<Result> DeleteUserAsync(TelegramInfo telegramInfo)
     {
-        if (await userRepository.GetUserByTgAsync(telegramInfo) == null) return Result.Fail("User not found");
+        if (await userRepository.GetUserByTgAsync(telegramInfo) == null) return Result.Fail(new NotFoundError());
         await userRepository.DeleteUserAsync(telegramInfo);
         return Result.Ok();
     }
@@ -54,9 +56,8 @@ public class UserManagementService: IUserManagementService
                 }
             }
         }
-        else return Result.Fail("Error loading and parsing table");
+        if (children.HasError<IncorrectUrlError>()) return Result.Fail(new IncorrectUrlError());
+        if (children.HasError<IncorrectRowError>()) return Result.Fail(children.Errors);
         return Result.Ok();
-        // надо добавить про смены
-        //тут еще будет про обработку старнных строк
     }
 }

@@ -1,4 +1,5 @@
 using FluentResults;
+using OzshBot.Application.AppErrors;
 using OzshBot.Application.RepositoriesInterfaces;
 using OzshBot.Application.Services.Interfaces;
 using OzshBot.Domain.Entities;
@@ -31,7 +32,7 @@ public class UserRoleService: IUserRoleService
     public async Task<Result<User>> PromoteToCounsellor(TelegramInfo telegramInfo)
     {
         var user = await userRepository.GetUserByTgAsync(telegramInfo);
-        if (user == null) return Result.Fail("User not found");
+        if (user == null) return Result.Fail(new NotFoundError());
         var counsellorInfo = new CounsellorInfo
         {
             Group = null,
