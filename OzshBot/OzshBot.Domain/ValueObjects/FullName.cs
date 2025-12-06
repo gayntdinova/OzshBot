@@ -11,13 +11,4 @@ public class FullName
         Surname = surname;
         Patronymic = patronymic;
     }
-
-    public override string ToString()
-    {
-        var resultString = string.Empty;
-        if (Surname != null) resultString += $" {Surname}";
-        if (Name != null) resultString += $" {Name}";
-        if (Patronymic != null) resultString += $" {Patronymic}";
-        return resultString;
-    }
 }

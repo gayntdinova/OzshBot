@@ -11,7 +11,8 @@ public interface IUserRepository
     Task<User[]?> GetUsersByClassAsync(int classNumber);
     Task<User[]?> GetUsersByGroupAsync(int group);
     Task<User[]?> GetUsersBySchoolAsync(string school);
+    Task<User?> GetUsersByPhoneNumberAsync(string phoneNumber);
     Task AddUserAsync(User user);
     Task UpdateUserAsync(User user);
-    Task DeleteUserAsync(TelegramInfo telegramInfo);
+    Task DeleteUserAsync(string phoneNumber);
 }

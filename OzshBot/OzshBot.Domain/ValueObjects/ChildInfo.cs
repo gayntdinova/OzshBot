@@ -6,6 +6,6 @@ public class ChildInfo
 {
     public EducationInfo EducationInfo { get; set; }
     public int? Group { get; set; }
-    public Session[] Sessions { get; init; } = [];
-    public ContactPerson[] ContactPeople { get; init; } = [];
+    public List<Session> Sessions { get; init; } = [];
+    public List<ContactPerson> ContactPeople { get; init; } = [];
 }

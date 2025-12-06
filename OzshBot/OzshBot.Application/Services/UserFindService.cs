@@ -1,4 +1,5 @@
 using FluentResults;
+using OzshBot.Application.AppErrors;
 using OzshBot.Application.RepositoriesInterfaces;
 using OzshBot.Application.Services.Interfaces;
 using OzshBot.Domain.Entities;
@@ -18,7 +19,7 @@ public class UserFindService: IUserFindService
     {
         var users = await userRepository.GetUsersByClassAsync(classNumber);
         return users == null
-            ? Result.Fail($"users with {classNumber} was not found")
+            ? Result.Fail(new NotFoundError())
             : Result.Ok(users);
     }
     
@@ -26,7 +27,15 @@ public class UserFindService: IUserFindService
     {
         var users = await userRepository.GetUsersByGroupAsync(group);
         return users == null
-            ? Result.Fail($"users with {group} was not found")
+            ? Result.Fail(new NotFoundError())
+            : Result.Ok(users);
+    }
+
+    public async Task<Result<User>> FindUserByPhoneNumberAsync(string phoneNumber)
+    {
+        var users = await userRepository.GetUsersByPhoneNumberAsync(phoneNumber);
+        return users == null
+            ? Result.Fail(new NotFoundError())
             : Result.Ok(users);
     }
 
@@ -35,13 +44,12 @@ public class UserFindService: IUserFindService
         var splitedInput = input.Split(" ");
         if (splitedInput.Length == 1)
         {
-            input = input.Replace("@", "");
             var userByTg = await FindUserByTgAsync(new TelegramInfo { TgId = null, TgUsername = input });
             if (userByTg.IsSuccess) return Result.Ok(new[] {userByTg.Value});
         }
 
-        var usersByTown = await FindUsersByCityAsync(input);
-        if (usersByTown.IsSuccess) return Result.Ok(usersByTown.Value);
+        var usersByCity = await FindUsersByCityAsync(input);
+        if (usersByCity.IsSuccess) return Result.Ok(usersByCity.Value);
         
         var usersBySchool = await FindUsersBySchoolAsync(input);
         if (usersBySchool.IsSuccess) return Result.Ok(usersBySchool.Value);
@@ -52,14 +60,14 @@ public class UserFindService: IUserFindService
             var userByFullName = await FindUsersByFullNameAsync(combination);
             if (userByFullName.IsSuccess) return Result.Ok(userByFullName.Value);
         }
-        return Result.Fail($"users with {input} was not found");
+        return Result.Fail(new NotFoundError());
     }
     
     public async Task<Result<User>> FindUserByTgAsync(TelegramInfo telegramInfo)
     {
         var user = await userRepository.GetUserByTgAsync(telegramInfo);
         return user == null 
-            ? Result.Fail($"user with {telegramInfo.TgUsername} was not found") 
+            ? Result.Fail(new NotFoundError()) 
             : Result.Ok(user);
     }
 
@@ -90,7 +98,7 @@ public class UserFindService: IUserFindService
     {
         var users = await userRepository.GetUsersByFullNameAsync(fullName);
         return users == null
-            ? Result.Fail($"users with {fullName.ToString()} was not found")
+            ? Result.Fail(new NotFoundError())
             : Result.Ok(users);
     }
 
@@ -98,7 +106,7 @@ public class UserFindService: IUserFindService
     {
         var users = await userRepository.GetUsersByCityAsync(city);
         return users == null
-            ? Result.Fail($"users with {city} was not found")
+            ? Result.Fail(new NotFoundError())
             : Result.Ok(users);
     }
 
@@ -106,7 +114,7 @@ public class UserFindService: IUserFindService
     {
         var users = await userRepository.GetUsersBySchoolAsync(school);
         return users == null
-            ? Result.Fail($"users with {school} was not found")
+            ? Result.Fail(new NotFoundError())
             : Result.Ok(users);
-    }
+    } 
 }

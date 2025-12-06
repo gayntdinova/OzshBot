@@ -1,4 +1,5 @@
 using FluentResults;
+using OzshBot.Application.AppErrors;
 using OzshBot.Application.RepositoriesInterfaces;
 using OzshBot.Application.Services.Interfaces;
 using OzshBot.Domain.Entities;
@@ -14,23 +15,31 @@ public class UserRoleService: IUserRoleService
     {
         this.userRepository = userRepository;
     }
-    public async Task<Role> GetUserRole(TelegramInfo telegramInfo)
+    public async Task<Role> GetUserRoleByTgAsync(TelegramInfo telegramInfo)
     {
         var user = await userRepository.GetUserByTgAsync(telegramInfo);
         if (user != null) UpdateTelegramInfo(user, telegramInfo);
         return user?.Role ?? Role.Unknown;
     }
 
-    public async Task<Result<User>> PromoteToCounsellor(TelegramInfo telegramInfo)
+    public async Task<Role> ActivateUserByPhoneNumber(string phoneNumber, TelegramInfo telegramInfo)
     {
-        var user = await userRepository.GetUserByTgAsync(telegramInfo);
-        if (user == null) return Result.Fail("User not found");
+        var user = await userRepository.GetUsersByPhoneNumberAsync(phoneNumber);
+        if (user != null) UpdateTelegramInfo(user, telegramInfo);
+        return user?.Role ?? Role.Unknown; 
+    }
+
+    public async Task<Result<User>> PromoteToCounsellor(string phoneNumber)
+    {
+        var user = await userRepository.GetUsersByPhoneNumberAsync(phoneNumber);
+        if (user == null) return Result.Fail(new NotFoundError());
         var counsellorInfo = new CounsellorInfo
         {
             Group = null,
-            Sessions = null
+            Sessions = []
         };
         user.CounsellorInfo = counsellorInfo;
+        user.Role = Role.Counsellor;
         await userRepository.UpdateUserAsync(user);
         return Result.Ok(user);
     }
