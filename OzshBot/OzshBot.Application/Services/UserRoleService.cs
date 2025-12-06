@@ -22,16 +22,16 @@ public class UserRoleService: IUserRoleService
         return user?.Role ?? Role.Unknown;
     }
 
-    public async Task<Role> ActivateUserByPhoneNumber(string phoneNumber, TelegramInfo telegramInfo)
+    public async Task<Role> ActivateUserByPhoneNumberAsync(string phoneNumber, TelegramInfo telegramInfo)
     {
-        var user = await userRepository.GetUsersByPhoneNumberAsync(phoneNumber);
+        var user = await userRepository.GetUserByPhoneNumberAsync(phoneNumber);
         if (user != null) UpdateTelegramInfo(user, telegramInfo);
         return user?.Role ?? Role.Unknown; 
     }
 
-    public async Task<Result<User>> PromoteToCounsellor(string phoneNumber)
+    public async Task<Result<User>> PromoteToCounsellorAsync(string phoneNumber)
     {
-        var user = await userRepository.GetUsersByPhoneNumberAsync(phoneNumber);
+        var user = await userRepository.GetUserByPhoneNumberAsync(phoneNumber);
         if (user == null) return Result.Fail(new NotFoundError());
         var counsellorInfo = new CounsellorInfo
         {

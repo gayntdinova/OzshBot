@@ -26,7 +26,7 @@ public class UserManagementService: IUserManagementService
         return Result.Ok(user.ToUser());
     }
 
-    public async Task<Result<User>> EditUser(User user)
+    public async Task<Result<User>> EditUserAsync(User user)
     {
         await userRepository.UpdateUserAsync(user);
         return Result.Ok(user);
@@ -34,20 +34,20 @@ public class UserManagementService: IUserManagementService
 
     public async Task<Result> DeleteUserAsync(string phoneNumber)
     {
-        if (await userRepository.GetUsersByPhoneNumberAsync(phoneNumber) == null)
+        if (await userRepository.GetUserByPhoneNumberAsync(phoneNumber) == null)
             return Result.Fail(new NotFoundError());
         await userRepository.DeleteUserAsync(phoneNumber);
         return Result.Ok();
     }
 
-    public async Task<Result> LoadTable(string link)
+    public async Task<Result> LoadTableAsync(string link)
     {
         var result = await tableParser.GetChildrenAsync(link);
         if (result.IsSuccess)
         {
             foreach (var child in result.Value)
             {
-                var existUser = await userRepository.GetUsersByPhoneNumberAsync(child.PhoneNumber);
+                var existUser = await userRepository.GetUserByPhoneNumberAsync(child.PhoneNumber);
                 if (existUser == null)
                     await userRepository.AddUserAsync(child.ToUser());
                 else

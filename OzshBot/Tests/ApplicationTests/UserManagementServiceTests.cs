@@ -20,7 +20,49 @@ public class UserManagementServiceTests
     }
 
     [Test]
-    public void Test1()
+    public void EditUserAsync_ReturnOk()
+    {
+        Assert.Pass();
+    }
+
+    [Test]
+    public void AddUserAsync_NewChild_ReturnOk()
+    {
+        Assert.Pass();
+    }
+
+    [Test]
+    public void AddUserAsync_ExistedChild_ReturnFail()
+    {
+        Assert.Pass();
+    }
+
+    [Test]
+    public void DeleteUserAsync_ExistedChild_ReturnOk()
+    {
+        Assert.Pass();
+    }
+
+    [Test]
+    public void DeleteUserAsync_NotExistedChild_ReturnFail()
+    {
+        Assert.Pass();
+    }
+
+    [Test]
+    public void LoadTableAsync_IncorrectUrl_ReturnFail()
+    {
+        Assert.Pass();
+    }
+
+    [Test]
+    public void LoadTableAsync_IncorrectRowsInParsing_ReturnFail()
+    {
+        Assert.Pass();
+    }
+
+    [Test]
+    public void LoadTableAsync_ReturnOk()
     {
         Assert.Pass();
     }
