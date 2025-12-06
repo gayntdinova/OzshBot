@@ -34,7 +34,7 @@ public class UserManagementService: IUserManagementService
 
     public async Task<Result> DeleteUserAsync(string phoneNumber)
     {
-        if (await userRepository.GetUsersByPhoneNumberAsync(phoneNumber) == null)
+        if (await userRepository.GetUserByPhoneNumberAsync(phoneNumber) == null)
             return Result.Fail(new NotFoundError());
         await userRepository.DeleteUserAsync(phoneNumber);
         return Result.Ok();
@@ -47,7 +47,7 @@ public class UserManagementService: IUserManagementService
         {
             foreach (var child in result.Value)
             {
-                var existUser = await userRepository.GetUsersByPhoneNumberAsync(child.PhoneNumber);
+                var existUser = await userRepository.GetUserByPhoneNumberAsync(child.PhoneNumber);
                 if (existUser == null)
                     await userRepository.AddUserAsync(child.ToUser());
                 else

@@ -33,7 +33,7 @@ public class UserFindService: IUserFindService
 
     public async Task<Result<User>> FindUserByPhoneNumberAsync(string phoneNumber)
     {
-        var users = await userRepository.GetUsersByPhoneNumberAsync(phoneNumber);
+        var users = await userRepository.GetUserByPhoneNumberAsync(phoneNumber);
         return users == null
             ? Result.Fail(new NotFoundError())
             : Result.Ok(users);
