@@ -28,6 +28,18 @@ public class DbRepository(AppDbContext context) : IUserRepository
         return dbUser.ToDomainUser();
     }
 
+    public async Task<Domain.Entities.User?> GetUsersByPhoneNumberAsync(string phoneNumber)
+    {
+        return await context.Users
+            .Include(u => u.Student)
+                .ThenInclude(s => s.Relations)
+                .ThenInclude(r => r.Parent)
+            .Include(u => u.Counsellor)
+            .Where(u => (u.Student != null && u.Student.Phone == phoneNumber) || (u.Counsellor != null && u.Counsellor.Phone == phoneNumber))
+            .Select(u => u.ToDomainUser())
+            .FirstOrDefaultAsync();
+    }
+
     public async Task<Domain.Entities.User[]?> GetUsersByFullNameAsync(FullName fullName)
     {
         if (fullName.Name == null && fullName.Surname == null && fullName.Patronymic == null)
@@ -129,18 +141,6 @@ public class DbRepository(AppDbContext context) : IUserRepository
                 .ThenInclude(r => r.Parent)
             .Include(u => u.Counsellor)
             .Where(u => u.Student != null && u.Student.School == school)
-            .Select(u => u.ToDomainUser())
-            .ToArrayAsync();
-    }
-
-    public async Task<Domain.Entities.User[]?> GetUsersByPhoneNumberAsync(string phone)
-    {
-        return await context.Users
-            .Include(u => u.Student)
-                .ThenInclude(s => s.Relations)
-                .ThenInclude(r => r.Parent)
-            .Include(u => u.Counsellor)
-            .Where(u => (u.Student != null && u.Student.Phone == phone) || (u.Counsellor != null && u.Counsellor.Phone == phone))
             .Select(u => u.ToDomainUser())
             .ToArrayAsync();
     }
@@ -269,5 +269,19 @@ public class DbRepository(AppDbContext context) : IUserRepository
             await context.Parents.AddAsync(newParent);
             return newParent;
         }
+    }
+
+    public async Task DeleteUserAsync(string phoneNumber)
+    {
+        var user = await context.Users
+            .Include(u => u.Student)
+                .ThenInclude(s => s.Relations)
+                .ThenInclude(r => r.Parent)
+            .Include(u => u.Counsellor)
+            .Where(u => (u.Student != null && u.Student.Phone == phoneNumber) || (u.Counsellor != null && u.Counsellor.Phone == phoneNumber))
+            .FirstOrDefaultAsync();
+        if (user == null) throw new InvalidOperationException("Нет пользователя с такими данными telegram");
+        context.Users.Remove(user);
+        await context.SaveChangesAsync();
     }
 }
