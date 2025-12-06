@@ -25,7 +25,6 @@ public class User
 
     public virtual Student? Student { get; set; }
     public virtual Counsellor? Counsellor { get; set; }
-    public virtual AccessRight? AccessRight { get; set; }
 }
 
 public static class UserConverter
