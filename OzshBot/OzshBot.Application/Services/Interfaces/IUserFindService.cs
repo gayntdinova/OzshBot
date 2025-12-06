@@ -12,4 +12,4 @@ public interface IUserFindService
     public Task<Result<User>> FindUserByPhoneNumberAsync(string phoneNumber);
     public Task<Result<User[]>> FindUserAsync(string input);
     
-}
+} 

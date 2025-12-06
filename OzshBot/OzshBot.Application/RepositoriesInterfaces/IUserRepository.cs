@@ -14,5 +14,5 @@ public interface IUserRepository
     Task<User?> GetUsersByPhoneNumberAsync(string phoneNumber);
     Task AddUserAsync(User user);
     Task UpdateUserAsync(User user);
-    Task DeleteUserAsync(TelegramInfo telegramInfo);
+    Task DeleteUserAsync(string phoneNumber);
 }

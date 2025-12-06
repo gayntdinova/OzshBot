@@ -1,4 +1,5 @@
 using FluentResults;
+using OzshBot.Application.AppErrors;
 using OzshBot.Application.DtoModels;
 using OzshBot.Application.RepositoriesInterfaces;
 using OzshBot.Application.Services.Interfaces;
@@ -19,7 +20,8 @@ public class UserManagementService: IUserManagementService
 
     public async Task<Result<User>> AddUserAsync<T>(T user) where T: UserDtoModel
     {
-        if (await userRepository.GetUserByTgAsync(user.TelegramInfo) != null) return Result.Fail("User has already been added");
+        if (await userRepository.GetUserByTgAsync(user.TelegramInfo) != null) 
+            return Result.Fail(new UserAlreadyExistsError());
         await userRepository.AddUserAsync(user.ToUser());
         return Result.Ok(user.ToUser());
     }
@@ -30,21 +32,22 @@ public class UserManagementService: IUserManagementService
         return Result.Ok(user);
     }
 
-    public async Task<Result> DeleteUserAsync(TelegramInfo telegramInfo)
+    public async Task<Result> DeleteUserAsync(string phoneNumber)
     {
-        if (await userRepository.GetUserByTgAsync(telegramInfo) == null) return Result.Fail("User not found");
-        await userRepository.DeleteUserAsync(telegramInfo);
+        if (await userRepository.GetUsersByPhoneNumberAsync(phoneNumber) == null)
+            return Result.Fail(new NotFoundError());
+        await userRepository.DeleteUserAsync(phoneNumber);
         return Result.Ok();
     }
 
     public async Task<Result> LoadTable(string link)
     {
-        var children = await tableParser.GetChildrenAsync(link);
-        if (children.IsSuccess)
+        var result = await tableParser.GetChildrenAsync(link);
+        if (result.IsSuccess)
         {
-            foreach (var child in children.Value)
+            foreach (var child in result.Value)
             {
-                var existUser = await userRepository.GetUserByTgAsync(child.TelegramInfo);
+                var existUser = await userRepository.GetUsersByPhoneNumberAsync(child.PhoneNumber);
                 if (existUser == null)
                     await userRepository.AddUserAsync(child.ToUser());
                 else
@@ -54,9 +57,8 @@ public class UserManagementService: IUserManagementService
                 }
             }
         }
-        else return Result.Fail("Error loading and parsing table");
+        if (result.HasError<IncorrectUrlError>()) return Result.Fail(new IncorrectUrlError());
+        if (result.HasError<IncorrectRowError>()) return Result.Fail(result.Errors);
         return Result.Ok();
-        // надо добавить про смены
-        //тут еще будет про обработку старнных строк
     }
 }
