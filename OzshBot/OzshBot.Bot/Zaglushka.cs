@@ -88,8 +88,8 @@ public class MadeUpData
                         School = "Сунц УрФУ"
                     },
                     Group = 1000 + id,
-                    Sessions = new Session[] { },
-                    ContactPeople = new ContactPerson[]{}
+                    Sessions = new List<Session> { },
+                    ContactPeople = new List<ContactPerson>{}
                 },
                 TelegramInfo = new()
                 {
@@ -129,7 +129,7 @@ public class MadeUpData
                 School = Schools[random.Next(Schools.Length)]
             },
             Group = 1000 + id,
-            Sessions = new Session[] { },
+            Sessions = new List<Session> { },
             ContactPeople = GenerateContactPersonList(random)
         },
         Role = Role.Child
@@ -153,12 +153,12 @@ public class MadeUpData
         CounsellorInfo = new CounsellorInfo
         {
             Group = 1000 + id,
-            Sessions = new Session[] { }
+            Sessions = new List<Session>{ }
         },
         Role = Role.Counsellor
     };
 
-    private ContactPerson[] GenerateContactPersonList(Random random)
+    private List<ContactPerson> GenerateContactPersonList(Random random)
     {
         var length = random.Next(0, 2);
         var list = new List<ContactPerson>();
@@ -171,7 +171,7 @@ public class MadeUpData
                 PhoneNumber = $"+79{(random.Next(100000000, 999999999))}"
             });
         }
-        return list.ToArray();
+        return list.ToList();
     }
 
     private FullName GenerateRandomFullName(Random random)
@@ -203,7 +203,14 @@ public class MyUserRepository : IUserRepository
 
     public async Task<UserDomain?> GetUserByTgAsync(TelegramInfo telegramInfo)
     {
-        var users = madeUpData.Users.Where(user => user.TelegramInfo.TgUsername.ToLower() == telegramInfo.TgUsername.ToLower());
+        var users = madeUpData.Users.Where(user => user.TelegramInfo?.TgUsername.ToLower() == telegramInfo.TgUsername.ToLower());
+
+        return users.FirstOrDefault();
+    }
+
+    public async Task<UserDomain?> GetUserByPhoneNumberAsync(string phoneNumber)
+    {
+        var users = madeUpData.Users.Where(user => user.PhoneNumber?.ToLower() == phoneNumber.ToLower());
 
         return users.FirstOrDefault();
     }
@@ -239,7 +246,6 @@ public class MyUserRepository : IUserRepository
         var users = madeUpData.Users.Where(user 
             => (user.CounsellorInfo!=null && user.CounsellorInfo.Group == group)||(user.ChildInfo!=null && user.ChildInfo.Group == group));
 
-
         return users.Any()?users.ToArray():null;
     }
 
@@ -263,6 +269,12 @@ public class MyUserRepository : IUserRepository
     {
         return;
     }
+
+    public Task DeleteUserAsync(string phoneNumber)
+    {
+        throw new NotImplementedException();
+    }
+
 }
 
 public class MyUserRoleService: IUserRoleService
@@ -272,15 +284,21 @@ public class MyUserRoleService: IUserRoleService
     {
         this.userRepository = userRepository;
     }
-    public async Task<Role> GetUserRole(TelegramInfo telegramInfo)
+    public async Task<Role> GetUserRoleByTgAsync(TelegramInfo telegramInfo)
     {
         return Role.Counsellor;
     }
 
-    public async Task<Result<UserDomain>> PromoteToCounsellor(TelegramInfo telegramInfo)
+    public Task<Role> ActivateUserByPhoneNumberAsync(string phoneNumber, TelegramInfo telegramInfo)
     {
         throw new NotImplementedException();
     }
+
+    public Task<Result<UserDomain>> PromoteToCounsellorAsync(string phoneNumber)
+    {
+        throw new NotImplementedException();
+    }
+
 }
 
 public class MyTableParser: ITableParser

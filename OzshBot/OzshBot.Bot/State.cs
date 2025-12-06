@@ -14,7 +14,7 @@ public class State
     {
         StateName = name;
         if (user == null)
-            Data = new UserDomain{FullName = new(),TelegramInfo = new TelegramInfo{TgUsername = ""}};
+            Data = new UserDomain{FullName = new(),PhoneNumber = ""};
         else
             Data = user;
     }

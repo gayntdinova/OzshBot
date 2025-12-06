@@ -102,7 +102,7 @@ class BotHandler
         if (message.From.Username == null) return;//хз
         var splittedMessage = messageText.Split();
 
-        var role = userService.RoleService.GetUserRole(
+        var role = userService.RoleService.GetUserRoleByTgAsync(
             new TelegramInfo { TgUsername = message.From.Username, TgId = message.From.Id }).Result;
         var chat = message.Chat;
 
@@ -126,7 +126,7 @@ class BotHandler
         switch (splittedMessage[0])
         {
             case "/start":
-                await SetCommandsForUser(message.From.Username,message.From.Id);
+                await SetCommandsForUser(role,message.From.Username,message.From.Id);
                 break;
 
             case "/profile":
@@ -182,6 +182,8 @@ class BotHandler
                 {
                     state.numberOfDeletable = 0;
                     state.StateName = UserState.EditingUser_SelectField;
+                    if (state.Data.TelegramInfo == null)
+                        state.Data.TelegramInfo = new TelegramInfo{TgUsername = ""};
                     state.Data.TelegramInfo.TgUsername = messageText.Substring(1);
                 }
                 else
@@ -195,7 +197,13 @@ class BotHandler
 
             case UserState.EditingUser_WaitingBirthday:
                 state.messagesIds.Push(message.Id);
-                if (Regex.IsMatch(messageText, @"^(0[1-9]|[12]\d|3[01])\.(0[1-9]|1[0-2])\.(19\d{2}|20\d{2})$"))
+                if(messageText == "_")
+                {
+                    state.numberOfDeletable = 0;
+                    state.StateName = UserState.EditingUser_SelectField;
+                    state.Data.Birthday = null;
+                }
+                else if (Regex.IsMatch(messageText, @"^(0[1-9]|[12]\d|3[01])\.(0[1-9]|1[0-2])\.(19\d{2}|20\d{2})$"))
                 {
                     state.numberOfDeletable = 0;
                     state.StateName = UserState.EditingUser_SelectField;
@@ -214,9 +222,19 @@ class BotHandler
             case UserState.EditingUser_WaitingCity:
                 state.messagesIds.Push(message.Id);
 
-                state.numberOfDeletable = 0;
-                state.StateName = UserState.EditingUser_SelectField;
-                state.Data.City = messageText;
+                if(messageText == "_")
+                {
+                    state.numberOfDeletable = 0;
+                    state.StateName = UserState.EditingUser_SelectField;
+                    state.Data.City = null;
+                }
+                else
+                {
+                    state.numberOfDeletable = 0;
+                    state.StateName = UserState.EditingUser_SelectField;
+                    state.Data.City = messageText;
+                }
+                
                 return;
 
             case UserState.EditingUser_WaitingPhoneNumber:
@@ -238,7 +256,14 @@ class BotHandler
                 
             case UserState.EditingUser_WaitingEmail:
                 state.messagesIds.Push(message.Id);
-                if (Regex.IsMatch(messageText, @"^[\w\.\-]+@[\w\-]+\.[A-Za-z]{2,}$"))
+
+                if(messageText == "_")
+                {
+                    state.numberOfDeletable = 0;
+                    state.StateName = UserState.EditingUser_SelectField;
+                    state.Data.Email = null;
+                }
+                else if (Regex.IsMatch(messageText, @"^[\w\.\-]+@[\w\-]+\.[A-Za-z]{2,}$"))
                 {
                     state.numberOfDeletable = 0;
                     state.StateName = UserState.EditingUser_SelectField;
@@ -282,7 +307,16 @@ class BotHandler
 
             case UserState.EditingUser_WaitingGroup:
                 state.messagesIds.Push(message.Id);
-                if (Regex.IsMatch(messageText, @"^\d+$"))
+                if(messageText == "_")
+                {
+                    state.numberOfDeletable = 0;
+                    state.StateName = UserState.EditingUser_SelectField;
+                    if (state.Data.ChildInfo!=null)
+                        state.Data.ChildInfo.Group = null;
+                    if (state.Data.CounsellorInfo!=null)
+                        state.Data.CounsellorInfo.Group = null;
+                }
+                else if (Regex.IsMatch(messageText, @"^\d+$"))
                 {
                     state.numberOfDeletable = 0;
                     state.StateName = UserState.EditingUser_SelectField;
@@ -316,12 +350,12 @@ class BotHandler
         else
             await botClient.SendMessage(
                 chat.Id,
-                FormDataAnswer(you.Value, role),
+                you.Value.FormateAnswer(role),
                 parseMode: ParseMode.MarkdownV2
                 );
     }
 
-    private async Task HandlePromote(Chat chat, Role role, string userToPromote)
+    private async Task HandlePromote(Chat chat, Role role, string phoneNumber)
     {
         if (role == Role.Child)
         {
@@ -332,12 +366,22 @@ class BotHandler
                 );
             return;
         }
-        var result = userService.RoleService.PromoteToCounsellor(new TelegramInfo{TgUsername = userToPromote});
+        if (!Regex.IsMatch(phoneNumber, @"^(\+7|8)\s?\(?\d{3}\)?[\s-]?\d{3}[\s-]?\d{2}[\s-]?\d{2}$"))
+        {
+            await botClient.SendMessage(
+                chat.Id,
+                "Введённая строка не является номером телефона",
+                parseMode: ParseMode.MarkdownV2
+                );
+            return;
+        }
+
+        var result = userService.RoleService.PromoteToCounsellorAsync(phoneNumber);
         if (result.IsFaulted)
         {
             await botClient.SendMessage(
                 chat.Id,
-                $"Не удалось повысить этого человека",
+                $"Не удалось повысить до вожатого",
                 parseMode: ParseMode.MarkdownV2
                 );
         }
@@ -345,7 +389,7 @@ class BotHandler
         {
             await botClient.SendMessage(
                 chat.Id,
-                $"{userToPromote} успешно повышен до вожатого",
+                $"Пользователь успешно повышен до вожатого",
                 parseMode: ParseMode.MarkdownV2
                 );
         }
@@ -361,26 +405,26 @@ class BotHandler
                         var users = result.Value;
                         if (users.Count() == 1)
                         {
-                            if(role == Role.Counsellor || role == Role.Developer)
+                            if(role == Role.Counsellor)
                                 await botClient.SendMessage(
                                     chat.Id,
-                                    FormDataAnswer(users[0], role),
+                                    users[0].FormateAnswer(role),
                                     replyMarkup: new InlineKeyboardMarkup(
-                                        InlineKeyboardButton.WithCallbackData("Редактировать", "editMenu "+users[0].TelegramInfo.TgUsername)
+                                        InlineKeyboardButton.WithCallbackData("Редактировать", "editMenu "+users[0].PhoneNumber)
                                     ),
                                     parseMode: ParseMode.MarkdownV2
                                     );
                             else
                                 await botClient.SendMessage(
                                     chat.Id,
-                                    FormDataAnswer(users[0], role),
+                                    users[0].FormateAnswer(role),
                                     parseMode: ParseMode.MarkdownV2
                                     );
                         }
                         else
                             await botClient.SendMessage(
                                 chat.Id,
-                                FormManyPeopleDataAnswer(users),
+                                users.FormateAnswer(),
                                 parseMode: ParseMode.MarkdownV2
                                 );
                         break;
@@ -409,7 +453,7 @@ class BotHandler
         var chat = callback.Message.Chat;
         var splittedCommand = callback.Data.Split();
 
-        var role = userService.RoleService.GetUserRole(
+        var role = userService.RoleService.GetUserRoleByTgAsync(
             new TelegramInfo { TgUsername = callback.From.Username, TgId = callback.From.Id }).Result;
 
         if(role == Role.Unknown)
@@ -425,14 +469,14 @@ class BotHandler
                 if(stateDict.Keys.Contains(userId))
                     await CancelEditing(userId, chat);
 
-                var username = splittedCommand[1];
-                var redactedUser = await userService.FindService.FindUserByTgAsync(new TelegramInfo{TgUsername = username});
+                var phoneNumber = splittedCommand[1];
+                var redactedUser = await userService.FindService.FindUserByPhoneNumberAsync(phoneNumber);
 
                 if (redactedUser.IsFailed)
                 {
                     await botClient.SendMessage(
                         chat.Id,
-                        "Юзернейм этого человека сменился или его уже не существует",
+                        "Телефон этого человека сменился или его уже не существует",
                         parseMode: ParseMode.MarkdownV2
                         );
                 }
@@ -519,13 +563,13 @@ class BotHandler
                     case "birth":
                         state.numberOfDeletable+=1;
                         await SendEditInfoMessage(state,chat,
-                            "Введите новый день рождения(корректный формат: день.месяц.год)",
+                            "Введите новый день рождения(корректный формат: день.месяц.год) или введите _ если хотите чтобы этой информации не было",
                             UserState.EditingUser_WaitingBirthday);
                         break;
                     case "city":
                         state.numberOfDeletable+=1;
                         await SendEditInfoMessage(state,chat,
-                            "Введите новое название города",
+                            "Введите новое название города или введите _ если хотите чтобы этой информации не было",
                             UserState.EditingUser_WaitingCity);
                         break;
                     case "phone":
@@ -537,7 +581,7 @@ class BotHandler
                     case "email":
                         state.numberOfDeletable+=1;
                         await SendEditInfoMessage(state,chat,
-                            "Введите новый email(корректный формат: чтото@чтото.чтото)",
+                            "Введите новый email(корректный формат: чтото@чтото.чтото) или введите _ если хотите чтобы этой информации не было",
                             UserState.EditingUser_WaitingEmail);
                         break;
                     case "class":
@@ -555,16 +599,20 @@ class BotHandler
                     case "group":
                         state.numberOfDeletable+=1;
                         await SendEditInfoMessage(state,chat,
-                            "Введите новый номер группы",
+                            "Введите новый номер группы или введите _ если хотите чтобы этой информации не было",
                             UserState.EditingUser_WaitingGroup);
                         break;
                     case "cancel":
                         await CancelEditing(userId,chat);
                         break;
                     case "apply":
-                        await userService.ManagementService.EditUser(state.Data.TelegramInfo ,state.Data);
+                        await userService.ManagementService.EditUserAsync(state.Data);
                         await CancelEditing(userId,chat);
-                        await HandleUsersSearching(chat,role,"@" + state.Data.TelegramInfo.TgUsername);
+                        await botClient.SendMessage(
+                            chat.Id,
+                            state.Data.FormateAnswer(role),
+                            parseMode: ParseMode.MarkdownV2
+                            );
                         break;
                 }
                 break;
@@ -578,18 +626,16 @@ class BotHandler
     {
         var messageId = (await botClient.SendMessage(
             chat.Id,
-            FormatString(text),
+            text.FormateString(),
             parseMode: ParseMode.MarkdownV2
             )).Id;
         state.messagesIds.Push(messageId);
         state.StateName = newState;
     }
     
-    public async Task SetCommandsForUser(string username, long userId)
+    public async Task SetCommandsForUser(Role role, string username, long userId)
     {
         var commands = new List<BotCommand>();
-        var role = await userService.RoleService.GetUserRole(
-            new TelegramInfo { TgUsername = username, TgId = userId });
 
         if (role != Role.Unknown)
         {
@@ -600,7 +646,7 @@ class BotHandler
                     new BotCommand { Command = "profile", Description = "Мой профиль" }
                 });
             if (role != Role.Child){
-                // Команды для вожатых и админов
+                // Команды для вожатых
                 commands.AddRange(new[]
                 {
                     new BotCommand { Command = "promote", Description = "Выдать права вожатого" },
@@ -620,76 +666,4 @@ class BotHandler
             await botClient.DeleteMessage(chat, stateDict[id].messagesIds.Pop());
         stateDict.Remove(id);
     }
-
-    private string FormDataAnswer(UserDomain user, Role role)
-    {
-        var answer = "";
-        if(user.Role == Role.Child && user.ChildInfo!= null)//ненужная проверка
-        {
-            var childInfo = user.ChildInfo;
-            answer +=
-                $"{user.FullName}\n" +
-                $"@{user.TelegramInfo.TgUsername}\n" +
-                $"Группа {childInfo.Group}\n" +
-                $"Город: `{user.City}`\n" +
-                $"Школа: `{childInfo.EducationInfo.School}`, {childInfo.EducationInfo.Class} класс\n\n" +
-                $"Дата рождения: {user.Birthday}";
-
-            if (role == Role.Counsellor || role == Role.Developer)
-            {
-                answer += "\n\n" +
-                    $"Почта: `{user.Email}`\n" +
-                    $"Телефон: `{user.PhoneNumber}`";
-
-                if (childInfo.ContactPeople.Length != 0)
-                    answer += "\n\n" +
-                        "Родители:\n" +
-                        String.Join("\n", childInfo.ContactPeople
-                            .Select(parent =>
-                                $" - {parent.FullName}\n" +
-                                $"   `{parent.PhoneNumber}`"));
-            }
-        }
-        else if (user.Role == Role.Counsellor && user.CounsellorInfo!=null)//ещё лишняя проверка
-        {
-            var counsellorInfo = user.CounsellorInfo;
-            answer +=
-                $"{user.FullName}\n" +
-                $"@{user.TelegramInfo.TgUsername}\n" +
-                $"Группа {counsellorInfo.Group}\n" +
-                $"Город: `{user.City}`\n\n" +
-                $"Дата рождения: {user.Birthday}";
-
-            if (role == Role.Counsellor || role == Role.Developer)
-                answer += "\n\n" +
-                    $"Почта: `{user.Email}`\n" +
-                    $"Телефон: `{user.PhoneNumber}`";
-
-        }
-        return FormatString(answer);
-    }
-
-    private string FormManyPeopleDataAnswer(IEnumerable<UserDomain> users)
-    {
-        var children = users.Where(user=>user.Role == Role.Child);
-        var counsellors = users.Where(user=>user.Role == Role.Counsellor);
-        var answer = "";
-        if (children.Count() != 0)
-            answer += "Дети:\n" +
-                String.Join("\n", children
-                        .Select(child =>
-                            $" - `{child.FullName}` {child.Birthday} @{child.TelegramInfo.TgUsername} группа {child.ChildInfo.Group}"
-                        ))+"\n\n";
-        if (counsellors.Count() != 0)
-            answer += "Вожатые:\n" +
-                String.Join("\n", counsellors
-                        .Select(counsellor =>
-                            $" - `{counsellor.FullName}` {counsellor.Birthday} @{counsellor.TelegramInfo.TgUsername} группа {counsellor.CounsellorInfo.Group}"
-                        ));
-        return FormatString(answer);
-    }
-
-    private string FormatString(string text)
-    => text.Replace(".","\\.").Replace("-","\\-").Replace("+","\\+").Replace("*","\\*")
-        .Replace("(","\\(").Replace(")","\\)");
 }
