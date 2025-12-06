@@ -12,7 +12,6 @@ public class AppDbContext : DbContext
     public DbSet<Parent> Parents { get; set; }
     public DbSet<ChildParent> ChildrenParents { get; set; }
     public DbSet<Session> Sessions { get; set; }
-    public DbSet<AccessRight> AccessRights { get; set; }
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
@@ -34,17 +33,6 @@ public class AppDbContext : DbContext
             entity.Property(s => s.Year).IsRequired();
             entity.Property(s => s.Season).IsRequired();
             entity.HasIndex(s => new { s.Year, s.Season }).IsUnique();
-        });
-
-        modelBuilder.Entity<AccessRight>(entity =>
-        {
-            entity.HasKey(ar => ar.UserId);
-            entity.HasOne(ar => ar.User)
-                  .WithOne(u => u.AccessRight)
-                  .HasForeignKey<AccessRight>(ar => ar.UserId)
-                  .OnDelete(DeleteBehavior.Cascade);
-
-            entity.Property(ar => ar.Rights).IsRequired();
         });
 
         modelBuilder.Entity<Student>(entity =>
