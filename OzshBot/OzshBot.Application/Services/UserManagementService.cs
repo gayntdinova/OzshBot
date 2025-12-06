@@ -20,7 +20,7 @@ public class UserManagementService: IUserManagementService
 
     public async Task<Result<User>> AddUserAsync<T>(T user) where T: UserDtoModel
     {
-        if (await userRepository.GetUserByTgAsync(user.TelegramInfo) != null) 
+        if (await userRepository.GetUserByPhoneNumberAsync(user.PhoneNumber) != null) 
             return Result.Fail(new UserAlreadyExistsError());
         await userRepository.AddUserAsync(user.ToUser());
         return Result.Ok(user.ToUser());
@@ -28,6 +28,8 @@ public class UserManagementService: IUserManagementService
 
     public async Task<Result<User>> EditUserAsync(User user)
     {
+        if (await userRepository.GetUserByPhoneNumberAsync(user.PhoneNumber) == null)
+            return Result.Fail(new NotFoundError());
         await userRepository.UpdateUserAsync(user);
         return Result.Ok(user);
     }
