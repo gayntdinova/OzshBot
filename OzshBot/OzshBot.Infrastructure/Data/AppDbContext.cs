@@ -68,7 +68,10 @@ public class AppDbContext : DbContext
             entity.Property(p => p.Name).IsRequired();
             entity.Property(p => p.Surname).IsRequired();
 
+            entity.Property(p => p.Email).IsRequired();
             entity.HasIndex(p => p.Email).IsUnique();
+
+            entity.Property(p => p.Phone).IsRequired();
             entity.HasIndex(p => p.Phone).IsUnique();
         });
 

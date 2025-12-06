@@ -147,8 +147,8 @@ public class DbRepository(AppDbContext context) : IUserRepository
 
     public async Task AddUserAsync(Domain.Entities.User user)
     {
-        var existingUser = await GetUserByTgAsync(user.TelegramInfo);
-        if (existingUser != null) throw new InvalidOperationException("Пользователь с такими telegram данными уже существует");
+        var existingUser = await GetUsersByPhoneNumberAsync(user.PhoneNumber);
+        if (existingUser != null) throw new InvalidOperationException("Пользователь с таким номером телефона уже существует");
 
         var dbUser = UserConverter.FromDomainUser(user);
         await context.Users.AddAsync(dbUser);
@@ -280,7 +280,7 @@ public class DbRepository(AppDbContext context) : IUserRepository
             .Include(u => u.Counsellor)
             .Where(u => (u.Student != null && u.Student.Phone == phoneNumber) || (u.Counsellor != null && u.Counsellor.Phone == phoneNumber))
             .FirstOrDefaultAsync();
-        if (user == null) throw new InvalidOperationException("Нет пользователя с такими данными telegram");
+        if (user == null) throw new InvalidOperationException("Нет пользователя с таким номером телефона");
         context.Users.Remove(user);
         await context.SaveChangesAsync();
     }
