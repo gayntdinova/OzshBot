@@ -5,6 +5,8 @@ using Ninject;
 using OzshBot.Application.RepositoriesInterfaces;
 using OzshBot.Application.Services.Interfaces;
 using OzshBot.Application.Services;
+using Microsoft.Extensions.Configuration;
+
 namespace OzshBot.Bot;
 
 static class Program
@@ -20,8 +22,14 @@ static class Program
     {
         var container = new StandardKernel();
 
-        container.Bind<ITelegramBotClient>().ToConstant(new TelegramBotClient("8445241215:AAE-fg7HdNllMonKukdR5T9e_8I4e4FwpXg"));
-        container.Bind<ReceiverOptions>().ToConstant(new ReceiverOptions { AllowedUpdates = new[] { UpdateType.Message,UpdateType.CallbackQuery } });
+        var configuration = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .Build();
+        var botToken = configuration["TelegramBot:Token"];
+
+        container.Bind<ITelegramBotClient>().ToConstant(new TelegramBotClient(botToken));
+        container.Bind<ReceiverOptions>().ToConstant(new ReceiverOptions { AllowedUpdates = new[] { UpdateType.Message, UpdateType.CallbackQuery } });
         container.Bind<UserService>().ToSelf();
         container.Bind<IUserManagementService>().To<UserManagementService>();
         container.Bind<ITableParser>().ToConstant(new MyTableParser());

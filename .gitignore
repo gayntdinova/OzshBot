@@ -54,3 +54,5 @@ TestResult.xml
 nunit-*.xml
 
 */.idea
+
+OzshBot/OzshBot.Bot/appsettings.json

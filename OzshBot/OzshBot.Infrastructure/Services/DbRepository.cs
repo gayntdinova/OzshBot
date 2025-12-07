@@ -28,7 +28,7 @@ public class DbRepository(AppDbContext context) : IUserRepository
         return dbUser.ToDomainUser();
     }
 
-    public async Task<Domain.Entities.User?> GetUsersByPhoneNumberAsync(string phoneNumber)
+    public async Task<Domain.Entities.User?> GetUserByPhoneNumberAsync(string phoneNumber)
     {
         return await context.Users
             .Include(u => u.Student)
@@ -147,7 +147,7 @@ public class DbRepository(AppDbContext context) : IUserRepository
 
     public async Task AddUserAsync(Domain.Entities.User user)
     {
-        var existingUser = await GetUsersByPhoneNumberAsync(user.PhoneNumber);
+        var existingUser = await GetUserByPhoneNumberAsync(user.PhoneNumber);
         if (existingUser != null) throw new InvalidOperationException("Пользователь с таким номером телефона уже существует");
 
         var dbUser = UserConverter.FromDomainUser(user);
