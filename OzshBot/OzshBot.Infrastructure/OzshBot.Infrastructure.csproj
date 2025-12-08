@@ -14,9 +14,6 @@
 
     <ItemGroup>
       <None Remove="core-song-477709-a0-db7e8f5a3e78.json" />
-      <Content Include="core-song-477709-a0-db7e8f5a3e78.json">
-        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-      </Content>
     </ItemGroup>
 
 </Project>

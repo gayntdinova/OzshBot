@@ -9,7 +9,7 @@ namespace OzshBot.Infrastructure;
 using Google.Apis.Auth.OAuth2;
 using Google.Apis.Services;
 using Google.Apis.Sheets.v4;
-using OzshBot.Application;
+using OzshBot.Application.AppErrors;
 
 public class GoogleDocParser: ITableParser
 {
@@ -70,16 +70,32 @@ public class GoogleDocParser: ITableParser
 
         foreach (Match m in matches)
         {
-            var raw = m.Value;
-            var digits = new string(raw.Where(char.IsDigit).ToArray());
-            
-            if (digits.Length == 11 && (digits.StartsWith("7") || digits.StartsWith("8")))
-                digits = digits.Substring(1);
-            if (digits.Length == 10)
-                result.Add(digits);
+            try
+            {
+                var phone = NormalizePhone(m.Value);
+                result.Add(phone);
+            }
+            catch
+            {
+                continue;
+            }
         }
         return result;
     }
+    
+    static string NormalizePhone(string input)
+    {
+        string digits = Regex.Replace(input, @"\D", "");
+        
+        if (digits.Length == 11)
+        {
+            digits = digits.Substring(1);
+            return "+7" + digits;
+        }
+
+        throw new ArgumentException("Invalid phone number");
+    }
+
 
 
     private List<ContactPerson> GetContactPeople(string comment)
@@ -120,26 +136,54 @@ public class GoogleDocParser: ITableParser
         };
     }
 
+    private bool IsRowEmpty(IList<object> row)
+    {
+        foreach (var cell in row)
+        {
+            if (cell is string s)
+            {
+                if (!string.IsNullOrWhiteSpace(s))
+                    return false;
+            }
+            else if (cell != null)
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public async Task<Result<ChildDto[]>> GetChildrenAsync(string url)
     {
         if (!url.StartsWith("https://docs.google.com/spreadsheets/d/"))
         {
-            return Result.Fail<ChildDto[]>("Invalid URL");
+            return Result.Fail(new IncorrectUrlError(url));
         }
+        var errors = new List<Error>();
         
         var result = new List<ChildDto>();
         var data = await ReadGoogleSheet(url);
-        foreach (var row in data.Skip(1))
+        for(var i = 1; i < data.Count; i++)
         {
             try
             {
+                var row = data[i];
+                if (IsRowEmpty(row)) continue;
+                if (row.Count == 12)
+                {
+                    if (row[11].ToString()?.Trim() == "Отклонена" || row[11].ToString()?.Trim() == "Рассматривается")
+                        continue;
+                }
                 result.Add(CreateChildDto(row));
             }
             catch (Exception e)
             {
-                continue;
+                var str = String.Join(", ", data[i].Select(o => o.ToString()));
+                errors.Add(new IncorrectRowError($"Cтрока {i + 1}: {str}"));
             }
         }
+        if (errors.Count > 0)
+            return Result.Fail(errors);
         return Result.Ok(result.ToArray());
     }
 }
