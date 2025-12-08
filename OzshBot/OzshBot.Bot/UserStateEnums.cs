@@ -1,14 +1,15 @@
 public enum UserState
 {
-    // CreatingUser_Role,
-    // CreatingUser_WaitingFullName,
-    // CreatingUser_WaitingTgUsername,
-    // CreatingUser_WaitingBirthday,
-    // CreatingUser_WaitingCity,
-    // CreatingUser_WaitingPhoneNumber,
-    // CreatingUser_WaitingEmail,
-    // CreatingUser_WaitingClass,
-    // CreatingUser_WaitingSchool,
+    CreatingUser_WaitingRole,
+    CreatingUser_WaitingFullName,
+    CreatingUser_WaitingTgUsername,
+    CreatingUser_WaitingBirthday,
+    CreatingUser_WaitingCity,
+    CreatingUser_WaitingPhoneNumber,
+    CreatingUser_WaitingEmail,
+    CreatingUser_WaitingClass,
+    CreatingUser_WaitingSchool,
+    CreatingUser_WaitingGroup,
 
 
     EditingUser_SelectField,

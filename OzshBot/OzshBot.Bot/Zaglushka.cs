@@ -191,9 +191,9 @@ public class MyUserRepository : IUserRepository
         this.madeUpData = madeUpData;
     }
 
-    public Task AddUserAsync(UserDomain user)
+    public async Task AddUserAsync(UserDomain user)
     {
-        throw new NotImplementedException();
+        madeUpData.Users.Add(user);
     }
 
     public Task DeleteUserAsync(TelegramInfo telegramInfo)
