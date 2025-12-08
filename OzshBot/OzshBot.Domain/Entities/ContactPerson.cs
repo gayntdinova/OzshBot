@@ -4,6 +4,6 @@ namespace OzshBot.Domain.Entities;
 public class ContactPerson
 {
     public Guid Id { get; init; } = Guid.NewGuid();
-    public required FullName FullName { get; set; }
+    public FullName FullName { get; set; }
     public string? PhoneNumber { get; set; }
 }

@@ -5,5 +5,5 @@ namespace OzshBot.Application.RepositoriesInterfaces;
 
 public interface ITableParser
 {
-    Task<Result<ChildDto[]>> GetChildrenAsync(string tableName);
+    Task<Result<ChildDto[]>> GetChildrenAsync(string url);
 }
