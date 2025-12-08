@@ -152,6 +152,7 @@ class BotHandler
                 break;
 
             default:
+                await HandleTable(chat,role,messageText);
                 await HandleUsersSearching(chat,role,messageText);
                 break;
         }
@@ -720,8 +721,8 @@ class BotHandler
             return;
         }
 
-        var result = userService.RoleService.PromoteToCounsellorAsync(splitted[1]);
-        if (result.IsFaulted)
+        var result = await userService.RoleService.PromoteToCounsellorAsync(splitted[1]);
+        if (result.IsFailed)
         {
             await botClient.SendMessage(
                 chat.Id,
@@ -762,8 +763,8 @@ class BotHandler
             return;
         }
 
-        var result = userService.ManagementService.DeleteUserAsync(splitted[1]);
-        if (result.IsFaulted)
+        var result = await userService.ManagementService.DeleteUserAsync(splitted[1]);
+        if (result.IsFailed)
         {
             await botClient.SendMessage(
                 chat.Id,
@@ -808,6 +809,21 @@ class BotHandler
         await SendStateInfoMessage(stateDict[userId],chat,
             "Напишите какой роли человека вы хотите создать: `ребёнок` или `вожатый`",
             UserState.CreatingUser_WaitingRole);
+    }
+
+    private async Task HandleTable(Chat chat, Role role, string messageText)
+    {
+        if (role == Role.Child) return;
+
+        var result = await userService.ManagementService.LoadTableAsync(messageText);
+        if (result.IsSuccess)
+        {
+            await botClient.SendMessage(
+                chat.Id,
+                "Таблица успешно загружена",
+                parseMode: ParseMode.MarkdownV2
+                );
+        }
     }
 
     private async Task HandleUsersSearching(Chat chat, Role role, string messageText)
