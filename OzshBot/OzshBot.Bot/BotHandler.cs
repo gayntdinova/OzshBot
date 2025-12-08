@@ -36,15 +36,20 @@ class BotHandler
 
     //список в каком состоянии какие человек
     private Dictionary<long,State> stateDict = new();
+    
+    //нужно для регистрации пользователей
+    private IUserRepository userRepository;
 
     public BotHandler(
         ITelegramBotClient botClient,
         ReceiverOptions receiverOptions,
-        UserService userService)
+        UserService userService,
+        IUserRepository userRepository)
     {
         this.botClient = botClient;
         this.receiverOptions = receiverOptions;
         this.userService = userService;
+        this.userRepository = userRepository;
     }
 
     //================================CoolMethods===================================
@@ -97,13 +102,13 @@ class BotHandler
     private async Task HandleMessage(Update update)
     {
         if (update.Message is not { } message) return;
-        if (message.Text is not { } messageText) return;
         if (message.From == null) return;//хз
         if (message.From.Username == null) return;//хз
-        var splittedMessage = messageText.Split();
 
-        var role = userService.RoleService.GetUserRoleByTgAsync(
-            new TelegramInfo { TgUsername = message.From.Username, TgId = message.From.Id }).Result;
+        var role = await HandleMessageIfRegestration(message);
+        
+        if (message.Text is not { } messageText) return;
+        var splittedMessage = messageText.Split();
         var chat = message.Chat;
 
         Console.WriteLine($"id: {message.From.Id}\nusername {message.From.Username}\nроль: {role}"+(stateDict.Keys.Contains(message.From.Id)?("\nсостояние: "+ stateDict[message.From.Id].StateName):""));
@@ -111,11 +116,9 @@ class BotHandler
         //==================================================================================================
 
         if(role == Role.Unknown)
-            await botClient.SendMessage(
-                chat.Id,
-                "для того чтобы пользоваться этим ботом вы должны быть учавстником лагеря ОЗШ",
-                parseMode: ParseMode.MarkdownV2
-            );
+        {
+            return;
+        }
 
         if (stateDict.Keys.Contains(message.From.Id))
         {
@@ -143,7 +146,56 @@ class BotHandler
         }
     }
 
-    private async Task HandleMessageIfState(Chat chat,Role role, Message message,long userId)
+    private async Task<Role> HandleMessageIfRegestration(Message message)
+    {
+        var role = userService.RoleService.GetUserRoleByTgAsync(
+            new TelegramInfo { TgUsername = message.From.Username, TgId = message.From.Id }).Result;
+        if (role != Role.Unknown) return role;
+        
+        if (!stateDict.Keys.Contains(message.From.Id))
+        {
+            stateDict[message.From.Id] = new State(UserState.CreatingUser_WaitingForRegistration);
+            await SendRegistrationMessage(message);
+        }
+        else if (stateDict[message.From.Id].StateName == UserState.CreatingUser_WaitingForRegistration)
+        {
+            var userRegistrator = new UserRegistrator(userRepository);
+            role = userRegistrator.LogInAndRegisterUserAsync(message).Result;
+            var answer = "для того чтобы пользоваться этим ботом вы должны быть участником лагеря ОЗШ";
+            if (role != Role.Unknown)
+                answer = "регистрация завершена успешно";
+            await botClient.SendMessage(message.Chat.Id, answer, parseMode: ParseMode.MarkdownV2);
+            stateDict.Remove(message.From.Id);
+        }
+        return role;
+    }
+    
+    
+    private async Task SendRegistrationMessage(Message message)
+    {
+        if (message.Text != null)
+        {
+            Console.WriteLine("AAAAAAAAAAAAAAAA");
+            var button = new KeyboardButton("Отправить контакт") { RequestContact = true };
+
+            var keyboard = new ReplyKeyboardMarkup(new[]
+            {
+                new[] { button }
+            })
+            {
+                ResizeKeyboard = true,
+                OneTimeKeyboard = true
+            };
+        
+            await botClient.SendMessage(
+                message.Chat.Id,
+                "Пожалуйста, отправьте ваш контакт:",
+                replyMarkup: keyboard
+            );
+        }
+    }
+
+    private async Task HandleMessageIfState(Chat chat, Role role, Message message,long userId)
     {
         if (message.Text is not { } messageText) return;
 

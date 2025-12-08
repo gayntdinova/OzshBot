@@ -25,7 +25,7 @@ static class Program
         container.Bind<UserService>().ToSelf();
         container.Bind<IUserManagementService>().To<UserManagementService>();
         container.Bind<ITableParser>().ToConstant(new MyTableParser());
-        container.Bind<IUserRoleService>().To<MyUserRoleService>();
+        container.Bind<IUserRoleService>().To<UserRoleService>();
         container.Bind<IUserFindService>().To<UserFindService>();
         container.Bind<IUserRepository>().To<MyUserRepository>();
         container.Bind<MadeUpData>().ToConstant(new MadeUpData());

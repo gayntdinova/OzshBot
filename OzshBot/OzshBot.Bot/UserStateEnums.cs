@@ -1,6 +1,6 @@
 public enum UserState
 {
-    // CreatingUser_Role,
+    CreatingUser_WaitingForRegistration,
     // CreatingUser_WaitingFullName,
     // CreatingUser_WaitingTgUsername,
     // CreatingUser_WaitingBirthday,
