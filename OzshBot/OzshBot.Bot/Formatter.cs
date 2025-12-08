@@ -39,51 +39,51 @@ public static class Formatter
         var counsellorInfo = user.CounsellorInfo;
 
         var answer = "";
-        answer += $"{user.FullName.Formate()}\n";
+        answer += $"{user.FullName.Formate()}";
 
         answer += user.TelegramInfo==null? "": 
-            $"@{user.TelegramInfo.TgUsername}\n";
+            $"\n@{user.TelegramInfo.TgUsername}";
 
         answer += childInfo?.Group==null? "": 
-            $"Группа {childInfo.Group}\n";
+            $"\nГруппа: `{childInfo.Group}`";
         answer += counsellorInfo?.Group==null? "": 
-            $"Группа {counsellorInfo.Group}\n";
+            $"\nГруппа: `{counsellorInfo.Group}`";
 
         answer += user.City==null? "": 
-            $"Город {user.City}\n";
+            $"\nГород: `{user.City}`";
 
         answer += childInfo==null? "":
-            $"Школа: `{childInfo.EducationInfo.School}`, {childInfo.EducationInfo.Class} класс";
+            $"\nШкола: `{childInfo.EducationInfo.School}`, {childInfo.EducationInfo.Class} класс";
 
         answer += user.Birthday==null? "": 
             $"\n\nДата рождения: {user.Birthday}";
 
         if (role == Role.Counsellor)
         {
-            answer += "\n\n";
+            answer += "\n";
 
             answer += user.Email==null?"":
-                $"Почта: `{user.Email}`\n";
+                $"\nПочта: `{user.Email}`";
                 
             answer += user.PhoneNumber==null?"":
-                $"Телефон: `{user.PhoneNumber}`";
+                $"\nТелефон: `{user.PhoneNumber}`";
 
             if (childInfo!=null && childInfo.ContactPeople.Count != 0)
                 answer += "\n\n" +
                     "Родители:\n" +
                     String.Join("\n", childInfo.ContactPeople
                         .Select(parent =>
-                            $" - {parent.FullName}\n" +
+                            $" - {parent.FullName.Formate()}\n" +
                             $"   `{parent.PhoneNumber}`"));
         }
         return FormateString(answer);
     }
 
-    public static string FormateAnswer(this IEnumerable<UserDomain> users)
+    public static string FormateAnswer(this IEnumerable<UserDomain> users, string message)
     {
         var children = users.Where(user=>user.Role == Role.Child);
         var counsellors = users.Where(user=>user.Role == Role.Counsellor);
-        var answer = "";
+        var answer = $"{message}:\n\n";
         if (children.Count() != 0)
             answer += "Дети:\n" +
                 String.Join("\n", children

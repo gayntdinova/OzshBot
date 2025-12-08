@@ -110,6 +110,8 @@ class BotHandler
 
         //==================================================================================================
 
+        await SetCommandsForUser(role,message.From.Id);
+
         if(role == Role.Unknown)
             await botClient.SendMessage(
                 chat.Id,
@@ -126,7 +128,10 @@ class BotHandler
         switch (splittedMessage[0])
         {
             case "/start":
-                await SetCommandsForUser(role,message.From.Username,message.From.Id);
+                break;
+
+            case "/help":
+                await HandleHelp(chat);
                 break;
 
             case "/profile":
@@ -137,10 +142,23 @@ class BotHandler
                 await HandlePromote(chat,role,messageText);
                 break;
 
+            case "/delete":
+                await HandleDelete(chat,role,messageText);
+                break;
+
             default:
                 await HandleUsersSearching(chat,role,messageText);
                 break;
         }
+    }
+
+    private async Task HandleHelp(Chat chat)
+    {
+        await botClient.SendMessage(
+            chat.Id,
+            $"",//todo
+            parseMode: ParseMode.MarkdownV2
+            );
     }
 
     private async Task HandleMessageIfState(Chat chat,Role role, Message message,long userId)
@@ -355,7 +373,7 @@ class BotHandler
                 );
     }
 
-    private async Task HandlePromote(Chat chat, Role role, string phoneNumber)
+    private async Task HandlePromote(Chat chat, Role role, string messageText)
     {
         if (role == Role.Child)
         {
@@ -366,7 +384,9 @@ class BotHandler
                 );
             return;
         }
-        if (!Regex.IsMatch(phoneNumber, @"^(\+7|8)\s?\(?\d{3}\)?[\s-]?\d{3}[\s-]?\d{2}[\s-]?\d{2}$"))
+        var splitted = messageText.Split(" ");
+
+        if (splitted.Length !=2 || !Regex.IsMatch(splitted[1], @"^(\+7|8)\s?\(?\d{3}\)?[\s-]?\d{3}[\s-]?\d{2}[\s-]?\d{2}$"))
         {
             await botClient.SendMessage(
                 chat.Id,
@@ -376,7 +396,7 @@ class BotHandler
             return;
         }
 
-        var result = userService.RoleService.PromoteToCounsellorAsync(phoneNumber);
+        var result = userService.RoleService.PromoteToCounsellorAsync(splitted[1]);
         if (result.IsFaulted)
         {
             await botClient.SendMessage(
@@ -390,6 +410,48 @@ class BotHandler
             await botClient.SendMessage(
                 chat.Id,
                 $"Пользователь успешно повышен до вожатого",
+                parseMode: ParseMode.MarkdownV2
+                );
+        }
+    }
+
+    private async Task HandleDelete(Chat chat, Role role, string messageText)
+    {
+        if (role == Role.Child)
+        {
+            await botClient.SendMessage(
+                chat.Id,
+                "У вас нет прав пользоваться этой командой",
+                parseMode: ParseMode.MarkdownV2
+                );
+            return;
+        }
+        var splitted = messageText.Split(" ");
+
+        if (splitted.Length !=2 || !Regex.IsMatch(splitted[1], @"^(\+7|8)\s?\(?\d{3}\)?[\s-]?\d{3}[\s-]?\d{2}[\s-]?\d{2}$"))
+        {
+            await botClient.SendMessage(
+                chat.Id,
+                "Введённая строка не является номером телефона",
+                parseMode: ParseMode.MarkdownV2
+                );
+            return;
+        }
+
+        var result = userService.ManagementService.DeleteUserAsync(splitted[1]);
+        if (result.IsFaulted)
+        {
+            await botClient.SendMessage(
+                chat.Id,
+                $"Не удалось удалить пользователя",
+                parseMode: ParseMode.MarkdownV2
+                );
+        }
+        else
+        {
+            await botClient.SendMessage(
+                chat.Id,
+                $"Пользователь успешно удалён",
                 parseMode: ParseMode.MarkdownV2
                 );
         }
@@ -424,7 +486,7 @@ class BotHandler
                         else
                             await botClient.SendMessage(
                                 chat.Id,
-                                users.FormateAnswer(),
+                                users.FormateAnswer(messageText),
                                 parseMode: ParseMode.MarkdownV2
                                 );
                         break;
@@ -611,6 +673,9 @@ class BotHandler
                         await botClient.SendMessage(
                             chat.Id,
                             state.Data.FormateAnswer(role),
+                            replyMarkup: new InlineKeyboardMarkup(
+                                InlineKeyboardButton.WithCallbackData("Редактировать", "editMenu "+state.Data.PhoneNumber)
+                            ),
                             parseMode: ParseMode.MarkdownV2
                             );
                         break;
@@ -633,7 +698,7 @@ class BotHandler
         state.StateName = newState;
     }
     
-    public async Task SetCommandsForUser(Role role, string username, long userId)
+    public async Task SetCommandsForUser(Role role, long userId)
     {
         var commands = new List<BotCommand>();
 
@@ -650,8 +715,7 @@ class BotHandler
                 commands.AddRange(new[]
                 {
                     new BotCommand { Command = "promote", Description = "Выдать права вожатого" },
-                    new BotCommand { Command = "demote", Description = "Забрать права вожатого" },
-                    new BotCommand { Command = "list", Description = "Список вожатых" }
+                    new BotCommand { Command = "delete", Description = "Удалить информацию о пользователе" },
                 });
             }
         }
