@@ -8,22 +8,20 @@
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
   </PropertyGroup>
 
-  <ItemGroup>
-    <Content Include="..\.dockerignore">
-      <Link>.dockerignore</Link>
-    </Content>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\OzshBot.Application\OzshBot.Application.csproj" />
-    <ProjectReference Include="..\OzshBot.Domain\OzshBot.Domain.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="10.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.0" />
-    <PackageReference Include="Telegram.Bot" Version="22.7.4" />
-    <PackageReference Include="FluentResults" Version="4.0.0" />
-    <PackageReference Include="Ninject" Version="3.3.6" />
-  </ItemGroup>
+    <ItemGroup>
+      <Content Include="..\.dockerignore">
+        <Link>.dockerignore</Link>
+      </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\OzshBot.Application\OzshBot.Application.csproj" />
+      <ProjectReference Include="..\OzshBot.Domain\OzshBot.Domain.csproj" />
+      <ProjectReference Include="..\OzshBot.Infrastructure\OzshBot.Infrastructure.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="FluentResults" Version="4.0.0" />
+    </ItemGroup>
 
 </Project>
