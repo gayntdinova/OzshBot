@@ -417,4 +417,33 @@ public class UserFindServiceTests
         result.IsSuccess.Should().BeTrue();
         result.Value.Should().BeEquivalentTo([foundUser]); 
     }
+
+    [Test]
+    public async Task FindUsersAsync_ReturnsResultFail()
+    {
+        var input = "Иванов Иван Иванович";
+        var foundUser = new User
+        {
+            FullName = new FullName("Иванов", "Иван", "Иванович"),
+            PhoneNumber = "+79999999999"
+        };
+        
+        A.CallTo(() => userRepository.GetUserByTgAsync(
+                A<TelegramInfo>._))
+            .Returns(Task.FromResult<User?>(null));
+        A.CallTo(() => userRepository.GetUsersByCityAsync(input))
+            .Returns(Task.FromResult<User[]?>(null));
+        A.CallTo(() => userRepository.GetUsersBySchoolAsync(input))
+            .Returns(Task.FromResult<User[]?>(null));
+        A.CallTo(() => userRepository.GetUsersByFullNameAsync(
+                A<FullName>.That.Matches(fn =>
+                    fn.Name == "Иван" &&
+                    fn.Surname == "Иванов" &&
+                    fn.Patronymic == "Иванович")))
+            .Returns(Task.FromResult<User[]?>(null));
+        
+        var result = await userFindService.FindUserAsync(input);
+        
+        result.IsSuccess.Should().BeFalse();
+    }
 }
