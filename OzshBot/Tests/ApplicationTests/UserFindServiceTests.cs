@@ -27,9 +27,9 @@ public class UserFindServiceTests
         var telegramInfo = new TelegramInfo { TgId = null, TgUsername = "testUser1" };
         var foundUser = new User
         {
-            FullName = null,
+            FullName = new FullName(),
             TelegramInfo = telegramInfo,
-            PhoneNumber = null,
+            PhoneNumber = "+79999999999",
         };
         A.CallTo(() => userRepository.GetUserByTgAsync(telegramInfo))!
             .Returns(Task.FromResult(foundUser));
@@ -44,8 +44,8 @@ public class UserFindServiceTests
     public async Task FindUserByTgAsync_UnknownUser_ReturnsResultFail()
     {
         var telegramInfo = new TelegramInfo { TgId = null, TgUsername = "testUser1" };
-        A.CallTo(() => userRepository.GetUserByTgAsync(telegramInfo))!
-            .Returns(Task.FromResult<User>(null!));
+        A.CallTo(() => userRepository.GetUserByTgAsync(telegramInfo))
+            .Returns(Task.FromResult<User?>(null));
         
         var result = await userFindService.FindUserByTgAsync(telegramInfo);
         
@@ -65,9 +65,8 @@ public class UserFindServiceTests
                     School = "школа 2"
                 },
             },
-            FullName = null,
-            TelegramInfo = null,
-            PhoneNumber = null
+            FullName = new FullName(),
+            PhoneNumber = "+79999999999"
         };
         A.CallTo(() => userRepository.GetUsersByClassAsync(6))!
             .Returns(Task.FromResult<User[]>([firstChild]));
@@ -81,8 +80,8 @@ public class UserFindServiceTests
     [Test]
     public async Task FindUsersByClassAsync_EmptyClass_ReturnsResultFail()
     {
-        A.CallTo(() => userRepository.GetUsersByClassAsync(1))!
-            .Returns(Task.FromResult<User[]>(null));
+        A.CallTo(() => userRepository.GetUsersByClassAsync(1))
+            .Returns(Task.FromResult<User[]?>(null));
         
         var result = await userFindService.FindUsersByClassAsync(1);
         
@@ -98,12 +97,11 @@ public class UserFindServiceTests
             {
                 Group = 1,
             },
-            FullName = null,
-            TelegramInfo = null,
-            PhoneNumber = null
+            FullName = new FullName(),
+            PhoneNumber = "+79999999999"
         };
         A.CallTo(() => userRepository.GetUsersByGroupAsync(1))!
-            .Returns(Task.FromResult<User[]>([firstChild]));
+            .Returns([firstChild]);
         
         var result = await userFindService.FindUsersByGroupAsync(1);
         
@@ -115,7 +113,7 @@ public class UserFindServiceTests
     public async Task FindUsersByGroupAsync_EmptyGroup_ReturnsResultFail()
     {
         A.CallTo(() => userRepository.GetUsersByGroupAsync(0))!
-            .Returns(Task.FromResult<User[]>(null));
+            .Returns(Task.FromResult<User[]?>(null));
         
         var result = await userFindService.FindUsersByGroupAsync(0);
         
@@ -128,9 +126,9 @@ public class UserFindServiceTests
         var telegramInfo = new TelegramInfo { TgId = null, TgUsername = "testUser1" };
         var foundUser = new User
         {
-            FullName = null,
+            FullName = new FullName(),
             TelegramInfo = telegramInfo,
-            PhoneNumber = null,
+            PhoneNumber = "+79999999999",
         };
         A.CallTo(() => userRepository.GetUserByTgAsync(
                 A<TelegramInfo>.That.Matches(t => 
@@ -144,24 +142,22 @@ public class UserFindServiceTests
         result.Value.Should().BeEquivalentTo([foundUser]);
     }
     
-    
     [Test]
     public async Task FindUsersAsync_ByCity_ReturnsResultOk()
     {
         var foundUser = new User
         {
-            FullName = null,
+            FullName = new FullName(),
             City = "Екатеринбург",
-            TelegramInfo = null,
-            PhoneNumber = null,
+            PhoneNumber = "+79999999999",
         };
         A.CallTo(() => userRepository.GetUserByTgAsync(
                 A<TelegramInfo>.That.Matches(t => 
                     t.TgUsername == "Екатеринбург" && 
                     t.TgId == null)))!
-            .Returns(Task.FromResult<User>(null));
+            .Returns(Task.FromResult<User?>(null));
         A.CallTo(() => userRepository.GetUsersByCityAsync("Екатеринбург"))
-            .Returns(Task.FromResult<User[]>([foundUser]));
+            .Returns(Task.FromResult<User[]?>([foundUser]));
         
         var result = await userFindService.FindUserAsync("Екатеринбург");
         
@@ -174,8 +170,8 @@ public class UserFindServiceTests
     {
         var foundUser = new User
         {
-            FullName = null,
-            ChildInfo = new ChildInfo()
+            FullName = new FullName(),
+            ChildInfo = new ChildInfo
             {
                 EducationInfo = new()
                 {
@@ -183,8 +179,7 @@ public class UserFindServiceTests
                     School = "СУНЦ"
                 }
             },
-            TelegramInfo = null,
-            PhoneNumber = null
+            PhoneNumber = "+79999999999"
         };
         A.CallTo(() => userRepository.GetUserByTgAsync(
                 A<TelegramInfo>.That.Matches(t => 
@@ -209,28 +204,28 @@ public class UserFindServiceTests
         var foundUser = new User
         {
             FullName = new FullName("Иванов", "Иван", "Иванович"),
-            TelegramInfo = null,
-            PhoneNumber = null
+            PhoneNumber = "+79999999999"
         };
         A.CallTo(() => userRepository.GetUserByTgAsync(
                 A<TelegramInfo>._))
-            .Returns(Task.FromResult<User>(null));
+            .Returns(Task.FromResult<User?>(null));
         A.CallTo(() => userRepository.GetUsersByCityAsync(input))
-            .Returns(Task.FromResult<User[]>(null));
+            .Returns(Task.FromResult<User[]?>(null));
         A.CallTo(() => userRepository.GetUsersBySchoolAsync(input))
-            .Returns(Task.FromResult<User[]>(null));
+            .Returns(Task.FromResult<User[]?>(null));
         A.CallTo(() => userRepository.GetUsersByFullNameAsync(
                 A<FullName>.That.Matches(fn =>
                     fn.Name == "Иванов" &&
                     fn.Surname == "Иван" &&
                     fn.Patronymic == null)))
-            .Returns(Task.FromResult<User[]>(null));
+            .Returns(Task.FromResult<User[]?>(null));
         A.CallTo(() => userRepository.GetUsersByFullNameAsync(
                 A<FullName>.That.Matches(fn =>
                     fn.Name == "Иван" &&
                     fn.Surname == "Иванов" &&
                     fn.Patronymic == null)))
-            .Returns(Task.FromResult<User[]>([foundUser]));
+            .Returns(Task.FromResult<User[]?>([foundUser]));
+        
         var result = await userFindService.FindUserAsync(input);
         
         result.IsSuccess.Should().BeTrue();
@@ -244,22 +239,22 @@ public class UserFindServiceTests
         var foundUser = new User
         {
             FullName = new FullName("Иванов", "Иван", "Иванович"),
-            TelegramInfo = null,
-            PhoneNumber = null
+            PhoneNumber = "+79999999999"
         };
         A.CallTo(() => userRepository.GetUserByTgAsync(
                 A<TelegramInfo>._))
-            .Returns(Task.FromResult<User>(null));
+            .Returns(Task.FromResult<User?>(null));
         A.CallTo(() => userRepository.GetUsersByCityAsync(input))
-            .Returns(Task.FromResult<User[]>(null));
+            .Returns(Task.FromResult<User[]?>(null));
         A.CallTo(() => userRepository.GetUsersBySchoolAsync(input))
-            .Returns(Task.FromResult<User[]>(null));
+            .Returns(Task.FromResult<User[]?>(null));
         A.CallTo(() => userRepository.GetUsersByFullNameAsync(
                 A<FullName>.That.Matches(fn =>
                     fn.Name == "Иван" &&
                     fn.Surname == "Иванов" &&
                     fn.Patronymic == null)))
-            .Returns(Task.FromResult<User[]>([foundUser]));
+            .Returns(Task.FromResult<User[]?>([foundUser]));
+        
         var result = await userFindService.FindUserAsync(input);
         
         result.IsSuccess.Should().BeTrue();
@@ -274,35 +269,35 @@ public class UserFindServiceTests
         var foundUser = new User
         {
             FullName = new FullName("Иванов", "Иван", "Иванович"),
-            TelegramInfo = null,
-            PhoneNumber = null
+            PhoneNumber = "+79999999999"
         };
         
         A.CallTo(() => userRepository.GetUserByTgAsync(
                 A<TelegramInfo>._))
-            .Returns(Task.FromResult<User>(null));
+            .Returns(Task.FromResult<User?>(null));
         A.CallTo(() => userRepository.GetUsersByCityAsync(input))
-            .Returns(Task.FromResult<User[]>(null));
+            .Returns(Task.FromResult<User[]?>(null));
         A.CallTo(() => userRepository.GetUsersBySchoolAsync(input))
-            .Returns(Task.FromResult<User[]>(null));
+            .Returns(Task.FromResult<User[]?>(null));
         A.CallTo(() => userRepository.GetUsersByFullNameAsync(
                 A<FullName>.That.Matches(fn =>
                     fn.Name == null &&
                     fn.Surname == null &&
                     fn.Patronymic == "Иванович")))
-            .Returns(Task.FromResult<User[]>([foundUser]));
+            .Returns(Task.FromResult<User[]?>([foundUser]));
         A.CallTo(() => userRepository.GetUsersByFullNameAsync(
                 A<FullName>.That.Matches(fn =>
                     fn.Name == "Иванович" &&
                     fn.Surname == null &&
                     fn.Patronymic == null)))
-            .Returns(Task.FromResult<User[]>(null));
+            .Returns(Task.FromResult<User[]?>(null));
         A.CallTo(() => userRepository.GetUsersByFullNameAsync(
                 A<FullName>.That.Matches(fn =>
                     fn.Name == null &&
                     fn.Surname == "Иванович" &&
                     fn.Patronymic == null)))
-            .Returns(Task.FromResult<User[]>(null));
+            .Returns(Task.FromResult<User[]?>(null));
+        
         var result = await userFindService.FindUserAsync(input);
         
         result.IsSuccess.Should().BeTrue();
@@ -316,35 +311,35 @@ public class UserFindServiceTests
         var foundUser = new User
         {
             FullName = new FullName("Иванов", "Иван", "Иванович"),
-            TelegramInfo = null,
-            PhoneNumber = null
+            PhoneNumber = "+79999999999"
         };
         
         A.CallTo(() => userRepository.GetUserByTgAsync(
                 A<TelegramInfo>._))
-            .Returns(Task.FromResult<User>(null));
+            .Returns(Task.FromResult<User?>(null));
         A.CallTo(() => userRepository.GetUsersByCityAsync(input))
-            .Returns(Task.FromResult<User[]>(null));
+            .Returns(Task.FromResult<User[]?>(null));
         A.CallTo(() => userRepository.GetUsersBySchoolAsync(input))
-            .Returns(Task.FromResult<User[]>(null));
+            .Returns(Task.FromResult<User[]?>(null));
         A.CallTo(() => userRepository.GetUsersByFullNameAsync(
                 A<FullName>.That.Matches(fn =>
                     fn.Name == null &&
                     fn.Surname == null &&
                     fn.Patronymic == "Иванов")))
-            .Returns(Task.FromResult<User[]>(null));
+            .Returns(Task.FromResult<User[]?>(null));
         A.CallTo(() => userRepository.GetUsersByFullNameAsync(
                 A<FullName>.That.Matches(fn =>
                     fn.Name == "Иванов" &&
                     fn.Surname == null &&
                     fn.Patronymic == null)))
-            .Returns(Task.FromResult<User[]>(null));
+            .Returns(Task.FromResult<User[]?>(null));
         A.CallTo(() => userRepository.GetUsersByFullNameAsync(
                 A<FullName>.That.Matches(fn =>
                     fn.Name == null &&
                     fn.Surname == "Иванов" &&
                     fn.Patronymic == null)))
-            .Returns(Task.FromResult<User[]>([foundUser]));
+            .Returns(Task.FromResult<User[]?>([foundUser]));
+        
         var result = await userFindService.FindUserAsync(input);
         
         result.IsSuccess.Should().BeTrue();
@@ -358,35 +353,35 @@ public class UserFindServiceTests
         var foundUser = new User
         {
             FullName = new FullName("Иванов", "Иван", "Иванович"),
-            TelegramInfo = null,
-            PhoneNumber = null
+            PhoneNumber = "+79999999999"
         };
         
         A.CallTo(() => userRepository.GetUserByTgAsync(
                 A<TelegramInfo>._))
-            .Returns(Task.FromResult<User>(null));
+            .Returns(Task.FromResult<User?>(null));
         A.CallTo(() => userRepository.GetUsersByCityAsync(input))
-            .Returns(Task.FromResult<User[]>(null));
+            .Returns(Task.FromResult<User[]?>(null));
         A.CallTo(() => userRepository.GetUsersBySchoolAsync(input))
-            .Returns(Task.FromResult<User[]>(null));
+            .Returns(Task.FromResult<User[]?>(null));
         A.CallTo(() => userRepository.GetUsersByFullNameAsync(
                 A<FullName>.That.Matches(fn =>
                     fn.Name == null &&
                     fn.Surname == null &&
                     fn.Patronymic == "Иван")))
-            .Returns(Task.FromResult<User[]>(null));
+            .Returns(Task.FromResult<User[]?>(null));
         A.CallTo(() => userRepository.GetUsersByFullNameAsync(
                 A<FullName>.That.Matches(fn =>
                     fn.Name == "Иван" &&
                     fn.Surname == null &&
                     fn.Patronymic == null)))
-            .Returns(Task.FromResult<User[]>([foundUser]));
+            .Returns(Task.FromResult<User[]?>([foundUser]));
         A.CallTo(() => userRepository.GetUsersByFullNameAsync(
                 A<FullName>.That.Matches(fn =>
                     fn.Name == null &&
                     fn.Surname == "Иван" &&
                     fn.Patronymic == null)))
-            .Returns(Task.FromResult<User[]>(null));
+            .Returns(Task.FromResult<User[]?>(null));
+        
         var result = await userFindService.FindUserAsync(input);
         
         result.IsSuccess.Should().BeTrue();
@@ -400,23 +395,23 @@ public class UserFindServiceTests
         var foundUser = new User
         {
             FullName = new FullName("Иванов", "Иван", "Иванович"),
-            TelegramInfo = null,
-            PhoneNumber = null
+            PhoneNumber = "+79999999999"
         };
         
         A.CallTo(() => userRepository.GetUserByTgAsync(
                 A<TelegramInfo>._))
-            .Returns(Task.FromResult<User>(null));
+            .Returns(Task.FromResult<User?>(null));
         A.CallTo(() => userRepository.GetUsersByCityAsync(input))
-            .Returns(Task.FromResult<User[]>(null));
+            .Returns(Task.FromResult<User[]?>(null));
         A.CallTo(() => userRepository.GetUsersBySchoolAsync(input))
-            .Returns(Task.FromResult<User[]>(null));
+            .Returns(Task.FromResult<User[]?>(null));
         A.CallTo(() => userRepository.GetUsersByFullNameAsync(
                 A<FullName>.That.Matches(fn =>
                     fn.Name == "Иван" &&
                     fn.Surname == "Иванов" &&
                     fn.Patronymic == "Иванович")))
-            .Returns(Task.FromResult<User[]>([foundUser]));
+            .Returns(Task.FromResult<User[]?>([foundUser]));
+        
         var result = await userFindService.FindUserAsync(input);
         
         result.IsSuccess.Should().BeTrue();

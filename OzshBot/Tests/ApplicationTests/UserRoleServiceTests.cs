@@ -27,9 +27,9 @@ public class UserRoleServiceTests
         var telegramInfo = new TelegramInfo { TgId = null, TgUsername = "testUser1" };
         var foundUser = new User
         {
-            FullName = null,
+            FullName = new FullName(),
             TelegramInfo = telegramInfo,
-            PhoneNumber = null,
+            PhoneNumber = "+79999999999",
             Role = Role.Child
         };
         A.CallTo(() => userRepository.GetUserByTgAsync(telegramInfo))!
@@ -46,9 +46,9 @@ public class UserRoleServiceTests
         var telegramInfo = new TelegramInfo { TgId = null, TgUsername = "testUser1" };
         var foundUser = new User
         {
-            FullName = null,
+            FullName = new FullName(),
             TelegramInfo = telegramInfo,
-            PhoneNumber = null,
+            PhoneNumber = "+79999999999",
             Role = Role.Counsellor
         };
         A.CallTo(() => userRepository.GetUserByTgAsync(telegramInfo))!
@@ -77,7 +77,7 @@ public class UserRoleServiceTests
         var telegramInfo = new TelegramInfo { TgId = null, TgUsername = "testUser1" };
         var foundUser = new User
         {
-            FullName = null,
+            FullName = new FullName(),
             PhoneNumber = "+79999999999",
             TelegramInfo = telegramInfo,
             Role = Role.Child
@@ -96,7 +96,7 @@ public class UserRoleServiceTests
         var telegramInfo = new TelegramInfo { TgId = null, TgUsername = "testUser1" };
         var foundUser = new User
         {
-            FullName = null,
+            FullName = new FullName(),
             PhoneNumber = "+79999999999",
             TelegramInfo = telegramInfo,
             Role = Role.Counsellor
@@ -137,7 +137,7 @@ public class UserRoleServiceTests
     {
         var foundUser = new User
         {
-            FullName = null,
+            FullName = new FullName(),
             PhoneNumber = "+79999999999",
             Role = Role.Child
         };
@@ -149,7 +149,7 @@ public class UserRoleServiceTests
         var expectedUser = new User
         {
             Id = foundUser.Id,
-            FullName = null,
+            FullName = new FullName(),
             PhoneNumber = "+79999999999",
             Role = Role.Counsellor,
             CounsellorInfo = new CounsellorInfo
