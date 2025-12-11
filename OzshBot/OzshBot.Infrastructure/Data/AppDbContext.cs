@@ -1,4 +1,3 @@
-using System.Security.Cryptography;
 using Microsoft.EntityFrameworkCore;
 using OzshBot.Infrastructure.Models;
 
@@ -12,7 +11,6 @@ public class AppDbContext : DbContext
     public DbSet<Parent> Parents { get; set; }
     public DbSet<ChildParent> ChildrenParents { get; set; }
     public DbSet<Session> Sessions { get; set; }
-    public DbSet<Log> Logs { get; set; }
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
@@ -99,12 +97,6 @@ public class AppDbContext : DbContext
                   .WithMany(p => p.Relations)
                   .HasForeignKey(pp => pp.ParentId)
                   .OnDelete(DeleteBehavior.Cascade);
-        });
-
-        modelBuilder.Entity<Log>(entity =>
-        {
-            entity.HasKey(log => log.LogId);
-            entity.Property(log => log.Success).IsRequired();
         });
     }
 }

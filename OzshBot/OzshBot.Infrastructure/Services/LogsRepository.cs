@@ -4,9 +4,9 @@ using OzshBot.Infrastructure.Models;
 
 namespace OzshBot.Infrastructure.Services;
 
-public class LogsRepository(AppDbContext dbContext) : ISearchLogger
+public class LogsRepository(LogsDbContext dbContext) : ISearchLogger
 {
-    private readonly AppDbContext context = dbContext;
+    private readonly LogsDbContext context = dbContext;
 
     public async Task Log(long tgId, DateOnly date, bool success)
     {
