@@ -55,11 +55,12 @@ public class UserManagementService: IUserManagementService
         var result = await tableParser.GetChildrenAsync(link);
         if (result.IsSuccess)
         {
-            if (result.Value[0].ChildInfo.Group is not null)
+            if (result.Value.Any(child => child.ChildInfo.Group != null))
             {
                 var session = await sessionManager.GetOrCreateSession();
                 foreach (var child in result.Value)
                 {
+                    if (child.ChildInfo.Group is null) continue;
                     child.ChildInfo.Sessions.Add(session);
                     var existedUser = await userRepository.GetUserByPhoneNumberAsync(child.PhoneNumber);
                     if (existedUser != null)
