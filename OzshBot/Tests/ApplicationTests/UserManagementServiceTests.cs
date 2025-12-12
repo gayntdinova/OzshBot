@@ -1,6 +1,7 @@
 using FakeItEasy;
 using OzshBot.Application.RepositoriesInterfaces;
 using OzshBot.Application.Services;
+using OzshBot.Application.ToolsInterfaces;
 
 namespace Tests.ApplicationTests;
 
