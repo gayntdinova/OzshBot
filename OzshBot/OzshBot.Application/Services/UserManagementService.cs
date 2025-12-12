@@ -5,6 +5,7 @@ using OzshBot.Application.RepositoriesInterfaces;
 using OzshBot.Application.Services.Interfaces;
 using OzshBot.Application.ToolsInterfaces;
 using OzshBot.Domain.Entities;
+using OzshBot.Domain.Enums; 
 
 namespace OzshBot.Application.Services;
 
@@ -12,17 +13,21 @@ public class UserManagementService: IUserManagementService
 {
     private readonly IUserRepository userRepository;
     private readonly ITableParser tableParser;
-    public UserManagementService(IUserRepository userRepository, ITableParser tableParser)
+    private readonly SessionManager sessionManager;
+    public UserManagementService(IUserRepository userRepository, ISessionRepository sessionRepository, ITableParser tableParser)
     {
         this.userRepository = userRepository;
         this.tableParser = tableParser;
+        sessionManager = new SessionManager(sessionRepository, userRepository);
     }
 
     public async Task<Result<User>> AddUserAsync<T>(T user) where T: UserDtoModel
     {
         if (await userRepository.GetUserByPhoneNumberAsync(user.PhoneNumber) != null) 
             return Result.Fail(new UserAlreadyExistsError());
-        await userRepository.AddUserAsync(user.ToUser());
+        var newUser = user.ToUser();
+        await UpdateSessionsAfterAdding(newUser);
+        await userRepository.AddUserAsync(newUser);
         return Result.Ok(user.ToUser());
     }
 
@@ -31,8 +36,9 @@ public class UserManagementService: IUserManagementService
         var user = await userRepository.GetUserByPhoneNumberAsync(phoneNumber);
         if (user == null)
             return Result.Fail(new NotFoundError());
+        await UpdateSessionsAfterEditing(user, editedUser);
         user.UpdateBy(editedUser);
-        await userRepository.UpdateUserAsync(user);
+        await userRepository.UpdateUserAsync(editedUser);
         return Result.Ok(user);
     }
 
@@ -49,15 +55,22 @@ public class UserManagementService: IUserManagementService
         var result = await tableParser.GetChildrenAsync(link);
         if (result.IsSuccess)
         {
-            foreach (var child in result.Value)
+            if (result.Value[0].ChildInfo.Group is not null)
             {
-                var existUser = await userRepository.GetUserByPhoneNumberAsync(child.PhoneNumber);
-                if (existUser == null)
-                    await userRepository.AddUserAsync(child.ToUser());
-                else
+                var session = await sessionManager.GetOrCreateSession();
+                foreach (var child in result.Value)
                 {
-                    existUser.UpdateBy(child.ToUser());
-                    await userRepository.UpdateUserAsync(existUser);
+                    child.ChildInfo.Sessions.Add(session);
+                    var existedUser = await userRepository.GetUserByPhoneNumberAsync(child.PhoneNumber);
+                    if (existedUser != null)
+                    {
+                        existedUser.UpdateBy(child.ToUser());
+                        await userRepository.UpdateUserAsync(existedUser);
+                    }
+                    else
+                    {
+                        await userRepository.AddUserAsync(child.ToUser());
+                    }
                 }
             }
         }
@@ -65,4 +78,52 @@ public class UserManagementService: IUserManagementService
         if (result.HasError<IncorrectRowError>()) return Result.Fail(result.Errors);
         return Result.Ok();
     }
+
+    private async Task UpdateSessionsAfterAdding(User user)
+    {
+        switch (user.Role)
+        {
+            case Role.Child when user.ChildInfo!.Group != null:
+            {
+                var session = await sessionManager.GetOrCreateSession();
+                user.ChildInfo.Sessions.Add(session);
+                break;
+            }
+            case Role.Counsellor when user.CounsellorInfo!.Group != null:
+            {
+                var session = await sessionManager.GetOrCreateSession();
+                user.CounsellorInfo.Sessions.Add(session);
+                break;
+            }
+        }
+    }
+
+    private async Task UpdateSessionsAfterEditing(User editedUser, User user)
+    {
+        if (editedUser.Role == Role.Child)
+        {
+            if (editedUser.ChildInfo!.Group == null && user.ChildInfo!.Group != null)
+            {
+                var session = await sessionManager.GetOrCreateSession();
+                editedUser.ChildInfo.Sessions.Add(session);
+            }
+            else if (editedUser.ChildInfo!.Group != null && user.ChildInfo!.Group == null)
+            {
+                editedUser.ChildInfo.Sessions.Remove(editedUser.ChildInfo.Sessions.Last());
+            }
+        }
+        else if (editedUser.Role == Role.Counsellor)
+        {
+            if (editedUser.CounsellorInfo!.Group == null && user.CounsellorInfo!.Group != null)
+            {
+                var session = await sessionManager.GetOrCreateSession();
+                editedUser.CounsellorInfo.Sessions.Add(session);
+            }
+            else if (editedUser.CounsellorInfo!.Group != null && user.CounsellorInfo!.Group == null)
+            {
+                editedUser.CounsellorInfo.Sessions.Remove(editedUser.CounsellorInfo.Sessions.Last());
+            }
+        }
+    }
+    
 }

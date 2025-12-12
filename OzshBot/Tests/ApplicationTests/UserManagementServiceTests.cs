@@ -9,6 +9,7 @@ namespace Tests.ApplicationTests;
 public class UserManagementServiceTests
 {
     private IUserRepository userRepository;
+    private ISessionRepository sessionRepository;
     private ITableParser tableParser;
     private UserManagementService userManagementService;
     
@@ -16,8 +17,9 @@ public class UserManagementServiceTests
     public void Setup()
     {
         userRepository = A.Fake<IUserRepository>();
+        sessionRepository = A.Fake<ISessionRepository>();
         tableParser = A.Fake<ITableParser>();
-        userManagementService = new(userRepository, tableParser);
+        userManagementService = new(userRepository, sessionRepository, tableParser);
     }
 
     [Test]

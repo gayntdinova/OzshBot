@@ -1,11 +1,11 @@
 using OzshBot.Domain.Entities;
+using OzshBot.Domain.Enums;
 
 namespace OzshBot.Application.RepositoriesInterfaces;
 
 public interface ISessionRepository
 {
     Task AddSessionAsync(Session session);
-    Task UpdateSessionAsync(Session session);
-    Task DeleteSessionAsync(Session session);
-    // переработать
+    Task<Session?> GetSessionBySeasonAndYearAsync(Season season, int year);
+    Task<Session> GetLastSessionAsync();
 }
