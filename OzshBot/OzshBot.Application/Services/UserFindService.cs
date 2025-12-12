@@ -71,32 +71,32 @@ public class UserFindService: IUserFindService
             : Result.Ok(user);
     }
 
-    private static List<FullName> GenerateFullNameCombinationsByInput(string[] splitedTarget)
+    private static List<NameSearch> GenerateFullNameCombinationsByInput(string[] splitedTarget)
     {
-        var fullNameCombinations = new List<FullName>();
+        var fullNameCombinations = new List<NameSearch>();
         switch (splitedTarget.Length)
         {
             case 1:
-                fullNameCombinations.Add(new FullName(name: splitedTarget[0]));
-                fullNameCombinations.Add(new FullName(surname: splitedTarget[0]));
-                fullNameCombinations.Add(new FullName(patronymic: splitedTarget[0]));
+                fullNameCombinations.Add(new NameSearch(name: splitedTarget[0]));
+                fullNameCombinations.Add(new NameSearch(surname: splitedTarget[0]));
+                fullNameCombinations.Add(new NameSearch(patronymic: splitedTarget[0]));
                 break;
             case 2:
-                fullNameCombinations.Add(new FullName(name: splitedTarget[0], surname: splitedTarget[1]));
-                fullNameCombinations.Add(new FullName(name: splitedTarget[1], surname: splitedTarget[0]));
-                fullNameCombinations.Add(new FullName(name: splitedTarget[0], patronymic: splitedTarget[1]));
+                fullNameCombinations.Add(new NameSearch(name: splitedTarget[0], surname: splitedTarget[1]));
+                fullNameCombinations.Add(new NameSearch(name: splitedTarget[1], surname: splitedTarget[0]));
+                fullNameCombinations.Add(new NameSearch(name: splitedTarget[0], patronymic: splitedTarget[1]));
                 break;
             case 3:
-                fullNameCombinations.Add(new FullName(name: splitedTarget[1], surname: splitedTarget[0], patronymic: splitedTarget[2]));
+                fullNameCombinations.Add(new NameSearch(name: splitedTarget[1], surname: splitedTarget[0], patronymic: splitedTarget[2]));
                 break;
         }
 
         return fullNameCombinations;
     }
 
-    private async Task<Result<User[]>> FindUsersByFullNameAsync(FullName fullName)
+    private async Task<Result<User[]>> FindUsersByFullNameAsync(NameSearch name)
     {
-        var users = await userRepository.GetUsersByFullNameAsync(fullName);
+        var users = await userRepository.GetUsersByFullNameAsync(name);
         return users == null
             ? Result.Fail(new NotFoundError())
             : Result.Ok(users);

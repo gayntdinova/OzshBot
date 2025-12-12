@@ -27,7 +27,7 @@ public class UserRoleServiceTests
         var telegramInfo = new TelegramInfo { TgId = null, TgUsername = "testUser1" };
         var foundUser = new User
         {
-            FullName = new FullName(),
+            FullName = new FullName("Иванов", "Иван", "Иванович"),
             TelegramInfo = telegramInfo,
             PhoneNumber = "+79999999999",
             Role = Role.Child
@@ -46,7 +46,7 @@ public class UserRoleServiceTests
         var telegramInfo = new TelegramInfo { TgId = null, TgUsername = "testUser1" };
         var foundUser = new User
         {
-            FullName = new FullName(),
+            FullName = new FullName("Иванов", "Иван", "Иванович"),
             TelegramInfo = telegramInfo,
             PhoneNumber = "+79999999999",
             Role = Role.Counsellor
@@ -77,7 +77,7 @@ public class UserRoleServiceTests
         var telegramInfo = new TelegramInfo { TgId = null, TgUsername = "testUser1" };
         var foundUser = new User
         {
-            FullName = new FullName(),
+            FullName = new FullName("Иванов", "Иван", "Иванович"),
             PhoneNumber = "+79999999999",
             TelegramInfo = telegramInfo,
             Role = Role.Child
@@ -96,7 +96,7 @@ public class UserRoleServiceTests
         var telegramInfo = new TelegramInfo { TgId = null, TgUsername = "testUser1" };
         var foundUser = new User
         {
-            FullName = new FullName(),
+            FullName = new FullName("Иванов", "Иван", "Иванович"),
             PhoneNumber = "+79999999999",
             TelegramInfo = telegramInfo,
             Role = Role.Counsellor
@@ -137,7 +137,7 @@ public class UserRoleServiceTests
     {
         var foundUser = new User
         {
-            FullName = new FullName(),
+            FullName = new FullName("Иванов", "Иван", "Иванович"),
             PhoneNumber = "+79999999999",
             Role = Role.Child
         };
@@ -149,7 +149,7 @@ public class UserRoleServiceTests
         var expectedUser = new User
         {
             Id = foundUser.Id,
-            FullName = new FullName(),
+            FullName = new FullName("Иванов", "Иван", "Иванович"),
             PhoneNumber = "+79999999999",
             Role = Role.Counsellor,
             CounsellorInfo = new CounsellorInfo
