@@ -13,6 +13,7 @@ public interface IUserRepository
     Task<User[]?> GetUsersBySchoolAsync(string school);
     Task<User?> GetUserByPhoneNumberAsync(string phoneNumber);
     Task<User[]?> GetUsersBySessionIdAsync(Guid sessionId);
+    Task<User?> GetUserByIdAsync(Guid userId);
     Task AddUserAsync(User user);
     Task UpdateUserAsync(User user);
     Task DeleteUserAsync(string phoneNumber);

@@ -1,10 +1,17 @@
 using OzshBot.Domain.Entities;
 using OzshBot.Domain.Enums;
+using OzshBot.Domain.ValueObjects;
 
 namespace OzshBot.Application.RepositoriesInterfaces;
 
 public interface ISessionRepository
 {
     Task AddSessionAsync(Session session);
-    Task<Session?> GetSessionBySeasonAndYearAsync(Season season, int year);
+    Task UpdateSessionAsync(Session session);
+    Task<Session?> GetSessionByDatesAsync(SessionDates sessionDates);
+    Task<Session?> GetSessionById(Guid sessionId);
+    
+    Task<Session[]?> GetLastSessionsAsync(int numberOfSessions);
+    
+    
 }

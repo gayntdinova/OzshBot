@@ -19,7 +19,7 @@ public class UserFindService: IUserFindService
     {
         var users = await userRepository.GetUsersByClassAsync(classNumber);
         return users == null
-            ? Result.Fail(new NotFoundError())
+            ? Result.Fail(new UserNotFoundError())
             : Result.Ok(users);
     }
     
@@ -27,7 +27,7 @@ public class UserFindService: IUserFindService
     {
         var users = await userRepository.GetUsersByGroupAsync(group);
         return users == null
-            ? Result.Fail(new NotFoundError())
+            ? Result.Fail(new UserNotFoundError())
             : Result.Ok(users);
     }
 
@@ -35,7 +35,7 @@ public class UserFindService: IUserFindService
     {
         var users = await userRepository.GetUserByPhoneNumberAsync(phoneNumber);
         return users == null
-            ? Result.Fail(new NotFoundError())
+            ? Result.Fail(new UserNotFoundError())
             : Result.Ok(users);
     }
 
@@ -61,14 +61,14 @@ public class UserFindService: IUserFindService
             var userByFullName = await FindUsersByFullNameAsync(combination);
             if (userByFullName.IsSuccess) return Result.Ok(userByFullName.Value);
         }
-        return Result.Fail(new NotFoundError());
+        return Result.Fail(new UserNotFoundError());
     }
     
     public async Task<Result<User>> FindUserByTgAsync(TelegramInfo telegramInfo)
     {
         var user = await userRepository.GetUserByTgAsync(telegramInfo);
         return user == null 
-            ? Result.Fail(new NotFoundError()) 
+            ? Result.Fail(new UserNotFoundError()) 
             : Result.Ok(user);
     }
 
@@ -99,7 +99,7 @@ public class UserFindService: IUserFindService
     {
         var users = await userRepository.GetUsersByFullNameAsync(name);
         return users == null
-            ? Result.Fail(new NotFoundError())
+            ? Result.Fail(new UserNotFoundError())
             : Result.Ok(users);
     }
 
@@ -107,7 +107,7 @@ public class UserFindService: IUserFindService
     {
         var users = await userRepository.GetUsersByCityAsync(city);
         return users == null
-            ? Result.Fail(new NotFoundError())
+            ? Result.Fail(new UserNotFoundError())
             : Result.Ok(users);
     }
 
@@ -115,7 +115,7 @@ public class UserFindService: IUserFindService
     {
         var users = await userRepository.GetUsersBySchoolAsync(school);
         return users == null
-            ? Result.Fail(new NotFoundError())
+            ? Result.Fail(new UserNotFoundError())
             : Result.Ok(users);
     } 
 }
