@@ -26,7 +26,7 @@ public class SessionService: ISessionService
 
     public async Task<Result<Session>> EditSessionAsync(Session session)
     {
-        var existedSession = await sessionRepository.GetSessionById(session.Id);
+        var existedSession = await sessionRepository.GetSessionByIdAsync(session.Id);
         if (existedSession == null) return Result.Fail(new SessionNotFoundError());
         if (await CheckIfSessionIntersectsAsync(session))
             return Result.Fail(new SessionIntersectError());
