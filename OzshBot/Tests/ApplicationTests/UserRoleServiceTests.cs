@@ -37,7 +37,7 @@ public class UserRoleServiceTests
         
         var role = await userRoleService.GetUserRoleByTgAsync(telegramInfo);
         
-        Assert.That(role, Is.EqualTo(Role.Child));
+        role.Should().Be(Role.Child);
     }
     
     [Test]
@@ -56,7 +56,7 @@ public class UserRoleServiceTests
         
         var role = await userRoleService.GetUserRoleByTgAsync(telegramInfo);
         
-        Assert.That(role, Is.EqualTo(Role.Counsellor));
+        role.Should().Be(Role.Counsellor);
     }
     
     [Test]
@@ -68,7 +68,7 @@ public class UserRoleServiceTests
         
         var role = await userRoleService.GetUserRoleByTgAsync(telegramInfo);
         
-        Assert.That(role, Is.EqualTo(Role.Unknown));
+        role.Should().Be(Role.Unknown);
     }
     
     [Test]
@@ -87,7 +87,7 @@ public class UserRoleServiceTests
         
         var role = await userRoleService.ActivateUserByPhoneNumberAsync("+79999999999", telegramInfo);
         
-        Assert.That(role, Is.EqualTo(Role.Child));
+        role.Should().Be(Role.Child);
     }
     
     [Test]
@@ -106,7 +106,7 @@ public class UserRoleServiceTests
         
         var role = await userRoleService.ActivateUserByPhoneNumberAsync("+79999999999", telegramInfo);
         
-        Assert.That(role, Is.EqualTo(Role.Counsellor));
+        role.Should().Be(Role.Counsellor);
     }
     
     [Test]
@@ -118,7 +118,7 @@ public class UserRoleServiceTests
         
         var role = await userRoleService.ActivateUserByPhoneNumberAsync("+79999999999", telegramInfo);
         
-        Assert.That(role, Is.EqualTo(Role.Unknown));
+        role.Should().Be(Role.Unknown);
     }
     
     [Test]
