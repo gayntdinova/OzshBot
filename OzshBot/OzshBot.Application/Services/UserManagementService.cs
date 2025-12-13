@@ -60,7 +60,6 @@ public class UserManagementService: IUserManagementService
             return result.ToResult();
         }
         
-
         foreach (var child in result.Value)
         {
             child.ChildInfo.Sessions.Add(session);
@@ -76,6 +75,7 @@ public class UserManagementService: IUserManagementService
                 await userRepository.AddUserAsync(newUser);
             }
         }
+        
         return Result.Ok();
     }
 }
