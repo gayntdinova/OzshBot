@@ -1,7 +1,6 @@
 using OzshBot.Domain.Entities;
-using OzshBot.Domain.ValueObjects;
 
-namespace OzshBot.Domain;
+namespace OzshBot.Domain.Extensions;
 
 public static class UserExtensions
 {

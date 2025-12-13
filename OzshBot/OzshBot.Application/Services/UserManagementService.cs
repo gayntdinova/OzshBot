@@ -6,7 +6,8 @@ using OzshBot.Application.Services.Interfaces;
 using OzshBot.Application.ToolsInterfaces;
 using OzshBot.Domain;
 using OzshBot.Domain.Entities;
-using OzshBot.Domain.Enums; 
+using OzshBot.Domain.Enums;
+using OzshBot.Domain.Extensions;
 
 namespace OzshBot.Application.Services;
 
