@@ -13,7 +13,7 @@ public class GoogleDocParser: ITableParser
         {
             var reader = new GoogleDocsReader(url);
             var data = await reader.ReadGoogleSheet();
-            return await new TableParser().GetChildrenAsync(data);
+            return new TableParser().GetChildrenAsync(data);
         }
         catch (ArgumentException)
         {
