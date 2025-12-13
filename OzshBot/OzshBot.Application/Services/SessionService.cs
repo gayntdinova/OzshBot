@@ -18,6 +18,8 @@ public class SessionService: ISessionService
     
     public async Task<Result> AddSessionAsync(Session session)
     {
+        var existedSession = await sessionRepository.GetSessionByDatesAsync(session.SessionDates);
+        if (existedSession != null) return Result.Fail(new SessionAlreadyExistsError());
         if (await CheckIfSessionIntersectsAsync(session))
             return Result.Fail(new SessionIntersectError());
         await sessionRepository.AddSessionAsync(session);

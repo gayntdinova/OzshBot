@@ -2,10 +2,10 @@ namespace OzshBot.Domain.ValueObjects;
 
 public class SessionDates
 {
-    public DateTime StartDate { get; set; }
-    public DateTime EndDate { get; set; }
+    public DateOnly StartDate { get; set; }
+    public DateOnly EndDate { get; set; }
 
-    public SessionDates(DateTime startDate, DateTime endDate)
+    public SessionDates(DateOnly startDate, DateOnly endDate)
     {
         StartDate = startDate;
         EndDate = endDate;
