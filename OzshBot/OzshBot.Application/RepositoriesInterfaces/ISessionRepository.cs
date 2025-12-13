@@ -7,5 +7,4 @@ public interface ISessionRepository
 {
     Task AddSessionAsync(Session session);
     Task<Session?> GetSessionBySeasonAndYearAsync(Season season, int year);
-    Task<Session?> GetLastSessionAsync();
 }

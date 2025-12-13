@@ -19,15 +19,15 @@ public class UserManagementServiceTests
     private IUserRepository userRepository;
     private ITableParser tableParser;
     private UserManagementService userManagementService;
-    private SessionManager sessionManager;
+    private SessionService _sessionService;
     
     [SetUp]
     public void Setup()
     {
         userRepository = A.Fake<IUserRepository>();
         tableParser = A.Fake<ITableParser>();
-        sessionManager = A.Fake<SessionManager>();
-        userManagementService = new(userRepository, sessionManager, tableParser);
+        _sessionService = A.Fake<SessionService>();
+        userManagementService = new(userRepository, _sessionService, tableParser);
     }
 
     [Test]
@@ -100,7 +100,7 @@ public class UserManagementServiceTests
         var url = "";
         A.CallTo(() => tableParser.GetChildrenAsync(url))
             .Returns(Result.Ok());
-        A.CallTo(() => sessionManager.GetOrCreateSessionAsync())
+        A.CallTo(() => _sessionService.GetOrCreateSessionAsync())
             .Returns(new Session
             {
                 Year = 2025,

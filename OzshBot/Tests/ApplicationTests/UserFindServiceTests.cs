@@ -119,6 +119,7 @@ public class UserFindServiceTests
         result.IsSuccess.Should().BeFalse();
     }
 
+    #region FindUsersAsyncTests
     [Test]
     public async Task FindUsersAsync_ByTelegram_ReturnsResultOk()
     {
@@ -445,4 +446,5 @@ public class UserFindServiceTests
         
         result.IsSuccess.Should().BeFalse();
     }
+    #endregion
 }

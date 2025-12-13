@@ -9,9 +9,9 @@ using OzshBot.Domain.ValueObjects;
 namespace Tests.ApplicationTests;
 
 [TestFixture]
-public class SessionManagerTests
+public class SessionServiceTests
 {
-    private SessionManager sessionManager;
+    private SessionService sessionService;
     private ISessionRepository sessionRepository;
     private IUserRepository userRepository;
     
@@ -20,49 +20,25 @@ public class SessionManagerTests
     {
         sessionRepository = A.Fake<ISessionRepository>();
         userRepository = A.Fake<IUserRepository>();
-        sessionManager = new SessionManager(sessionRepository, userRepository);
+        sessionService = new SessionService(sessionRepository, userRepository);
     }
-
+    
     [Test]
     public async Task GetOrCreateSessionAsync_SessionNotExists_NewSession()
     {
         A.CallTo(() => sessionRepository.GetSessionBySeasonAndYearAsync(Season.Winter, 2025))
             .Returns(Task.FromResult<Session?>(null));
-        A.CallTo(() => sessionRepository.GetLastSessionAsync())
+        A.CallTo(() => sessionRepository.GetSessionBySeasonAndYearAsync(Season.Autumn, 2025))
             .Returns(Task.FromResult<Session?>(null));
         A.CallTo(() => sessionRepository.AddSessionAsync(A<Session>._))
             .Returns(Task.CompletedTask);
         
-        var session = await sessionManager.GetOrCreateSessionAsync();
+        var session = await sessionService.GetOrCreateSessionAsync();
         
         session.Year.Should().Be(2025);
         session.Season.Should().Be(Season.Winter);
     }
     
-    [Test]
-    public async Task GetOrCreateSessionAsync_WhenCreatingNewSession_ShouldDeleteLastSessionGroup()
-    {
-        var year = 2025;
-        var season = Season.Winter;
-        var lastSession = new Session { Year = 2025, Season = Season.Autumn };
-
-        A.CallTo(() => sessionRepository.GetSessionBySeasonAndYearAsync(season, year))
-            .Returns(Task.FromResult<Session?>(null));
-        A.CallTo(() => sessionRepository.GetLastSessionAsync())
-            .Returns(Task.FromResult<Session?>(lastSession));
-        A.CallTo(() => sessionRepository.AddSessionAsync(A<Session>._))
-            .Returns(Task.CompletedTask);
-        A.CallTo(() => userRepository.GetUsersBySessionIdAsync(lastSession.Id))
-            .Returns(Task.FromResult<User[]?>(null));
-        
-        var result = await sessionManager.GetOrCreateSessionAsync();
-        
-        result.Should().NotBeNull();
-        A.CallTo(() => sessionRepository.GetLastSessionAsync())
-            .MustHaveHappenedOnceExactly();
-        A.CallTo(() => userRepository.GetUsersBySessionIdAsync(lastSession.Id))
-            .MustHaveHappenedOnceExactly();
-    }
 
     [Test]
     public async Task GetOrCreateSessionAsync_WhenLastSessionHasParticipants_ShouldClearGroupsAndUpdate()
@@ -99,14 +75,14 @@ public class SessionManagerTests
 
         A.CallTo(() => sessionRepository.GetSessionBySeasonAndYearAsync(season, year))
             .Returns(Task.FromResult<Session?>(null));
-        A.CallTo(() => sessionRepository.GetLastSessionAsync())
+        A.CallTo(() => sessionRepository.GetSessionBySeasonAndYearAsync(Season.Autumn, 2025))
             .Returns(Task.FromResult<Session?>(lastSession));
         A.CallTo(() => sessionRepository.AddSessionAsync(A<Session>._))
             .Returns(Task.CompletedTask);
         A.CallTo(() => userRepository.GetUsersBySessionIdAsync(lastSession.Id))
             .Returns(Task.FromResult<User[]?>(participants));
         
-        var result = await sessionManager.GetOrCreateSessionAsync();
+        var result = await sessionService.GetOrCreateSessionAsync();
         
         result.Should().NotBeNull();
         childWithGroup.ChildInfo.Group.Should().BeNull();
@@ -116,7 +92,7 @@ public class SessionManagerTests
     [Test]
     public async Task GetOrCreateSessionAsync_ExistingSession_ReturnsSession()
     {
-        var expectedSession = new Session()
+        var expectedSession = new Session
         {
             Year = 2025,
             Season = Season.Winter
@@ -125,9 +101,10 @@ public class SessionManagerTests
         A.CallTo(() => sessionRepository.GetSessionBySeasonAndYearAsync(Season.Winter, 2025))
             .Returns(Task.FromResult<Session?>(expectedSession));
         
-        var session = await sessionManager.GetOrCreateSessionAsync();
+        var session = await sessionService.GetOrCreateSessionAsync();
         
         session.Should().BeEquivalentTo(expectedSession);
         
     }
+    
 }

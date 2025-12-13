@@ -14,12 +14,12 @@ public class UserManagementService: IUserManagementService
 {
     private readonly IUserRepository userRepository;
     private readonly ITableParser tableParser;
-    private readonly SessionManager sessionManager;
-    public UserManagementService(IUserRepository userRepository, SessionManager sessionManager, ITableParser tableParser)
+    private readonly SessionService _sessionService;
+    public UserManagementService(IUserRepository userRepository, SessionService sessionService, ITableParser tableParser)
     {
         this.userRepository = userRepository;
         this.tableParser = tableParser;
-        this.sessionManager = sessionManager;
+        this._sessionService = sessionService;
     }
 
     public async Task<Result<User>> AddUserAsync<T>(T user) where T: UserDtoModel
@@ -27,7 +27,7 @@ public class UserManagementService: IUserManagementService
         if (await userRepository.GetUserByPhoneNumberAsync(user.PhoneNumber) != null) 
             return Result.Fail(new UserAlreadyExistsError());
         var newUser = user.ToUser();
-        await sessionManager.UpdateSessionsAfterAdding(newUser);
+        await UpdateSessionsAfterUserAdditionAsync(newUser);
         await userRepository.AddUserAsync(newUser);
         return Result.Ok(newUser);
     }
@@ -39,7 +39,7 @@ public class UserManagementService: IUserManagementService
             return Result.Fail(new NotFoundError());
         var oldUser = user.Clone();
         user.UpdateBy(editedUser);
-        await sessionManager.UpdateSessionsAfterEditing(oldUser, user);
+        await UpdateSessionsAfterUserEditingAsync(oldUser, user);
         await userRepository.UpdateUserAsync(user);
         return Result.Ok(user);
     }
@@ -70,16 +70,63 @@ public class UserManagementService: IUserManagementService
             {
                 var oldUser = existedUser.Clone();
                 existedUser.UpdateBy(child.ToUser());
-                await sessionManager.UpdateSessionsAfterEditing(oldUser, existedUser);
+                await UpdateSessionsAfterUserEditingAsync(oldUser, existedUser);
                 await userRepository.UpdateUserAsync(existedUser);
             }
             else
             {
                 var newUser = child.ToUser();
-                await sessionManager.UpdateSessionsAfterAdding(newUser);
+                await UpdateSessionsAfterUserAdditionAsync(newUser);
                 await userRepository.AddUserAsync(newUser);
             }
         }
         return Result.Ok();
+    }
+    
+    private async Task UpdateSessionsAfterUserAdditionAsync(User user)
+    {
+        switch (user.Role)
+        {
+            case Role.Child when user.ChildInfo!.Group != null:
+            {
+                var session = await _sessionService.GetOrCreateSessionAsync();
+                user.ChildInfo.Sessions.Add(session);
+                break;
+            }
+            case Role.Counsellor when user.CounsellorInfo!.Group != null:
+            {
+                var session = await _sessionService.GetOrCreateSessionAsync();
+                user.CounsellorInfo.Sessions.Add(session);
+                break;
+            }
+        }
+    }
+
+    private async Task UpdateSessionsAfterUserEditingAsync(User oldUser, User user)
+    {
+        if (user.Role == Role.Child)
+        {
+            if (oldUser.ChildInfo!.Group == null && user.ChildInfo!.Group != null)
+            {
+                var session = await _sessionService.GetOrCreateSessionAsync();
+                user.ChildInfo.Sessions.Add(session);
+            }
+            else if (oldUser.ChildInfo!.Group != null && user.ChildInfo!.Group == null)
+            {
+                user.ChildInfo.Sessions.Remove(user.ChildInfo.Sessions.Last());
+            }
+        }
+        else if (user.Role == Role.Counsellor)
+        {
+            if (oldUser.CounsellorInfo!.Group == null && user.CounsellorInfo!.Group != null)
+            {
+                var session = await _sessionService.GetOrCreateSessionAsync();
+                user.CounsellorInfo.Sessions.Add(session);
+            }
+            else if (oldUser.CounsellorInfo!.Group != null && user.CounsellorInfo!.Group == null)
+            {
+                user.CounsellorInfo.Sessions.Remove(user.CounsellorInfo.Sessions.Last());
+            }
+        }
     }
 }
