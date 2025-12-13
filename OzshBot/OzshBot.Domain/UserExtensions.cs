@@ -10,38 +10,16 @@ public static class UserExtensions
         return new User
         {
             Id = user.Id,
-            FullName = new FullName(user.FullName.Surname, user.FullName.Name, user.FullName.Patronymic),
+            FullName = user.FullName with {},
             TelegramInfo = user.TelegramInfo != null
-                ? new TelegramInfo
-                {
-                    TgUsername = user.TelegramInfo.TgUsername,
-                    TgId = user.TelegramInfo.TgId
-                }
+                ? user.TelegramInfo with {}
                 : null,
             Birthday = user.Birthday,
             City = user.City,
             PhoneNumber = user.PhoneNumber,
             Email = user.Email,
-            ChildInfo = user.ChildInfo != null ? new ChildInfo
-                {
-                    EducationInfo = user.ChildInfo.EducationInfo != null ? new EducationInfo
-                        {
-                            Class = user.ChildInfo.EducationInfo.Class,
-                            School = user.ChildInfo.EducationInfo.School,
-                        }
-                        : null,
-                    Group = user.ChildInfo.Group,
-                    Sessions = user.ChildInfo.Sessions,
-                    ContactPeople = user.ChildInfo.ContactPeople,
-                }
-                : null,
-            CounsellorInfo = user.CounsellorInfo != null?
-            new CounsellorInfo
-            {
-                Group = user.CounsellorInfo.Group,
-                Sessions = user.CounsellorInfo.Sessions,
-            }
-            : null,
+            ChildInfo = user.ChildInfo?.Clone(),
+            CounsellorInfo = user.CounsellorInfo?.Clone(),
             Role = user.Role,
         };
     }

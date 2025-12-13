@@ -1,6 +1,6 @@
 namespace OzshBot.Domain.ValueObjects;
 
-public class NameSearch
+public record NameSearch
 {
     public string? Surname { get; set; }
     public string? Name { get; set; }

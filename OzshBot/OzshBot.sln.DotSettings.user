@@ -25,5 +25,6 @@
     &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.SessionManagerTests.GetOrCreateSessionAsync_SessionNotExists_NewSession&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.SessionManagerTests.GetOrCreateSessionAsync_ExistingSession_ReturnsSession&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.SessionManagerTests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.SessionServiceTests&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>
