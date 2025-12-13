@@ -44,6 +44,7 @@ public class UserFindService: IUserFindService
         var splitedInput = input.Split(" ");
         if (splitedInput.Length == 1)
         {
+            var tg = input.Replace("@", "");
             var userByTg = await FindUserByTgAsync(new TelegramInfo { TgId = null, TgUsername = input });
             if (userByTg.IsSuccess) return Result.Ok(new[] {userByTg.Value});
         }

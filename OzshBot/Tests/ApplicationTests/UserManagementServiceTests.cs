@@ -1,7 +1,15 @@
 using FakeItEasy;
+using FluentAssertions;
+using FluentResults;
+using OzshBot.Application;
+using OzshBot.Application.AppErrors;
+using OzshBot.Application.DtoModels;
 using OzshBot.Application.RepositoriesInterfaces;
 using OzshBot.Application.Services;
 using OzshBot.Application.ToolsInterfaces;
+using OzshBot.Domain.Entities;
+using OzshBot.Domain.Enums;
+using OzshBot.Domain.ValueObjects;
 
 namespace Tests.ApplicationTests;
 
@@ -9,17 +17,17 @@ namespace Tests.ApplicationTests;
 public class UserManagementServiceTests
 {
     private IUserRepository userRepository;
-    private ISessionRepository sessionRepository;
     private ITableParser tableParser;
     private UserManagementService userManagementService;
+    private SessionManager sessionManager;
     
     [SetUp]
     public void Setup()
     {
         userRepository = A.Fake<IUserRepository>();
-        sessionRepository = A.Fake<ISessionRepository>();
         tableParser = A.Fake<ITableParser>();
-        userManagementService = new(userRepository, sessionRepository, tableParser);
+        sessionManager = A.Fake<SessionManager>();
+        userManagementService = new(userRepository, sessionManager, tableParser);
     }
 
     [Test]
@@ -65,14 +73,61 @@ public class UserManagementServiceTests
     }
 
     [Test]
-    public void LoadTableAsync_IncorrectRowsInParsing_ReturnFail()
+    public async Task LoadTableAsync_IncorrectRowsInParsing_ReturnFail()
     {
-        Assert.Pass();
+        var url = "";
+        A.CallTo(() => tableParser.GetChildrenAsync(url))
+            .Returns(Result.Fail(new IncorrectRowError(2)));
+        var result = await userManagementService.LoadTableAsync(url);
+        result.IsSuccess.Should().BeFalse();
+        result.HasError<IncorrectRowError>().Should().BeTrue();
     }
 
     [Test]
-    public void LoadTableAsync_ReturnOk()
+    public async Task LoadTableAsync_HasGroup_ReturnOk()
     {
-        Assert.Pass();
+        var child1 = new ChildDto
+        {
+            FullName = new FullName("Иванов", "Иван", "Иванович"),
+            PhoneNumber = "+79999999999",
+            ChildInfo = new ChildInfo
+            {
+                Group = 5,
+                Sessions = [],
+                ContactPeople = []
+            }
+        };
+        var url = "";
+        A.CallTo(() => tableParser.GetChildrenAsync(url))
+            .Returns(Result.Ok());
+        A.CallTo(() => sessionManager.GetOrCreateSession())
+            .Returns(new Session
+            {
+                Year = 2025,
+                Season = Season.Winter
+            });
+        var result = await userManagementService.LoadTableAsync(url);
+        result.IsSuccess.Should().BeTrue();
+        
+    }
+    
+    [Test]
+    public async Task LoadTableAsync_HasNotGroup_ReturnOk()
+    {
+        var child1 = new ChildDto
+        {
+            FullName = new FullName("Иванов", "Иван", "Иванович"),
+            PhoneNumber = "+79999999999",
+            ChildInfo = new ChildInfo
+            {
+                Sessions = [],
+                ContactPeople = []
+            }
+        };
+        var url = "";
+        A.CallTo(() => tableParser.GetChildrenAsync(url))
+            .Returns(Result.Ok());
+        var result = await userManagementService.LoadTableAsync(url);
+        result.IsSuccess.Should().BeTrue();
     }
 }

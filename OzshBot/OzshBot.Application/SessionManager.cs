@@ -20,29 +20,77 @@ public class SessionManager
         var season = GetCurrentSeason();
         var year = DateTime.Now.Year;
         var session = await sessionRepository.GetSessionBySeasonAndYearAsync(season, year);
-        if (session == null)
+        if (session != null) return session;
+        session = new Session
         {
-            session = new Session
-            {
-                Year = year,
-                Season = season,
-            };
-            await DeleteLastSessionGroup();
-            await sessionRepository.AddSessionAsync(session);
-        }
+            Year = year,
+            Season = season,
+        };
+        await DeleteLastSessionGroup();
+        await sessionRepository.AddSessionAsync(session);
         return session;
+    }
+    
+    public async Task UpdateSessionsAfterAdding(User user)
+    {
+        switch (user.Role)
+        {
+            case Role.Child when user.ChildInfo!.Group != null:
+            {
+                var session = await GetOrCreateSession();
+                user.ChildInfo.Sessions.Add(session);
+                break;
+            }
+            case Role.Counsellor when user.CounsellorInfo!.Group != null:
+            {
+                var session = await GetOrCreateSession();
+                user.CounsellorInfo.Sessions.Add(session);
+                break;
+            }
+        }
+    }
+
+    public async Task UpdateSessionsAfterEditing(User oldUser, User user)
+    {
+        if (user.Role == Role.Child)
+        {
+            if (oldUser.ChildInfo!.Group == null && user.ChildInfo!.Group != null)
+            {
+                var session = await GetOrCreateSession();
+                user.ChildInfo.Sessions.Add(session);
+            }
+            else if (oldUser.ChildInfo!.Group != null && user.ChildInfo!.Group == null)
+            {
+                user.ChildInfo.Sessions.Remove(user.ChildInfo.Sessions.Last());
+            }
+        }
+        else if (user.Role == Role.Counsellor)
+        {
+            if (oldUser.CounsellorInfo!.Group == null && user.CounsellorInfo!.Group != null)
+            {
+                var session = await GetOrCreateSession();
+                user.CounsellorInfo.Sessions.Add(session);
+            }
+            else if (oldUser.CounsellorInfo!.Group != null && user.CounsellorInfo!.Group == null)
+            {
+                user.CounsellorInfo.Sessions.Remove(user.CounsellorInfo.Sessions.Last());
+            }
+        }
     }
 
     private async Task DeleteLastSessionGroup()
     {
         var lastSession = await sessionRepository.GetLastSessionAsync();
-        var sessionParticipants = await userRepository.GetUsersBySessionIdAsync(lastSession.Id);
-        foreach (var participant in sessionParticipants)
+        if (lastSession != null)
         {
-            if (participant.Role == Role.Child)
-                participant.ChildInfo!.Group = null;
-            else
-                participant.CounsellorInfo!.Group = null;
+            var sessionParticipants = await userRepository.GetUsersBySessionIdAsync(lastSession.Id);
+            foreach (var participant in sessionParticipants)
+            {
+                if (participant.Role == Role.Child)
+                    participant.ChildInfo!.Group = null;
+                else
+                    participant.CounsellorInfo!.Group = null;
+            }
         }
     }
 
