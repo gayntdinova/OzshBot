@@ -12,8 +12,4 @@
         <ProjectReference Include="..\OzshBot.Domain\OzshBot.Domain.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-      <None Remove="core-song-477709-a0-db7e8f5a3e78.json" />
-    </ItemGroup>
-
 </Project>
