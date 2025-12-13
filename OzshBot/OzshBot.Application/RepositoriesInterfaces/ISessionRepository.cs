@@ -8,7 +8,7 @@ public interface ISessionRepository
     Task AddSessionAsync(Session session);
     Task UpdateSessionAsync(Session session);
     Task<Session?> GetSessionByDatesAsync(SessionDates sessionDates);
-    Task<Session?> GetSessionById(Guid sessionId);
+    Task<Session?> GetSessionByIdAsync(Guid sessionId);
     Task<Session[]?> GetLastSessionsAsync(int numberOfSessions);
     Task<Session[]?> GetAllSessions();
 }
