@@ -4,7 +4,6 @@ using OzshBot.Application.DtoModels;
 using OzshBot.Application.RepositoriesInterfaces;
 using OzshBot.Application.Services.Interfaces;
 using OzshBot.Domain.Entities;
-using OzshBot.Domain.ValueObjects;
 
 namespace OzshBot.Application.Services;
 
@@ -26,10 +25,12 @@ public class UserManagementService: IUserManagementService
         return Result.Ok(user.ToUser());
     }
 
-    public async Task<Result<User>> EditUserAsync(User user)
+    public async Task<Result<User>> EditUserAsync(User editedUser, string phoneNumber)
     {
-        if (await userRepository.GetUserByPhoneNumberAsync(user.PhoneNumber) == null)
+        var user = await userRepository.GetUserByPhoneNumberAsync(phoneNumber);
+        if (user == null)
             return Result.Fail(new NotFoundError());
+        user.UpdateBy(editedUser);
         await userRepository.UpdateUserAsync(user);
         return Result.Ok(user);
     }

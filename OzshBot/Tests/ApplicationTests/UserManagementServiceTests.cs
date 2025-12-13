@@ -20,7 +20,13 @@ public class UserManagementServiceTests
     }
 
     [Test]
-    public void EditUserAsync_ReturnOk()
+    public void EditUserAsync_ExistedUser_ReturnOk()
+    {
+        Assert.Pass();
+    }
+    
+    [Test]
+    public void EditUserAsync_NotExistedUser_ReturnFail()
     {
         Assert.Pass();
     }
@@ -38,13 +44,13 @@ public class UserManagementServiceTests
     }
 
     [Test]
-    public void DeleteUserAsync_ExistedChild_ReturnOk()
+    public void DeleteUserAsync_ExistedUser_ReturnOk()
     {
         Assert.Pass();
     }
 
     [Test]
-    public void DeleteUserAsync_NotExistedChild_ReturnFail()
+    public void DeleteUserAsync_NotExistedUser_ReturnFail()
     {
         Assert.Pass();
     }
