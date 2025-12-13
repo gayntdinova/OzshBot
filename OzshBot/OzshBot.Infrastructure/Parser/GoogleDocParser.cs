@@ -14,7 +14,12 @@ using OzshBot.Application.AppErrors;
 public class GoogleDocParser: ITableParser
 {
     private readonly string applicationName = "Ozsh Bot";
-    public readonly Dictionary<string, int> columnIndexes = new Dictionary<string, int>();
+    private readonly Dictionary<string, int> columnIndexes = new Dictionary<string, int>();
+    private readonly List<string> requiredColumnNames = new()
+    {
+        "фио", "класс", "город", "школа", "день рождения",
+        "телефон", "email", "комментарий", "статус заявки на сайте"
+    };
 
     private string GetSpreadsheetIdFromUrl(string url) => url.Split('/')[5];
 
@@ -119,9 +124,9 @@ public class GoogleDocParser: ITableParser
     private ChildDto CreateChildDto(IList<object> row)
     {
         var fullName = GetFullNameFromString(row[columnIndexes["фио"]].ToString());
-        var childInfo = GetChildInfo(row[columnIndexes["школа"]].ToString(), 
+        var childInfo = GetChildInfo(row[columnIndexes["школа"]].ToString().ToLower(), 
             Int32.Parse(row[columnIndexes["класс"]].ToString()), row[columnIndexes["комментарий"]].ToString());
-        var city = row[columnIndexes["город"]].ToString();
+        var city = row[columnIndexes["город"]].ToString().ToLower();
         var birthDate = DateOnly.Parse(row[columnIndexes["день рождения"]].ToString());
         var phoneNumber = row[columnIndexes["телефон"]].ToString();
         var email = row[columnIndexes["email"]].ToString();
@@ -161,21 +166,22 @@ public class GoogleDocParser: ITableParser
             //так нельзя делать, но пока только так
             if (name is null)
                 continue;
-            columnIndexes.Add(name, columnNames.IndexOf(name));
+            columnIndexes[name] = columnNames.IndexOf(name);
         }
     }
 
     public async Task<Result<ChildDto[]>> GetChildrenAsync(string url)
     {
         if (!url.StartsWith("https://docs.google.com/spreadsheets/d/"))
-        {
             return Result.Fail(new IncorrectUrlError(url));
-        }
-        var errors = new List<Error>();
         
-        var result = new List<ChildDto>();
         var data = await ReadGoogleSheet(url);
         GetColumnsIndexes(data[0]);
+        if (requiredColumnNames.Any(name => !columnIndexes.ContainsKey(name)))
+            return Result.Fail(new IncorrectTableFormatError());
+        
+        var errors = new List<Error>();
+        var result = new List<ChildDto>();
         for(var i = 1; i < data.Count; i++)
         {
             try
