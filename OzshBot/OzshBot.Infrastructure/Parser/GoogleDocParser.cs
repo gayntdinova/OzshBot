@@ -14,6 +14,7 @@ using OzshBot.Application.AppErrors;
 public class GoogleDocParser: ITableParser
 {
     private readonly string applicationName = "Ozsh Bot";
+    public readonly Dictionary<string, int> columnIndexes = new Dictionary<string, int>();
 
     private string GetSpreadsheetIdFromUrl(string url) => url.Split('/')[5];
 
@@ -50,7 +51,7 @@ public class GoogleDocParser: ITableParser
         return response.Values;
     }
 
-    private FullName GetFullName(string nameInfo)
+    private FullName GetFullNameFromString(string nameInfo)
     {
         var name = nameInfo.Trim().Split();
         if (name.Length == 3)
@@ -60,7 +61,7 @@ public class GoogleDocParser: ITableParser
         return new FullName(name[0]);
     }
     
-    public static List<string> ExtractAllPhones(string input)
+    private static List<string> ExtractAllPhones(string input)
     {
         var result = new List<string>();
         if (string.IsNullOrWhiteSpace(input))
@@ -75,7 +76,7 @@ public class GoogleDocParser: ITableParser
                 var phone = NormalizePhone(m.Value);
                 result.Add(phone);
             }
-            catch
+            catch (ArgumentException)
             {
                 continue;
             }
@@ -95,8 +96,6 @@ public class GoogleDocParser: ITableParser
 
         throw new ArgumentException("Invalid phone number");
     }
-
-
 
     private List<ContactPerson> GetContactPeople(string comment)
     {
@@ -119,12 +118,13 @@ public class GoogleDocParser: ITableParser
 
     private ChildDto CreateChildDto(IList<object> row)
     {
-        var fullName = GetFullName(row[0].ToString());
-        var childInfo = GetChildInfo(row[3].ToString(), Int32.Parse(row[1].ToString()), row[10].ToString());
-        var city = row[2].ToString();
-        var birthDate = DateOnly.Parse(row[4].ToString());
-        var phoneNumber = row[5].ToString();
-        var email = row[6].ToString();
+        var fullName = GetFullNameFromString(row[columnIndexes["фио"]].ToString());
+        var childInfo = GetChildInfo(row[columnIndexes["школа"]].ToString(), 
+            Int32.Parse(row[columnIndexes["класс"]].ToString()), row[columnIndexes["комментарий"]].ToString());
+        var city = row[columnIndexes["город"]].ToString();
+        var birthDate = DateOnly.Parse(row[columnIndexes["день рождения"]].ToString());
+        var phoneNumber = row[columnIndexes["телефон"]].ToString();
+        var email = row[columnIndexes["email"]].ToString();
         return new ChildDto
         {
             FullName = fullName,
@@ -153,6 +153,18 @@ public class GoogleDocParser: ITableParser
         return true;
     }
 
+    private void GetColumnsIndexes(IList<object> row)
+    {
+        var columnNames = row.Select(r => r.ToString()?.Trim().ToLower()).ToList();
+        foreach (var name in columnNames)
+        {
+            //так нельзя делать, но пока только так
+            if (name is null)
+                continue;
+            columnIndexes.Add(name, columnNames.IndexOf(name));
+        }
+    }
+
     public async Task<Result<ChildDto[]>> GetChildrenAsync(string url)
     {
         if (!url.StartsWith("https://docs.google.com/spreadsheets/d/"))
@@ -163,6 +175,7 @@ public class GoogleDocParser: ITableParser
         
         var result = new List<ChildDto>();
         var data = await ReadGoogleSheet(url);
+        GetColumnsIndexes(data[0]);
         for(var i = 1; i < data.Count; i++)
         {
             try
@@ -171,7 +184,8 @@ public class GoogleDocParser: ITableParser
                 if (IsRowEmpty(row)) continue;
                 if (row.Count == 12)
                 {
-                    if (row[11].ToString()?.Trim() == "Отклонена" || row[11].ToString()?.Trim() == "Рассматривается")
+                    if (row[11].ToString()?.Trim() == "Отклонена" || 
+                        row[columnIndexes["статус заявки на сайте"]].ToString()?.Trim() == "Рассматривается")
                         continue;
                 }
                 result.Add(CreateChildDto(row));
@@ -179,7 +193,7 @@ public class GoogleDocParser: ITableParser
             catch (Exception e)
             {
                 var str = String.Join(", ", data[i].Select(o => o.ToString()));
-                errors.Add(new IncorrectRowError($"Cтрока {i + 1}: {str}"));
+                errors.Add(new IncorrectRowError(i + 1));
             }
         }
         if (errors.Count > 0)
