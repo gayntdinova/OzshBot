@@ -100,7 +100,7 @@ public class UserManagementServiceTests
         var url = "";
         A.CallTo(() => tableParser.GetChildrenAsync(url))
             .Returns(Result.Ok());
-        A.CallTo(() => sessionManager.GetOrCreateSession())
+        A.CallTo(() => sessionManager.GetOrCreateSessionAsync())
             .Returns(new Session
             {
                 Year = 2025,

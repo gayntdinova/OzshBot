@@ -15,7 +15,7 @@ public class SessionManager
         this.userRepository = userRepository;
     }
 
-    public async Task<Session> GetOrCreateSession()
+    public async Task<Session> GetOrCreateSessionAsync()
     {
         var season = GetCurrentSeason();
         var year = DateTime.Now.Year;
@@ -37,13 +37,13 @@ public class SessionManager
         {
             case Role.Child when user.ChildInfo!.Group != null:
             {
-                var session = await GetOrCreateSession();
+                var session = await GetOrCreateSessionAsync();
                 user.ChildInfo.Sessions.Add(session);
                 break;
             }
             case Role.Counsellor when user.CounsellorInfo!.Group != null:
             {
-                var session = await GetOrCreateSession();
+                var session = await GetOrCreateSessionAsync();
                 user.CounsellorInfo.Sessions.Add(session);
                 break;
             }
@@ -56,7 +56,7 @@ public class SessionManager
         {
             if (oldUser.ChildInfo!.Group == null && user.ChildInfo!.Group != null)
             {
-                var session = await GetOrCreateSession();
+                var session = await GetOrCreateSessionAsync();
                 user.ChildInfo.Sessions.Add(session);
             }
             else if (oldUser.ChildInfo!.Group != null && user.ChildInfo!.Group == null)
@@ -68,7 +68,7 @@ public class SessionManager
         {
             if (oldUser.CounsellorInfo!.Group == null && user.CounsellorInfo!.Group != null)
             {
-                var session = await GetOrCreateSession();
+                var session = await GetOrCreateSessionAsync();
                 user.CounsellorInfo.Sessions.Add(session);
             }
             else if (oldUser.CounsellorInfo!.Group != null && user.CounsellorInfo!.Group == null)
@@ -84,17 +84,22 @@ public class SessionManager
         if (lastSession != null)
         {
             var sessionParticipants = await userRepository.GetUsersBySessionIdAsync(lastSession.Id);
-            foreach (var participant in sessionParticipants)
+            if (sessionParticipants != null)
             {
-                if (participant.Role == Role.Child)
-                    participant.ChildInfo!.Group = null;
-                else
-                    participant.CounsellorInfo!.Group = null;
+                foreach (var participant in sessionParticipants)
+                {
+                    if (participant.Role == Role.Child)
+                        participant.ChildInfo!.Group = null;
+                    else
+                        participant.CounsellorInfo!.Group = null;
+
+                    await userRepository.UpdateUserAsync(participant);
+                }
             }
         }
     }
 
-    private Season GetCurrentSeason()
+    private static Season GetCurrentSeason()
     {
         var now = DateTime.UtcNow;
         return now.Month switch
