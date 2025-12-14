@@ -40,11 +40,11 @@ public static class UserConverter
         if (user.Role == Role.Counsellor && user.Counsellor != null)
         {
             fullName = new FullName
-            {
-                Name = user.Counsellor.Name,
-                Surname = user.Counsellor.Surname,
-                Patronymic = user.Counsellor.Patronymic
-            };
+            (
+                name: user.Counsellor.Name,
+                surname: user.Counsellor.Surname,
+                patronymic: user.Counsellor.Patronymic
+            );
             city = user.Counsellor.City;
             phone = user.Counsellor.Phone;
             email = user.Counsellor.Email;
@@ -53,11 +53,11 @@ public static class UserConverter
         else if (user.Role == Role.Child && user.Student != null)
         {
             fullName = new FullName
-            {
-                Name = user.Student.Name,
-                Surname = user.Student.Surname,
-                Patronymic = user.Student.Patronymic
-            };
+            (
+                name: user.Student.Name,
+                surname: user.Student.Surname,
+                patronymic: user.Student.Patronymic
+            );
             city = user.Student.City;
             phone = user.Student.Phone;
             email = user.Student.Email;
