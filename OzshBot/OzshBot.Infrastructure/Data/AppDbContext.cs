@@ -28,7 +28,7 @@ public class AppDbContext : DbContext
 
         modelBuilder.Entity<Session>(entity =>
         {
-            entity.HasKey(s => s.Id);
+            entity.HasKey(s => s.SessionId);
             entity.Property(s => s.StartDate).IsRequired();
             entity.Property(s => s.EndDate).IsRequired();
         });
