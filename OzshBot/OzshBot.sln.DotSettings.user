@@ -26,5 +26,16 @@
     &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.SessionManagerTests.GetOrCreateSessionAsync_ExistingSession_ReturnsSession&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.SessionManagerTests&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.SessionServiceTests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserManagementServiceTests.AddUserAsync_ExistingUser_ReturnsResultFail&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserManagementServiceTests.AddUserAsync_ReturnsResultOk&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserManagementServiceTests.EditUserAsync_NotExistingUser_ReturnsResultFail&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserManagementServiceTests.EditUserAsync_ReturnsResultOk&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserManagementServiceTests.DeleteUserAsync_NotExistingUser_ReturnsResultFail&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserManagementServiceTests.DeleteUserAsync_ReturnsResultOk&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserManagementServiceTests.LoadTableAsync_NoSession_ReturnsResultFail&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserManagementServiceTests.LoadTableAsync_IncorrectUrl_ReturnsResultFail&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserManagementServiceTests.LoadTableAsync_IncorrectRow_ReturnsResultFail&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserManagementServiceTests.LoadTableAsync_ReturnsResultOk&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserManagementServiceTests&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>
