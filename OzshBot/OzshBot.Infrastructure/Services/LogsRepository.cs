@@ -1,10 +1,10 @@
 using OzshBot.Infrastructure.Data;
-using OzshBot.Application.RepositoriesInterfaces;
+using OzshBot.Application.ToolsInterfaces;
 using OzshBot.Infrastructure.Models;
 
 namespace OzshBot.Infrastructure.Services;
 
-public class LogsRepository(LogsDbContext dbContext) : ISearchLogger
+public class LogsRepository(LogsDbContext dbContext) : ILogger
 {
     private readonly LogsDbContext context = dbContext;
 
