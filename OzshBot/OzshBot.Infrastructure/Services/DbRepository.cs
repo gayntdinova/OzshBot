@@ -40,7 +40,19 @@ public class DbRepository(AppDbContext context) : IUserRepository
             .FirstOrDefaultAsync();
     }
 
-    public async Task<Domain.Entities.User[]?> GetUsersByFullNameAsync(FullName fullName)
+    public async Task<Domain.Entities.User?> GetUserByIdAsync(Guid userId)
+    {
+        return await context.Users
+            .Include(u => u.Student)
+                .ThenInclude(s => s.Relations)
+                .ThenInclude(r => r.Parent)
+            .Include(u => u.Counsellor)
+            .Where(u => u.UserId == userId)
+            .Select(u => u.ToDomainUser())
+            .FirstOrDefaultAsync();
+    }
+
+    public async Task<Domain.Entities.User[]?> GetUsersByFullNameAsync(NameSearch fullName)
     {
         if (fullName.Name == null && fullName.Surname == null && fullName.Patronymic == null)
             return [];
@@ -222,7 +234,7 @@ public class DbRepository(AppDbContext context) : IUserRepository
         await context.SaveChangesAsync();
     }
 
-    private async Task UpdateContactPeopleAsync(Student student, List<ContactPerson> contactPeople)
+    private async Task UpdateContactPeopleAsync(Student student, HashSet<ContactPerson> contactPeople)
     {
         if (student.Relations != null && student.Relations.Any())
         {
