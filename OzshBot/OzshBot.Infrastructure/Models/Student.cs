@@ -70,7 +70,7 @@ public static class StudentConverter
         {
             Group = student.CurrentGroup,
             EducationInfo = educationInfo,
-            ContactPeople = student.Parents.Select(p => p.ToContactPerson()).ToList(),
+            ContactPeople = student.Parents.Select(p => p.ToContactPerson()).ToHashSet(),
             Sessions = []
         };
         return result;
@@ -81,28 +81,5 @@ public static class StudentConverter
         student.School = childInfo.EducationInfo.School;
         student.CurrentClass = childInfo.EducationInfo.Class;
         student.CurrentGroup = childInfo.Group;
-    }
-
-    public static Domain.Entities.User ToDomainUser(this Student student)
-    {
-        var tgInfo = new TelegramInfo { TgUsername = student.User.TgName, TgId = student.User.TgId };
-        var fullName = new FullName
-        {
-            Name = student.Name,
-            Surname = student.Surname,
-            Patronymic = student.Patronymic
-        };
-        return new Domain.Entities.User
-        {
-            Id = student.User.UserId,
-            TelegramInfo = tgInfo,
-            FullName = fullName,
-            ChildInfo = student.ToChildInfo(),
-            Role = Domain.Enums.Role.Child,
-            Birthday = student.BirthDate,
-            City = student.City,
-            PhoneNumber = student.Phone,
-            Email = student.Email,
-        };
     }
 }
