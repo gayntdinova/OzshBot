@@ -29,9 +29,8 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<Session>(entity =>
         {
             entity.HasKey(s => s.Id);
-            entity.Property(s => s.Year).IsRequired();
-            entity.Property(s => s.Season).IsRequired();
-            entity.HasIndex(s => new { s.Year, s.Season }).IsUnique();
+            entity.Property(s => s.StartDate).IsRequired();
+            entity.Property(s => s.EndDate).IsRequired();
         });
 
         modelBuilder.Entity<Student>(entity =>

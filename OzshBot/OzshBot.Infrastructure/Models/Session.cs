@@ -14,10 +14,10 @@ public class Session
     public int Id { get; set; }
 
     [Required]
-    [Column(name: "year")]
-    public int Year { get; set; }
+    [Column(name: "start_date")]
+    public DateOnly StartDate { get; set; }
 
     [Required]
-    [Column(name: "season", TypeName = "season")]
-    public Season Season { get; set; }
+    [Column(name: "end_date")]
+    public DateOnly EndDate { get; set; }
 }
