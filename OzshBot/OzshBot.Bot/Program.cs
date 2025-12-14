@@ -30,6 +30,13 @@ static class Program
         container.Bind<IUserRepository>().To<MyUserRepository>();
         container.Bind<MadeUpData>().ToConstant(new MadeUpData());
 
+        container.Bind<IBotCommand>().To<AddCommand>();
+        container.Bind<IBotCommand>().To<DeleteCommand>();
+        container.Bind<IBotCommand>().To<EditCommand>();
+        container.Bind<IBotCommand>().To<HelpCommand>();
+        container.Bind<IBotCommand>().To<ProfileCommand>();
+        container.Bind<IBotCommand>().To<PromoteCommand>();
+
         return container;
     }
 }

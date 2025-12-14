@@ -22,7 +22,7 @@ using System.Data;
 using System.Text.RegularExpressions;
 using FluentResults;
 namespace OzshBot.Bot;
-public static class Formatter
+public static class BotFormatter
 {
     public static string Formate(this FullName fullName)
     {
