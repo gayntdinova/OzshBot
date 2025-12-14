@@ -1,9 +1,9 @@
 namespace OzshBot.Domain.ValueObjects;
 
-public class TelegramInfo
+public record TelegramInfo
 {
-    public required string TgUsername { get; set; }
-    public long? TgId { get; set; }
+    public required string TgUsername { get; init; }
+    public long? TgId { get; init; }
 
     public override string ToString()
     {
