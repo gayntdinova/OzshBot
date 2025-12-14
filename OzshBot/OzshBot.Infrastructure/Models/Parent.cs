@@ -38,11 +38,11 @@ public static class ParentConverter
     public static ContactPerson ToContactPerson(this Parent parent)
     {
         var fullName = new FullName
-        {
-            Name = parent.Name,
-            Surname = parent.Surname,
-            Patronymic = parent.Patronymic
-        };
+        (
+            name: parent.Name,
+            surname: parent.Surname,
+            patronymic: parent.Patronymic
+        );
         var result = new ContactPerson
         {
             Id = parent.ParentId,
