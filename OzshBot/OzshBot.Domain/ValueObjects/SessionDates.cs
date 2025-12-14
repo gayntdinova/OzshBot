@@ -1,6 +1,6 @@
 namespace OzshBot.Domain.ValueObjects;
 
-public class SessionDates
+public record SessionDates
 {
     public DateOnly StartDate { get; set; }
     public DateOnly EndDate { get; set; }
