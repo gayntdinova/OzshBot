@@ -27,7 +27,7 @@ public class PhoneParser
         return result;
     }
     
-    public static string NormalizePhone(string input)
+    public static string NormalizePhone(string? input)
     {
         if (string.IsNullOrWhiteSpace(input)) 
             throw new ArgumentException(nameof(input));

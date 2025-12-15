@@ -1,12 +1,13 @@
 using FluentResults;
 using OzshBot.Application.DtoModels;
 using OzshBot.Application.AppErrors;
+using OzshBot.Infrastructure.Parser;
 
 namespace OzshBot.Infrastructure;
 
 public class TableParser
 { 
-    private bool IsRowEmpty(IList<object> row)
+    private static bool IsRowEmpty(IList<object> row)
     {
         foreach (var cell in row)
         {
@@ -23,7 +24,7 @@ public class TableParser
         return true;
     }
 
-    private Dictionary<string, int> GetColumnsIndexes(IList<object> row)
+    private static Dictionary<string, int> GetColumnsIndexes(IList<object> row)
     {
         var columnIndexes = new Dictionary<string, int>();
         var columnNames = row.Select(r => r.ToString()?.Trim().ToLower()).ToList();
@@ -37,22 +38,23 @@ public class TableParser
         return columnIndexes;
     }
 
-    public Result<ChildDto[]> GetChildrenAsync(IList<IList<object>> data)
+    public static Result<ChildDto[]> GetChildrenAsync(IList<IList<object>> data)
     {
+        ChildInfoParser childInfoParser;
         Dictionary<string, int> columnIndexes;
         try
         {
             columnIndexes = GetColumnsIndexes(data[0]);
+            childInfoParser = new ChildInfoParser(columnIndexes);
         }
         catch (InvalidOperationException)
         {
             return Result.Fail(new IncorrectTableFormatError());
         }
-        catch (IndexOutOfRangeException)
+        catch (ArgumentOutOfRangeException)
         {
             return Result.Fail(new IncorrectTableFormatError());
         }
-        var childInfoParser = new ChildInfoParser(columnIndexes);
         
         var errors = new List<Error>();
         var result = new List<ChildDto>();
@@ -68,14 +70,16 @@ public class TableParser
                         row[columnIndexes["статус заявки на сайте"]].ToString()?.Trim() == "Рассматривается")
                         continue;
                 }
-                result.Add(childInfoParser.CreateChildDto(row.Select(x => x.ToString()).ToList()));
+
+                var stringRow = row.Select(x => x.ToString()).ToList();
+                result.Add(childInfoParser.CreateChildDto(stringRow));
             }
             catch (Exception e)
             {
-                var str = String.Join(", ", data[i].Select(o => o.ToString()));
                 errors.Add(new IncorrectRowError(i + 1));
             }
         }
+        
         if (errors.Count > 0)
             return Result.Fail(errors);
         return Result.Ok(result.ToArray());

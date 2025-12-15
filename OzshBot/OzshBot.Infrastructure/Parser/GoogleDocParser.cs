@@ -1,9 +1,9 @@
 using FluentResults;
-using OzshBot.Application.DtoModels;
 using OzshBot.Application.AppErrors;
+using OzshBot.Application.DtoModels;
 using OzshBot.Application.ToolsInterfaces;
 
-namespace OzshBot.Infrastructure;
+namespace OzshBot.Infrastructure.Parser;
 
 public class GoogleDocParser: ITableParser
 {
@@ -13,7 +13,7 @@ public class GoogleDocParser: ITableParser
         {
             var reader = new GoogleDocsReader(url);
             var data = await reader.ReadGoogleSheet();
-            return new TableParser().GetChildrenAsync(data);
+            return TableParser.GetChildrenAsync(data);
         }
         catch (ArgumentException)
         {

@@ -2,7 +2,7 @@ using Google.Apis.Auth.OAuth2;
 using Google.Apis.Services;
 using Google.Apis.Sheets.v4;
 
-namespace OzshBot.Infrastructure;
+namespace OzshBot.Infrastructure.Parser;
 
 public class GoogleDocsReader
 {
@@ -28,9 +28,9 @@ public class GoogleDocsReader
 
     private GoogleCredential GetCredential(string fileName)
     {
-        var credentialPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
+        var fullPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, fileName);
         string[] scopes = [SheetsService.Scope.SpreadsheetsReadonly];
-        return GoogleCredential.FromFile(credentialPath).CreateScoped(scopes);
+        return GoogleCredential.FromFile(fullPath).CreateScoped(scopes);
     }
 
     public async Task<IList<IList<object>>> ReadGoogleSheet()
