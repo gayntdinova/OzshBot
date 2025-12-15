@@ -1,7 +1,7 @@
 using FluentResults;
 using OzshBot.Application.DtoModels;
-using OzshBot.Application.RepositoriesInterfaces;
 using OzshBot.Application.AppErrors;
+using OzshBot.Application.ToolsInterfaces;
 
 namespace OzshBot.Infrastructure;
 

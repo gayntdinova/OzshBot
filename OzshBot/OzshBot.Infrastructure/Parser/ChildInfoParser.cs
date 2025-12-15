@@ -25,14 +25,14 @@ public class ChildInfoParser
             return new FullName(name[0], name[1], name[2]);
         if (name.Length == 2)
             return new FullName(name[0], name[1]);
-        return new FullName(name[0]);
+        throw new ArgumentException("неверный формат имени");
     }
 
-    private List<ContactPerson> GetContactPeople(string comment)
+    private HashSet<ContactPerson> GetContactPeople(string comment)
     {
         var phoneNumbers = PhoneParser.ExtractAllPhones(comment);
         var contactPeople = phoneNumbers.Select(number
-            => new ContactPerson{PhoneNumber = number, FullName = null}).ToList();
+            => new ContactPerson{PhoneNumber = number, FullName = null}).ToHashSet();
         return contactPeople;
     }
 

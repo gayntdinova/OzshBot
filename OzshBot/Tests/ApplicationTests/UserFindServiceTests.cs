@@ -26,7 +26,7 @@ public class UserFindServiceTests
         var telegramInfo = new TelegramInfo { TgId = null, TgUsername = "testUser1" };
         var foundUser = new User
         {
-            FullName = new FullName(),
+            FullName = new FullName("Иванов", "Иван", "Иванович"),
             TelegramInfo = telegramInfo,
             PhoneNumber = "+79999999999",
         };
@@ -64,7 +64,7 @@ public class UserFindServiceTests
                     School = "школа 2"
                 },
             },
-            FullName = new FullName(),
+            FullName = new FullName("Иванов", "Иван", "Иванович"),
             PhoneNumber = "+79999999999"
         };
         A.CallTo(() => userRepository.GetUsersByClassAsync(6))!
@@ -96,7 +96,7 @@ public class UserFindServiceTests
             {
                 Group = 1,
             },
-            FullName = new FullName(),
+            FullName = new FullName("Иванов", "Иван", "Иванович"),
             PhoneNumber = "+79999999999"
         };
         A.CallTo(() => userRepository.GetUsersByGroupAsync(1))!
@@ -119,13 +119,14 @@ public class UserFindServiceTests
         result.IsSuccess.Should().BeFalse();
     }
 
+    #region FindUsersAsyncTests
     [Test]
     public async Task FindUsersAsync_ByTelegram_ReturnsResultOk()
     {
         var telegramInfo = new TelegramInfo { TgId = null, TgUsername = "testUser1" };
         var foundUser = new User
         {
-            FullName = new FullName(),
+            FullName = new FullName("Иванов", "Иван", "Иванович"),
             TelegramInfo = telegramInfo,
             PhoneNumber = "+79999999999",
         };
@@ -146,7 +147,7 @@ public class UserFindServiceTests
     {
         var foundUser = new User
         {
-            FullName = new FullName(),
+            FullName = new FullName("Иванов", "Иван", "Иванович"),
             City = "Екатеринбург",
             PhoneNumber = "+79999999999",
         };
@@ -169,7 +170,7 @@ public class UserFindServiceTests
     {
         var foundUser = new User
         {
-            FullName = new FullName(),
+            FullName = new FullName("Иванов", "Иван", "Иванович"),
             ChildInfo = new ChildInfo
             {
                 EducationInfo = new()
@@ -213,13 +214,13 @@ public class UserFindServiceTests
         A.CallTo(() => userRepository.GetUsersBySchoolAsync(input))
             .Returns(Task.FromResult<User[]?>(null));
         A.CallTo(() => userRepository.GetUsersByFullNameAsync(
-                A<FullName>.That.Matches(fn =>
+                A<NameSearch>.That.Matches(fn =>
                     fn.Name == "Иванов" &&
                     fn.Surname == "Иван" &&
                     fn.Patronymic == null)))
             .Returns(Task.FromResult<User[]?>(null));
         A.CallTo(() => userRepository.GetUsersByFullNameAsync(
-                A<FullName>.That.Matches(fn =>
+                A<NameSearch>.That.Matches(fn =>
                     fn.Name == "Иван" &&
                     fn.Surname == "Иванов" &&
                     fn.Patronymic == null)))
@@ -248,7 +249,7 @@ public class UserFindServiceTests
         A.CallTo(() => userRepository.GetUsersBySchoolAsync(input))
             .Returns(Task.FromResult<User[]?>(null));
         A.CallTo(() => userRepository.GetUsersByFullNameAsync(
-                A<FullName>.That.Matches(fn =>
+                A<NameSearch>.That.Matches(fn =>
                     fn.Name == "Иван" &&
                     fn.Surname == "Иванов" &&
                     fn.Patronymic == null)))
@@ -279,19 +280,19 @@ public class UserFindServiceTests
         A.CallTo(() => userRepository.GetUsersBySchoolAsync(input))
             .Returns(Task.FromResult<User[]?>(null));
         A.CallTo(() => userRepository.GetUsersByFullNameAsync(
-                A<FullName>.That.Matches(fn =>
+                A<NameSearch>.That.Matches(fn =>
                     fn.Name == null &&
                     fn.Surname == null &&
                     fn.Patronymic == "Иванович")))
             .Returns(Task.FromResult<User[]?>([foundUser]));
         A.CallTo(() => userRepository.GetUsersByFullNameAsync(
-                A<FullName>.That.Matches(fn =>
+                A<NameSearch>.That.Matches(fn =>
                     fn.Name == "Иванович" &&
                     fn.Surname == null &&
                     fn.Patronymic == null)))
             .Returns(Task.FromResult<User[]?>(null));
         A.CallTo(() => userRepository.GetUsersByFullNameAsync(
-                A<FullName>.That.Matches(fn =>
+                A<NameSearch>.That.Matches(fn =>
                     fn.Name == null &&
                     fn.Surname == "Иванович" &&
                     fn.Patronymic == null)))
@@ -321,19 +322,19 @@ public class UserFindServiceTests
         A.CallTo(() => userRepository.GetUsersBySchoolAsync(input))
             .Returns(Task.FromResult<User[]?>(null));
         A.CallTo(() => userRepository.GetUsersByFullNameAsync(
-                A<FullName>.That.Matches(fn =>
+                A<NameSearch>.That.Matches(fn =>
                     fn.Name == null &&
                     fn.Surname == null &&
                     fn.Patronymic == "Иванов")))
             .Returns(Task.FromResult<User[]?>(null));
         A.CallTo(() => userRepository.GetUsersByFullNameAsync(
-                A<FullName>.That.Matches(fn =>
+                A<NameSearch>.That.Matches(fn =>
                     fn.Name == "Иванов" &&
                     fn.Surname == null &&
                     fn.Patronymic == null)))
             .Returns(Task.FromResult<User[]?>(null));
         A.CallTo(() => userRepository.GetUsersByFullNameAsync(
-                A<FullName>.That.Matches(fn =>
+                A<NameSearch>.That.Matches(fn =>
                     fn.Name == null &&
                     fn.Surname == "Иванов" &&
                     fn.Patronymic == null)))
@@ -363,19 +364,19 @@ public class UserFindServiceTests
         A.CallTo(() => userRepository.GetUsersBySchoolAsync(input))
             .Returns(Task.FromResult<User[]?>(null));
         A.CallTo(() => userRepository.GetUsersByFullNameAsync(
-                A<FullName>.That.Matches(fn =>
+                A<NameSearch>.That.Matches(fn =>
                     fn.Name == null &&
                     fn.Surname == null &&
                     fn.Patronymic == "Иван")))
             .Returns(Task.FromResult<User[]?>(null));
         A.CallTo(() => userRepository.GetUsersByFullNameAsync(
-                A<FullName>.That.Matches(fn =>
+                A<NameSearch>.That.Matches(fn =>
                     fn.Name == "Иван" &&
                     fn.Surname == null &&
                     fn.Patronymic == null)))
             .Returns(Task.FromResult<User[]?>([foundUser]));
         A.CallTo(() => userRepository.GetUsersByFullNameAsync(
-                A<FullName>.That.Matches(fn =>
+                A<NameSearch>.That.Matches(fn =>
                     fn.Name == null &&
                     fn.Surname == "Иван" &&
                     fn.Patronymic == null)))
@@ -405,7 +406,7 @@ public class UserFindServiceTests
         A.CallTo(() => userRepository.GetUsersBySchoolAsync(input))
             .Returns(Task.FromResult<User[]?>(null));
         A.CallTo(() => userRepository.GetUsersByFullNameAsync(
-                A<FullName>.That.Matches(fn =>
+                A<NameSearch>.That.Matches(fn =>
                     fn.Name == "Иван" &&
                     fn.Surname == "Иванов" &&
                     fn.Patronymic == "Иванович")))
@@ -435,7 +436,7 @@ public class UserFindServiceTests
         A.CallTo(() => userRepository.GetUsersBySchoolAsync(input))
             .Returns(Task.FromResult<User[]?>(null));
         A.CallTo(() => userRepository.GetUsersByFullNameAsync(
-                A<FullName>.That.Matches(fn =>
+                A<NameSearch>.That.Matches(fn =>
                     fn.Name == "Иван" &&
                     fn.Surname == "Иванов" &&
                     fn.Patronymic == "Иванович")))
@@ -445,4 +446,5 @@ public class UserFindServiceTests
         
         result.IsSuccess.Should().BeFalse();
     }
+    #endregion
 }

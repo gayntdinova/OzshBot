@@ -32,7 +32,7 @@ public class UserRoleService: IUserRoleService
     public async Task<Result<User>> PromoteToCounsellorAsync(string phoneNumber)
     {
         var user = await userRepository.GetUserByPhoneNumberAsync(phoneNumber);
-        if (user == null) return Result.Fail(new NotFoundError());
+        if (user == null) return Result.Fail(new UserNotFoundError());
         var counsellorInfo = new CounsellorInfo
         {
             Group = null,

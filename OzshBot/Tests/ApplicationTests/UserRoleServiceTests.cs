@@ -27,7 +27,7 @@ public class UserRoleServiceTests
         var telegramInfo = new TelegramInfo { TgId = null, TgUsername = "testUser1" };
         var foundUser = new User
         {
-            FullName = new FullName(),
+            FullName = new FullName("Иванов", "Иван", "Иванович"),
             TelegramInfo = telegramInfo,
             PhoneNumber = "+79999999999",
             Role = Role.Child
@@ -37,7 +37,7 @@ public class UserRoleServiceTests
         
         var role = await userRoleService.GetUserRoleByTgAsync(telegramInfo);
         
-        Assert.That(role, Is.EqualTo(Role.Child));
+        role.Should().Be(Role.Child);
     }
     
     [Test]
@@ -46,7 +46,7 @@ public class UserRoleServiceTests
         var telegramInfo = new TelegramInfo { TgId = null, TgUsername = "testUser1" };
         var foundUser = new User
         {
-            FullName = new FullName(),
+            FullName = new FullName("Иванов", "Иван", "Иванович"),
             TelegramInfo = telegramInfo,
             PhoneNumber = "+79999999999",
             Role = Role.Counsellor
@@ -56,7 +56,7 @@ public class UserRoleServiceTests
         
         var role = await userRoleService.GetUserRoleByTgAsync(telegramInfo);
         
-        Assert.That(role, Is.EqualTo(Role.Counsellor));
+        role.Should().Be(Role.Counsellor);
     }
     
     [Test]
@@ -68,7 +68,7 @@ public class UserRoleServiceTests
         
         var role = await userRoleService.GetUserRoleByTgAsync(telegramInfo);
         
-        Assert.That(role, Is.EqualTo(Role.Unknown));
+        role.Should().Be(Role.Unknown);
     }
     
     [Test]
@@ -77,7 +77,7 @@ public class UserRoleServiceTests
         var telegramInfo = new TelegramInfo { TgId = null, TgUsername = "testUser1" };
         var foundUser = new User
         {
-            FullName = new FullName(),
+            FullName = new FullName("Иванов", "Иван", "Иванович"),
             PhoneNumber = "+79999999999",
             TelegramInfo = telegramInfo,
             Role = Role.Child
@@ -87,7 +87,7 @@ public class UserRoleServiceTests
         
         var role = await userRoleService.ActivateUserByPhoneNumberAsync("+79999999999", telegramInfo);
         
-        Assert.That(role, Is.EqualTo(Role.Child));
+        role.Should().Be(Role.Child);
     }
     
     [Test]
@@ -96,7 +96,7 @@ public class UserRoleServiceTests
         var telegramInfo = new TelegramInfo { TgId = null, TgUsername = "testUser1" };
         var foundUser = new User
         {
-            FullName = new FullName(),
+            FullName = new FullName("Иванов", "Иван", "Иванович"),
             PhoneNumber = "+79999999999",
             TelegramInfo = telegramInfo,
             Role = Role.Counsellor
@@ -106,7 +106,7 @@ public class UserRoleServiceTests
         
         var role = await userRoleService.ActivateUserByPhoneNumberAsync("+79999999999", telegramInfo);
         
-        Assert.That(role, Is.EqualTo(Role.Counsellor));
+        role.Should().Be(Role.Counsellor);
     }
     
     [Test]
@@ -118,7 +118,7 @@ public class UserRoleServiceTests
         
         var role = await userRoleService.ActivateUserByPhoneNumberAsync("+79999999999", telegramInfo);
         
-        Assert.That(role, Is.EqualTo(Role.Unknown));
+        role.Should().Be(Role.Unknown);
     }
     
     [Test]
@@ -137,7 +137,7 @@ public class UserRoleServiceTests
     {
         var foundUser = new User
         {
-            FullName = new FullName(),
+            FullName = new FullName("Иванов", "Иван", "Иванович"),
             PhoneNumber = "+79999999999",
             Role = Role.Child
         };
@@ -149,7 +149,7 @@ public class UserRoleServiceTests
         var expectedUser = new User
         {
             Id = foundUser.Id,
-            FullName = new FullName(),
+            FullName = new FullName("Иванов", "Иван", "Иванович"),
             PhoneNumber = "+79999999999",
             Role = Role.Counsellor,
             CounsellorInfo = new CounsellorInfo

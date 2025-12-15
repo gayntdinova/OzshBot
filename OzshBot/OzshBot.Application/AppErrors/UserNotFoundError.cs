@@ -2,9 +2,9 @@ using FluentResults;
 
 namespace OzshBot.Application.AppErrors;
 
-public class NotFoundError: Error
+public class UserNotFoundError: Error
 {
-    public NotFoundError(string message="user not found") : base(message)
+    public UserNotFoundError(string message="user not found") : base(message)
     {
         WithMetadata("type", "NotFound");
     }
