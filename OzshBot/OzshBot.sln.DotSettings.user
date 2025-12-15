@@ -22,5 +22,6 @@
       &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserFindServiceTests&lt;/TestId&gt;&#xD;
     &lt;/TestAncestor&gt;&#xD;
     &lt;ProjectFile&gt;141B571E-56B0-486F-B46E-84F4C8FEC3F7/d:InfrastructureTests/d:ParserTests/f:PhoneParserTests.cs&lt;/ProjectFile&gt;&#xD;
+    &lt;ProjectFile&gt;141B571E-56B0-486F-B46E-84F4C8FEC3F7/d:InfrastructureTests/d:ParserTests/f:ChildInfoParserTests.cs&lt;/ProjectFile&gt;&#xD;
   &lt;/Or&gt;&#xD;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>
