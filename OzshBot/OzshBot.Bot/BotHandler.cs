@@ -140,36 +140,7 @@ class BotHandler
             return;
         }
 
-        if (role == Role.Counsellor && Regex.IsMatch(messageText, @"^(https?:\/\/)(www\.)?[\w\-]+(\.[\w\-]+)+([\/\w\-\.\?\=\&\#\%]*)?$", RegexOptions.IgnoreCase))
-        {
-            await HandleTable(chat,role,messageText);
-            return;
-        }
-
         await HandleSearching(chat,role,messageText);
-    }
-
-    private async Task HandleTable(Chat chat, Role role, string messageText)
-    {
-        if (role == Role.Child) return;
-
-        var result = await userService.ManagementService.LoadTableAsync(messageText);
-        if (result.IsFailed)
-        {
-            await botClient.SendMessage(
-                chat.Id,
-                "Не удалось загрузить таблицу",
-                parseMode: ParseMode.MarkdownV2
-                );
-        }
-        else
-        {
-            await botClient.SendMessage(
-                chat.Id,
-                "Таблица успешно загружена",
-                parseMode: ParseMode.MarkdownV2
-                );
-        }
     }
 
     private async Task HandleSearching(Chat chat, Role role, string messageText)
