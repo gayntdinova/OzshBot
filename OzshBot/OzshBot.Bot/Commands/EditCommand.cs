@@ -28,7 +28,7 @@ using System.Runtime.ExceptionServices;
 namespace OzshBot.Bot;
 
 
-public class EditCommand : IBotCommand
+public class EditCommand : IBotCommandWithState
 {
     private readonly Dictionary<long,EditState> stateDict= new();
     public string Name()

@@ -27,7 +27,7 @@ using System.ComponentModel.DataAnnotations;
 namespace OzshBot.Bot;
 
 
-public class AddCommand : IBotCommand
+public class AddCommand : IBotCommandWithState
 {
     private readonly Dictionary<long,AddState> stateDict= new();
     public string Name()
@@ -43,7 +43,6 @@ public class AddCommand : IBotCommand
                                    ITelegramBotClient bot, 
                                    UserService userService)
     {
-        Console.WriteLine("---------------------------------------------------");
         switch (update.Type)
         {
             case UpdateType.Message:
