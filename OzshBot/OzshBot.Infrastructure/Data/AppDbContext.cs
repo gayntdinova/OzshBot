@@ -11,6 +11,8 @@ public class AppDbContext : DbContext
     public DbSet<Parent> Parents { get; set; }
     public DbSet<ChildParent> ChildrenParents { get; set; }
     public DbSet<Session> Sessions { get; set; }
+    public DbSet<StudentSession> StudentsSessions { get; set; }
+    public DbSet<CounsellorSession> CounsellorsSessions { get; set; }
 
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
@@ -31,6 +33,16 @@ public class AppDbContext : DbContext
             entity.HasKey(s => s.SessionId);
             entity.Property(s => s.StartDate).IsRequired();
             entity.Property(s => s.EndDate).IsRequired();
+
+            entity.HasMany(s => s.StudentsRelations)
+                  .WithOne(ss => ss.Session)
+                  .HasForeignKey(ss => ss.SessionId)
+                  .OnDelete(DeleteBehavior.Cascade);
+            
+            entity.HasMany(s => s.CounsellorsRelations)
+                  .WithOne(cs => cs.Session)
+                  .HasForeignKey(cs => cs.SessionId)
+                  .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<Student>(entity =>
@@ -52,6 +64,11 @@ public class AppDbContext : DbContext
 
             entity.Property(p => p.Phone).IsRequired();
             entity.HasIndex(p => p.Phone).IsUnique();
+
+            entity.HasMany(s => s.SessionRelations)
+                  .WithOne(ss => ss.Student)
+                  .HasForeignKey(ss => ss.StudentId)
+                  .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<Counsellor>(entity =>
@@ -71,6 +88,11 @@ public class AppDbContext : DbContext
 
             entity.Property(p => p.Phone).IsRequired();
             entity.HasIndex(p => p.Phone).IsUnique();
+
+            entity.HasMany(c => c.SessionRelations)
+                  .WithOne(cs => cs.Counsellor)
+                  .HasForeignKey(cs => cs.CounsellorId)
+                  .OnDelete(DeleteBehavior.Cascade);
         });
 
         modelBuilder.Entity<Parent>(entity =>
@@ -89,7 +111,7 @@ public class AppDbContext : DbContext
             entity.Property(pp => pp.ParentId).IsRequired();
             entity.Property(pp => pp.ParentId);
             entity.HasOne(pp => pp.Child)
-                  .WithMany(p => p.Relations)
+                  .WithMany(p => p.ParentRelations)
                   .HasForeignKey(pp => pp.ChildId)
                   .OnDelete(DeleteBehavior.Cascade);
             entity.HasOne(pp => pp.Parent)
@@ -97,5 +119,7 @@ public class AppDbContext : DbContext
                   .HasForeignKey(pp => pp.ParentId)
                   .OnDelete(DeleteBehavior.Cascade);
         });
+
+
     }
 }

@@ -8,15 +8,16 @@ using OzshBot.Domain.Enums;
 
 namespace OzshBot.Infrastructure.Services;
 
-public class DbRepository(AppDbContext context) : IUserRepository
+public class DbRepository(AppDbContext context) : IUserRepository, ISessionRepository
 {
     private readonly AppDbContext context = context;
+    private readonly SessionsRepository sessionsRepository = new(context);
 
     public async Task<Domain.Entities.User?> GetUserByTgAsync(TelegramInfo telegramInfo)
     {
         var dbUser = await context.Users
             .Include(u => u.Student)
-                .ThenInclude(s => s.Relations)
+                .ThenInclude(s => s.ParentRelations)
                 .ThenInclude(r => r.Parent)
             .Include(u => u.Counsellor)
             .Where(u => u.TgName == telegramInfo.TgUsername)
@@ -32,7 +33,7 @@ public class DbRepository(AppDbContext context) : IUserRepository
     {
         return await context.Users
             .Include(u => u.Student)
-                .ThenInclude(s => s.Relations)
+                .ThenInclude(s => s.ParentRelations)
                 .ThenInclude(r => r.Parent)
             .Include(u => u.Counsellor)
             .Where(u => (u.Student != null && u.Student.Phone == phoneNumber) || (u.Counsellor != null && u.Counsellor.Phone == phoneNumber))
@@ -44,7 +45,7 @@ public class DbRepository(AppDbContext context) : IUserRepository
     {
         return await context.Users
             .Include(u => u.Student)
-                .ThenInclude(s => s.Relations)
+                .ThenInclude(s => s.ParentRelations)
                 .ThenInclude(r => r.Parent)
             .Include(u => u.Counsellor)
             .Where(u => u.UserId == userId)
@@ -59,7 +60,7 @@ public class DbRepository(AppDbContext context) : IUserRepository
 
         var userQuery = context.Users
             .Include(u => u.Student)
-                .ThenInclude(s => s.Relations)
+                .ThenInclude(s => s.ParentRelations)
                 .ThenInclude(r => r.Parent)
             .Include(u => u.Counsellor)
             .Where(u =>
@@ -83,7 +84,7 @@ public class DbRepository(AppDbContext context) : IUserRepository
     {
         return await context.Users
             .Include(u => u.Student)
-                .ThenInclude(s => s.Relations)
+                .ThenInclude(s => s.ParentRelations)
                 .ThenInclude(r => r.Parent)
             .Include(u => u.Counsellor)
             .Where(u => (u.Student != null &&
@@ -98,7 +99,7 @@ public class DbRepository(AppDbContext context) : IUserRepository
     {
         return await context.Users
             .Include(u => u.Student)
-                .ThenInclude(s => s.Relations)
+                .ThenInclude(s => s.ParentRelations)
                 .ThenInclude(r => r.Parent)
             .Include(u => u.Counsellor)
             .Where(u => (u.Student != null &&
@@ -113,7 +114,7 @@ public class DbRepository(AppDbContext context) : IUserRepository
     {
         return await context.Users
             .Include(u => u.Student)
-                .ThenInclude(s => s.Relations)
+                .ThenInclude(s => s.ParentRelations)
                 .ThenInclude(r => r.Parent)
             .Include(u => u.Counsellor)
             .Where(u => (u.Student != null && u.Student.City == town) || (u.Counsellor != null && u.Counsellor.City == town))
@@ -125,7 +126,7 @@ public class DbRepository(AppDbContext context) : IUserRepository
     {
         return await context.Users
             .Include(u => u.Student)
-                .ThenInclude(s => s.Relations)
+                .ThenInclude(s => s.ParentRelations)
                 .ThenInclude(r => r.Parent)
             .Include(u => u.Counsellor)
             .Where(u => u.Student != null && u.Student.CurrentClass == classNumber)
@@ -137,7 +138,7 @@ public class DbRepository(AppDbContext context) : IUserRepository
     {
         return await context.Users
             .Include(u => u.Student)
-                .ThenInclude(s => s.Relations)
+                .ThenInclude(s => s.ParentRelations)
                 .ThenInclude(r => r.Parent)
             .Include(u => u.Counsellor)
             .Where(u => (u.Student != null && u.Student.CurrentGroup == group) || (u.Counsellor != null && u.Counsellor.CurrentGroup == group))
@@ -149,7 +150,7 @@ public class DbRepository(AppDbContext context) : IUserRepository
     {
         return await context.Users
             .Include(u => u.Student)
-                .ThenInclude(s => s.Relations)
+                .ThenInclude(s => s.ParentRelations)
                 .ThenInclude(r => r.Parent)
             .Include(u => u.Counsellor)
             .Where(u => u.Student != null && u.Student.School == school)
@@ -168,6 +169,14 @@ public class DbRepository(AppDbContext context) : IUserRepository
         {
             await UpdateContactPeopleAsync(dbUser.Student, user.ChildInfo.ContactPeople);
         }
+        if (user.ChildInfo != null && user.ChildInfo.Sessions.Count != 0)
+        {
+            await UpdateStudentSessionsAsync(dbUser.Student, user.ChildInfo.Sessions);
+        }
+        if (user.CounsellorInfo != null && user.CounsellorInfo.Sessions.Count != 0)
+        {
+            await UpdateCounsellorSessionsAsync(dbUser.Counsellor, user.CounsellorInfo.Sessions);
+        }
         await context.SaveChangesAsync();
     }
 
@@ -175,7 +184,7 @@ public class DbRepository(AppDbContext context) : IUserRepository
     {
         var existingUser = await context.Users
             .Include(u => u.Student)
-                .ThenInclude(s => s.Relations)
+                .ThenInclude(s => s.ParentRelations)
                 .ThenInclude(r => r.Parent)
             .Include(u => u.Counsellor)
             .Where(u => u.UserId == user.Id)
@@ -211,6 +220,7 @@ public class DbRepository(AppDbContext context) : IUserRepository
                 {
                     existingUser.Student.UpdateFromChildInfo(user.ChildInfo);
                     await UpdateContactPeopleAsync(existingUser.Student, user.ChildInfo.ContactPeople);
+                    await UpdateStudentSessionsAsync(existingUser.Student, user.ChildInfo.Sessions);
                 }
                 break;
 
@@ -218,6 +228,7 @@ public class DbRepository(AppDbContext context) : IUserRepository
                 if (existingUser.Counsellor != null)
                 {
                     existingUser.Counsellor.UpdateFromCounsellorInfo(user.CounsellorInfo);
+                    await UpdateCounsellorSessionsAsync(existingUser.Counsellor, user.CounsellorInfo.Sessions);
                 }
                 break;
         }
@@ -236,21 +247,60 @@ public class DbRepository(AppDbContext context) : IUserRepository
 
     private async Task UpdateContactPeopleAsync(Student student, HashSet<ContactPerson> contactPeople)
     {
-        if (student.Relations != null && student.Relations.Any())
+        if (student.ParentRelations != null && student.ParentRelations.Any())
         {
-            context.ChildrenParents.RemoveRange(student.Relations);
+            context.ChildrenParents.RemoveRange(student.ParentRelations);
         }
         if (contactPeople != null && contactPeople.Count != 0)
         {
+            student.ParentRelations ??= new List<ChildParent>();
             foreach (var contactPerson in contactPeople)
             {
                 var parent = await FindOrCreateParentAsync(contactPerson);
-
-                student.Relations ??= new List<ChildParent>();
-                student.Relations.Add(new ChildParent
+                student.ParentRelations.Add(new ChildParent
                 {
                     ChildId = student.StudentId,
                     ParentId = parent.ParentId
+                });
+            }
+        }
+    }
+
+    private async Task UpdateStudentSessionsAsync(Student student, HashSet<Domain.Entities.Session> sessions)
+    {
+        if (student.SessionRelations != null && student.SessionRelations.Any())
+        {
+            context.StudentsSessions.RemoveRange(student.SessionRelations);
+        }
+        if (sessions != null && sessions.Count != 0)
+        {
+            student.SessionRelations ??= new List<StudentSession>();
+            foreach (var session in sessions)
+            {
+                student.SessionRelations.Add(new StudentSession
+                {
+                    StudentId = student.StudentId,
+                    SessionId = session.Id
+                });
+            }
+        }
+    }
+
+    private async Task UpdateCounsellorSessionsAsync(Counsellor counsellor, HashSet<Domain.Entities.Session> sessions)
+    {
+        if (counsellor.SessionRelations != null && counsellor.SessionRelations.Any())
+        {
+            context.CounsellorsSessions.RemoveRange(counsellor.SessionRelations);
+        }
+        if (sessions != null && sessions.Count != 0)
+        {
+            counsellor.SessionRelations ??= new List<CounsellorSession>();
+            foreach (var session in sessions)
+            {
+                counsellor.SessionRelations.Add(new CounsellorSession
+                {
+                    CounsellorId = counsellor.CounsellorId,
+                    SessionId = session.Id
                 });
             }
         }
@@ -287,7 +337,7 @@ public class DbRepository(AppDbContext context) : IUserRepository
     {
         var user = await context.Users
             .Include(u => u.Student)
-                .ThenInclude(s => s.Relations)
+                .ThenInclude(s => s.ParentRelations)
                 .ThenInclude(r => r.Parent)
             .Include(u => u.Counsellor)
             .Where(u => (u.Student != null && u.Student.Phone == phoneNumber) || (u.Counsellor != null && u.Counsellor.Phone == phoneNumber))
@@ -296,4 +346,16 @@ public class DbRepository(AppDbContext context) : IUserRepository
         context.Users.Remove(user);
         await context.SaveChangesAsync();
     }
+
+    public async Task AddSessionAsync(Domain.Entities.Session session) => await sessionsRepository.AddSessionAsync(session);
+
+    public async Task UpdateSessionAsync(Domain.Entities.Session session) => await sessionsRepository.UpdateSessionAsync(session);
+
+    public async Task<Domain.Entities.Session?> GetSessionByDatesAsync(SessionDates sessionDates) => await sessionsRepository.GetSessionByDatesAsync(sessionDates);
+
+    public async Task<Domain.Entities.Session?> GetSessionByIdAsync(Guid sessionId) => await sessionsRepository.GetSessionByIdAsync(sessionId);
+
+    public async Task<Domain.Entities.Session[]?> GetLastSessionsAsync(int numberOfSessions) => await sessionsRepository.GetLastSessionsAsync(numberOfSessions);
+
+    public async Task<Domain.Entities.Session[]?> GetAllSessions() => await sessionsRepository.GetAllSessions();
 }

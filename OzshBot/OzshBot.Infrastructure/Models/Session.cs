@@ -21,6 +21,12 @@ public class Session
     [Required]
     [Column(name: "end_date")]
     public DateOnly EndDate { get; set; }
+
+    public virtual List<StudentSession>? StudentsRelations { get; set; }
+    public virtual List<Student>? Students => StudentsRelations?.Select(r => r.Student).ToList() ?? [];
+
+    public virtual List<CounsellorSession>? CounsellorsRelations { get; set; }
+    public virtual List<Counsellor>? Counsellors => CounsellorsRelations?.Select(r => r.Counsellor).ToList() ?? [];
 }
 
 public static class SessionConverter

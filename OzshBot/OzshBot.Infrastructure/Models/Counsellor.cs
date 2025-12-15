@@ -47,6 +47,10 @@ public class Counsellor
     [Column(name: "phone")]
     [Phone]
     public string? Phone { get; set; }
+
+    public virtual List<CounsellorSession>? SessionRelations { get; set; }
+    [NotMapped]
+    public List<Session> Sessions => SessionRelations?.Select(r => r.Session).ToList() ?? [];
 }
 
 
@@ -57,7 +61,7 @@ public static class CounsellorConverter
         return new CounsellorInfo
         {
             Group = counsellor.CurrentGroup,
-            Sessions = []
+            Sessions = counsellor.Sessions.Select(s => s.ToDomainSession()).ToHashSet()
         };
     }
 

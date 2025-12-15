@@ -55,9 +55,13 @@ public class Student
     [Phone]
     public required string Phone { get; set; }
 
-    public virtual List<ChildParent>? Relations { get; set; }
+    public virtual List<StudentSession>? SessionRelations { get; set; }
     [NotMapped]
-    public List<Parent> Parents => Relations?.Select(r => r.Parent).ToList() ?? [];
+    public List<Session> Sessions => SessionRelations?.Select(r => r.Session).ToList() ?? [];
+
+    public virtual List<ChildParent>? ParentRelations { get; set; }
+    [NotMapped]
+    public List<Parent> Parents => ParentRelations?.Select(r => r.Parent).ToList() ?? [];
 }
 
 
@@ -71,7 +75,7 @@ public static class StudentConverter
             Group = student.CurrentGroup,
             EducationInfo = educationInfo,
             ContactPeople = student.Parents.Select(p => p.ToContactPerson()).ToHashSet(),
-            Sessions = []
+            Sessions = student.Sessions.Select(s => s.ToDomainSession()).ToHashSet()
         };
         return result;
     }
