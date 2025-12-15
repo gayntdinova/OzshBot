@@ -16,6 +16,7 @@
     <ItemGroup>
       <ProjectReference Include="..\OzshBot.Application\OzshBot.Application.csproj" />
       <ProjectReference Include="..\OzshBot.Domain\OzshBot.Domain.csproj" />
+      <ProjectReference Include="..\OzshBot.Infrastructure\OzshBot.Infrastructure.csproj" />
     </ItemGroup>
     <ItemGroup>
       <PackageReference Include="Telegram.Bot" Version="22.7.4" />

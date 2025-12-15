@@ -14,5 +14,28 @@
     &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserFindServiceTests.FindUsersAsync_ByTelegram_ReturnsResultOk&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserFindServiceTests.FindUsersAsync_ByCity_ReturnsResultOk&lt;/TestId&gt;&#xD;
     &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserFindServiceTests.FindUsersAsync_BySchool_ReturnsResultOk&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserRoleServiceTests.GetUserRoleByTgAsync_ReturnsChild&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserRoleServiceTests.PromoteToCounsellorAsync_ReturnsResultOk&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserRoleServiceTests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserFindServiceTests.FindUsersAsync_ByFullName_ReturnsResultOk&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserFindServiceTests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserManagementServiceTests.LoadTableAsync_IncorrectRowsInParsing_ReturnFail&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserManagementServiceTests.LoadTableAsync_ReturnOk&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.SessionManagerTests.GetOrCreateSessionAsync_NewSession_ReturnsSession&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.SessionManagerTests.GetOrCreateSessionAsync_SessionNotExists_NewSession&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.SessionManagerTests.GetOrCreateSessionAsync_ExistingSession_ReturnsSession&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.SessionManagerTests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.SessionServiceTests&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserManagementServiceTests.AddUserAsync_ExistingUser_ReturnsResultFail&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserManagementServiceTests.AddUserAsync_ReturnsResultOk&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserManagementServiceTests.EditUserAsync_NotExistingUser_ReturnsResultFail&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserManagementServiceTests.EditUserAsync_ReturnsResultOk&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserManagementServiceTests.DeleteUserAsync_NotExistingUser_ReturnsResultFail&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserManagementServiceTests.DeleteUserAsync_ReturnsResultOk&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserManagementServiceTests.LoadTableAsync_NoSession_ReturnsResultFail&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserManagementServiceTests.LoadTableAsync_IncorrectUrl_ReturnsResultFail&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserManagementServiceTests.LoadTableAsync_IncorrectRow_ReturnsResultFail&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserManagementServiceTests.LoadTableAsync_ReturnsResultOk&lt;/TestId&gt;&#xD;
+    &lt;TestId&gt;NUnit3x::141B571E-56B0-486F-B46E-84F4C8FEC3F7::net8.0::Tests.ApplicationTests.UserManagementServiceTests&lt;/TestId&gt;&#xD;
   &lt;/TestAncestor&gt;&#xD;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>

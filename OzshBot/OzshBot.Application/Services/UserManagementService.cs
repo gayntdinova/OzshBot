@@ -3,6 +3,7 @@ using OzshBot.Application.AppErrors;
 using OzshBot.Application.DtoModels;
 using OzshBot.Application.RepositoriesInterfaces;
 using OzshBot.Application.Services.Interfaces;
+using OzshBot.Application.ToolsInterfaces;
 using OzshBot.Domain.Entities;
 using OzshBot.Domain.ValueObjects;
 
@@ -11,10 +12,12 @@ namespace OzshBot.Application.Services;
 public class UserManagementService: IUserManagementService 
 {
     private readonly IUserRepository userRepository;
+    private readonly ISessionRepository sessionRepository;
     private readonly ITableParser tableParser;
-    public UserManagementService(IUserRepository userRepository, ITableParser tableParser)
+    public UserManagementService(IUserRepository userRepository, ISessionRepository sessionRepository, ITableParser tableParser)
     {
         this.userRepository = userRepository;
+        this.sessionRepository = sessionRepository;
         this.tableParser = tableParser;
     }
 
@@ -22,14 +25,17 @@ public class UserManagementService: IUserManagementService
     {
         if (await userRepository.GetUserByPhoneNumberAsync(user.PhoneNumber) != null) 
             return Result.Fail(new UserAlreadyExistsError());
-        await userRepository.AddUserAsync(user.ToUser());
-        return Result.Ok(user.ToUser());
+        var newUser = user.ToUser();
+        await userRepository.AddUserAsync(newUser);
+        return Result.Ok(newUser);
     }
 
-    public async Task<Result<User>> EditUserAsync(User user)
+    public async Task<Result<User>> EditUserAsync(User editedUser)
     {
-        if (await userRepository.GetUserByPhoneNumberAsync(user.PhoneNumber) == null)
-            return Result.Fail(new NotFoundError());
+        var user = await userRepository.GetUserByIdAsync(editedUser.Id);
+        if (user == null)
+            return Result.Fail(new UserNotFoundError());
+        user.UpdateBy(editedUser);
         await userRepository.UpdateUserAsync(user);
         return Result.Ok(user);
     }
@@ -37,30 +43,39 @@ public class UserManagementService: IUserManagementService
     public async Task<Result> DeleteUserAsync(string phoneNumber)
     {
         if (await userRepository.GetUserByPhoneNumberAsync(phoneNumber) == null)
-            return Result.Fail(new NotFoundError());
+            return Result.Fail(new UserNotFoundError());
         await userRepository.DeleteUserAsync(phoneNumber);
         return Result.Ok();
     }
 
-    public async Task<Result> LoadTableAsync(string link)
+    public async Task<Result> LoadTableAsync(string link, SessionDates sessionDates)
     {
+        var session = await sessionRepository.GetSessionByDatesAsync(sessionDates);
+        if (session == null) return Result.Fail(new SessionNotFoundError());
         var result = await tableParser.GetChildrenAsync(link);
-        if (result.IsSuccess)
+        if (result.IsFailed)
         {
-            foreach (var child in result.Value)
+            if (result.HasError<IncorrectUrlError>()) return Result.Fail(new IncorrectUrlError());
+            if (result.HasError<IncorrectRowError>()) return Result.Fail(result.Errors);
+            return result.ToResult();
+        }
+        
+        foreach (var child in result.Value)
+        {
+            child.ChildInfo.Sessions.Add(session);
+            var existedUser = await userRepository.GetUserByPhoneNumberAsync(child.PhoneNumber);
+            if (existedUser != null)
             {
-                var existUser = await userRepository.GetUserByPhoneNumberAsync(child.PhoneNumber);
-                if (existUser == null)
-                    await userRepository.AddUserAsync(child.ToUser());
-                else
-                {
-                    existUser.UpdateBy(child.ToUser());
-                    await userRepository.UpdateUserAsync(existUser);
-                }
+                existedUser.UpdateBy(child.ToUser());
+                await userRepository.UpdateUserAsync(existedUser);
+            }
+            else
+            {
+                var newUser = child.ToUser();
+                await userRepository.AddUserAsync(newUser);
             }
         }
-        if (result.HasError<IncorrectUrlError>()) return Result.Fail(new IncorrectUrlError());
-        if (result.HasError<IncorrectRowError>()) return Result.Fail(result.Errors);
+        
         return Result.Ok();
     }
 }

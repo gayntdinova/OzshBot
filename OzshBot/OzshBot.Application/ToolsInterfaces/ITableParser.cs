@@ -1,7 +1,7 @@
 using FluentResults;
 using OzshBot.Application.DtoModels;
 
-namespace OzshBot.Application.RepositoriesInterfaces;
+namespace OzshBot.Application.ToolsInterfaces;
 
 public interface ITableParser
 {
