@@ -24,12 +24,13 @@ using FluentResults;
 using System.Net.Http.Headers;
 using System.Windows.Input;
 using System.ComponentModel.DataAnnotations;
+using OzshBot.Application.AppErrors;
 namespace OzshBot.Bot;
 
 
-public class LoadCommand : IBotCommandWithState
+public class LoadCommand : IBotCommand
 {
-    private readonly Dictionary<long,AddState> stateDict= new();
+    private readonly Dictionary<long,LoadState> stateDict= new();
     public string Name()
     =>"/load";
 
@@ -66,33 +67,112 @@ public class LoadCommand : IBotCommandWithState
                     return false;
                 }
 
+                var sessionsResult = await userService.SessionService.GetLastSessionsAsync(100);
+                if (sessionsResult.IsFailed)
+                {
+                    await bot.SendMessage(
+                        chat.Id,
+                        sessionsResult.Errors.First().GetExplanation(),
+                        parseMode: ParseMode.MarkdownV2
+                        );
+
+                    await TryCancelState(bot,chat,userId);
+                    return false;
+                }
+
                 //если уже находится в ожидании какого то ответа
                 if(stateDict.TryGetValue(update.Message!.From!.Id, out var state))
                 {
                     state.messagesIds.Push(update.Message.Id);
-                    //todo проверку таблицы
+                    if (state.SessionDates == null)
+                    {
+                        if (Regex.IsMatch(messageText,@"^(0[1-9]|[12]\d|3[01])\.(0[1-9]|1[0-2])\.(19\d{2}|20\d{2}) (0[1-9]|[12]\d|3[01])\.(0[1-9]|1[0-2])\.(19\d{2}|20\d{2})$"))
+                        {
+                            var splitted = messageText.Split(" ");
+                            var startDate = DateOnly.ParseExact(splitted[0], "dd.MM.yyyy");
+                            var endDate = DateOnly.ParseExact(splitted[1], "dd.MM.yyyy");
+                            if (sessionsResult.Value.Any(session=>session.SessionDates.StartDate==startDate && session.SessionDates.EndDate == endDate))
+                            {
+                                state.SessionDates = new SessionDates(startDate,endDate);
+                                var messageId = (await bot.SendMessage(
+                                    chat.Id,
+                                    "Напишите url(ссылку) таблицы с учениками",
+                                    replyMarkup: GetSessionsKeyboard(sessionsResult.Value)
+                                    )).Id;
+                                state.messagesIds.Push(messageId);
+                                return true;
+                            }
+                            else
+                            {
+                                var messageId = (await bot.SendMessage(
+                                    chat.Id,
+                                    "Такой сессии не существует, выберите из списка",
+                                    replyMarkup: GetSessionsKeyboard(sessionsResult.Value)
+                                    )).Id;
+                                state.messagesIds.Push(messageId);
+                                return true;
+                            }
+                        }
+                        else
+                        {
+                            var messageId = (await bot.SendMessage(
+                                chat.Id,
+                                "неправильный формат, верный формат: dd.MM.yyyy dd.MM.yyyy , но лучше просто нажать на вариант в клавиатуре",
+                                replyMarkup: GetSessionsKeyboard(sessionsResult.Value)
+                                )).Id;
+                            state.messagesIds.Push(messageId);
+                            return true;
+                        }
+                    }
+                    else
+                    {
+                        var result = await userService.ManagementService.LoadTableAsync(messageText,state.SessionDates);
+                        if (result.IsFailed)
+                        {
+                            var messageId = (await bot.SendMessage(
+                                chat.Id,
+                                result.Errors.First().GetExplanation(),
+                                parseMode: ParseMode.MarkdownV2
+                                )).Id;
+                            state.messagesIds.Push(messageId);
+                            return true;
+                        }
+                        else
+                        {
+                            await bot.SendMessage(
+                                chat.Id,
+                                "Таблица успешно загружена",
+                                parseMode: ParseMode.MarkdownV2
+                                );
+                            await TryCancelState(bot,chat,userId);
+                            return false;
+                        }
+                    }
                 }
                 //если нам написали /load
                 else
                 {
-                    stateDict[userId] = new AddState();
+                    stateDict[userId] = new LoadState();
 
                     var messageId = (await bot.SendMessage(
                         chat.Id,
                         "Начинаем добавление людей из таблицы",
                         replyMarkup: new InlineKeyboardMarkup(
-                            InlineKeyboardButton.WithCallbackData("Отмена", "addCancel"))
+                            InlineKeyboardButton.WithCallbackData("Отмена", "loadCancel"))
                         )).Id;
                     stateDict[userId].messagesIds.Push(messageId);
 
+                    
+
                     messageId = (await bot.SendMessage(
                         chat.Id,
-                        "Введите название смены, в которую вы хотите добавить пользователей из таблицы"
+                        "Введите даты смены, в которую вы хотите добавить пользователей из таблицы",
+                        replyMarkup: GetSessionsKeyboard(sessionsResult.Value)
                         )).Id;
                     stateDict[userId].messagesIds.Push(messageId);
-                    //todo клавиатуру
+                    return true;
+                
                 }
-                return true;
 
             case UpdateType.CallbackQuery:
                 var callback = update.CallbackQuery!;
@@ -106,30 +186,10 @@ public class LoadCommand : IBotCommandWithState
         }
     }
 
-    private async Task<bool> HandleTable(Chat chat, Role role, string messageText)
-    {
-        if (role == Role.Child) return;
-
-        var result = await userService.ManagementService.LoadTableAsync(messageText);
-        if (result.IsFailed)
-        {
-            await botClient.SendMessage(
-                chat.Id,
-                "Не удалось загрузить таблицу",
-                parseMode: ParseMode.MarkdownV2
-                );
-            return true
-        }
-        else
-        {
-            await botClient.SendMessage(
-                chat.Id,
-                "Таблица успешно загружена",
-                parseMode: ParseMode.MarkdownV2
-                );
-            return false;
-        }
-    }
+    private ReplyKeyboardMarkup GetSessionsKeyboard(Session[] sessions)
+        => new ReplyKeyboardMarkup(sessions
+            .Select(session=>new KeyboardButton[]{new KeyboardButton($"{session.SessionDates.StartDate.ToString("dd.MM.yyyy")} {session.SessionDates.EndDate.ToString("dd.MM.yyyy")}")}))
+        {ResizeKeyboard = true};
 
     private async Task TryCancelState(ITelegramBotClient bot, Chat chat,long userId)
     {
@@ -143,13 +203,8 @@ public class LoadCommand : IBotCommandWithState
 
     class LoadState
     {
-        public string Link;
+        public SessionDates? SessionDates;
         public Stack<MessageId> messagesIds = new();
-
-        public LoadState(string link)
-        {
-            Link = link
-        }
     }
 }
 

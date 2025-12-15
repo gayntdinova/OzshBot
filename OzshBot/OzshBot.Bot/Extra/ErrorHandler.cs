@@ -24,9 +24,18 @@ using FluentResults;
 using System.Net.Http.Headers;
 using System.Windows.Input;
 using System.ComponentModel.DataAnnotations;
+using OzshBot.Application.AppErrors;
 namespace OzshBot.Bot;
 
-public interface IBotCommandWithState: IBotCommand
+public static class ErrorHandler
 {
-    public Task TryCancelState(ITelegramBotClient bot, Chat chat,long userId);
+    static Dictionary<Type, string> ReplyDict = new()
+    {
+        { typeof(IncorrectUrlError), "Некорректный url" },
+        { typeof(IncorrectRowError), "Некорректный столбец" },
+        { typeof(SessionNotFoundError), "Сессий нету, ну вообще"}
+    };
+
+    public static string GetExplanation(this IError error)
+        => ReplyDict[error.GetType()];
 }

@@ -17,6 +17,7 @@ using OzshBot.Application.Services.Interfaces;
 using UserDomain = OzshBot.Domain.Entities.User;
 using OzshBot.Application.RepositoriesInterfaces;
 using Telegram.Bot.Types.Passport;
+using OzshBot.Application.ToolsInterfaces;
 namespace OzshBot.Bot;
 
 
@@ -67,12 +68,12 @@ public class MadeUpData
             new UserDomain
             {
 
-                FullName = new()
-                {
-                    Name = "Сергей",
-                    Surname = "Сергеевич",
-                    Patronymic = "Сергеев"
-                },
+                FullName = new FullName
+                (
+                    "Сергей",
+                    "Сергеевич",
+                    "Сергеев"
+                ),
                 Birthday = new DateOnly(),
                 City = "Екатеринбург",
                 PhoneNumber = $"+792826457546",
@@ -88,8 +89,8 @@ public class MadeUpData
                         School = "Сунц УрФУ"
                     },
                     Group = 1000 + id,
-                    Sessions = new List<Session> { },
-                    ContactPeople = new List<ContactPerson>{}
+                    Sessions = new HashSet<Session> { },
+                    ContactPeople = new HashSet<ContactPerson>{}
                 },
                 TelegramInfo = new()
                 {
@@ -129,7 +130,7 @@ public class MadeUpData
                 School = Schools[random.Next(Schools.Length)]
             },
             Group = 1000 + id,
-            Sessions = new List<Session> { },
+            Sessions = new HashSet<Session>(){},
             ContactPeople = GenerateContactPersonList(random)
         },
         Role = Role.Child
@@ -153,12 +154,12 @@ public class MadeUpData
         CounsellorInfo = new CounsellorInfo
         {
             Group = 1000 + id,
-            Sessions = new List<Session>{ }
+            Sessions = new HashSet<Session>(){}
         },
         Role = Role.Counsellor
     };
 
-    private List<ContactPerson> GenerateContactPersonList(Random random)
+    private HashSet<ContactPerson> GenerateContactPersonList(Random random)
     {
         var length = random.Next(0, 2);
         var list = new List<ContactPerson>();
@@ -171,16 +172,16 @@ public class MadeUpData
                 PhoneNumber = $"+79{(random.Next(100000000, 999999999))}"
             });
         }
-        return list.ToList();
+        return list.ToHashSet();
     }
 
     private FullName GenerateRandomFullName(Random random)
     => new FullName
-    {
-        Name = Names[random.Next(Names.Length)],
-        Surname = Surnames[random.Next(Names.Length)],
-        Patronymic = Patronymics[random.Next(Names.Length)]
-    };
+    (
+        Names[random.Next(Names.Length)],
+        Surnames[random.Next(Names.Length)],
+        Patronymics[random.Next(Names.Length)]
+    );
 }
 
 public class MyUserRepository : IUserRepository
@@ -196,9 +197,9 @@ public class MyUserRepository : IUserRepository
         madeUpData.Users.Add(user);
     }
 
-    public Task DeleteUserAsync(TelegramInfo telegramInfo)
+    public async Task DeleteUserAsync(string phoneNumber)
     {
-        throw new NotImplementedException();
+        madeUpData.Users.Remove(madeUpData.Users.First(user=>user.PhoneNumber == phoneNumber));
     }
 
     public async Task<UserDomain?> GetUserByTgAsync(TelegramInfo telegramInfo)
@@ -217,12 +218,12 @@ public class MyUserRepository : IUserRepository
 
     public async Task<UserDomain[]?> GetUsersByClassAsync(int classNumber)
     {
-        var users = madeUpData.Users.Where(user => user.ChildInfo!=null && user.ChildInfo.EducationInfo.Class == classNumber);
+        var users = madeUpData.Users.Where(user =>user.ChildInfo?.EducationInfo?.Class == classNumber);
         
         return users.Any()?users.ToArray():null;
     }
 
-    public async Task<UserDomain[]?> GetUsersByFullNameAsync(FullName fullName)
+    public async Task<UserDomain[]?> GetUsersByFullNameAsync(NameSearch fullName)
     {
         var users = madeUpData.Users;
 
@@ -244,7 +245,7 @@ public class MyUserRepository : IUserRepository
     public async Task<UserDomain[]?> GetUsersByGroupAsync(int group)
     {
         var users = madeUpData.Users.Where(user 
-            => (user.CounsellorInfo!=null && user.CounsellorInfo.Group == group)||(user.ChildInfo!=null && user.ChildInfo.Group == group));
+            => (user.CounsellorInfo?.Group == group)||(user.ChildInfo?.Group == group));
 
         return users.Any()?users.ToArray():null;
     }
@@ -260,7 +261,7 @@ public class MyUserRepository : IUserRepository
     public async Task<UserDomain[]?> GetUsersBySchoolAsync(string school)
     {
         var users = madeUpData.Users.Where(user 
-            => user.ChildInfo != null && user.ChildInfo.EducationInfo.School.ToLower() == school.ToLower());
+            => user.ChildInfo?.EducationInfo?.School.ToLower() == school.ToLower());
 
         return users.Any()?users.ToArray():null;
     }
@@ -270,11 +271,12 @@ public class MyUserRepository : IUserRepository
         return;
     }
 
-    public Task DeleteUserAsync(string phoneNumber)
+    public async Task<UserDomain?> GetUserByIdAsync(Guid userId)
     {
-        throw new NotImplementedException();
-    }
+        var users = madeUpData.Users.Where(user => user.Id== userId);
 
+        return users.FirstOrDefault();
+    }
 }
 
 public class MyUserRoleService: IUserRoleService
@@ -301,10 +303,45 @@ public class MyUserRoleService: IUserRoleService
 
 }
 
-public class MyTableParser: ITableParser
+public class MySessionRepository : ISessionRepository
 {
-    public async Task<Result<ChildDto[]>> GetChildrenAsync(string tableName)
+    public Task AddSessionAsync(Session session)
     {
-        return new Result<ChildDto[]>();
+        throw new NotImplementedException();
     }
+
+    public Task<Session[]?> GetAllSessions()
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<Session[]?> GetLastSessionsAsync(int numberOfSessions)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<Session?> GetSessionByDatesAsync(SessionDates sessionDates)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<Session?> GetSessionByIdAsync(Guid sessionId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task UpdateSessionAsync(Session session)
+    {
+        throw new NotImplementedException();
+    }
+
+}
+
+public class MyTableParser : ITableParser
+{
+    public Task<Result<ChildDto[]>> GetChildrenAsync(string url)
+    {
+        throw new NotImplementedException();
+    }
+
 }

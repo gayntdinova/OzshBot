@@ -101,14 +101,12 @@ public static class UserAttributesExtention
             UserAttribute.FullName,
             new UserAttributeInfo(
                 "ФИО",
-                "Введите полное имя полностью (корректный формат: Фамилия Имя Отчество)",
-                @"^[А-ЯЁ][а-яё]+ [А-ЯЁ][а-яё]+ [А-ЯЁ][а-яё]+$",
+                "Введите полное имя полностью (корректный формат: Фамилия Имя Отчество или Фамилия Имя)",
+                @"^[А-ЯЁ][а-яё]+ [А-ЯЁ][а-яё]+( [А-ЯЁ][а-яё]+)?$",
                 (UserDomain user, string message) =>
                 {
                     var splittedMessage = message.Split(" ");
-                    user.FullName.Surname = splittedMessage[0];
-                    user.FullName.Name = splittedMessage[1];
-                    user.FullName.Patronymic = splittedMessage[2];
+                    user.FullName = new(splittedMessage[0],splittedMessage[1],splittedMessage.Length==2?null:splittedMessage[2]);
                 })
         },
         {
@@ -140,7 +138,7 @@ public static class UserAttributesExtention
             UserAttribute.Birthday,
             new UserAttributeInfo(
                 "День рождения",
-                "Введите день рождения(день.месяц.год) или _",
+                "Введите день рождения(dd.MM.yyyy) или _",
                 @"^(_|(0[1-9]|[12]\d|3[01])\.(0[1-9]|1[0-2])\.(19\d{2}|20\d{2}))$",
                 (user, message) =>
                 {
@@ -185,8 +183,7 @@ public static class UserAttributesExtention
                 @".+",
                 (user, message) =>
                 {
-                    if (user.ChildInfo != null)
-                        user.ChildInfo.EducationInfo.School = message;
+                    user.ChildInfo!.EducationInfo = new EducationInfo(){Class = user.ChildInfo!.EducationInfo!.Class,School = message};
                 })
         },
         {
@@ -197,8 +194,7 @@ public static class UserAttributesExtention
                 @"^(?:[1-9]|10|11)$",
                 (user, message) =>
                 {
-                    if (user.ChildInfo != null)
-                        user.ChildInfo.EducationInfo.Class = int.Parse(message);
+                    user.ChildInfo!.EducationInfo = new EducationInfo(){Class = int.Parse(message),School = user.ChildInfo!.EducationInfo!.School};
                 })
         }
     };

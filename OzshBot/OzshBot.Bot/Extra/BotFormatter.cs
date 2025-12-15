@@ -52,7 +52,7 @@ public static class BotFormatter
         answer += user.City==null? "": 
             $"\nГород: `{user.City}`";
 
-        answer += childInfo==null? "":
+        answer += childInfo?.EducationInfo==null? "":
             $"\nШкола: `{childInfo.EducationInfo.School}`, {childInfo.EducationInfo.Class} класс";
 
         answer += user.Birthday==null? "": 
