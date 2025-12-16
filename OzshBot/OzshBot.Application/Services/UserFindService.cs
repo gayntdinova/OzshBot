@@ -3,6 +3,7 @@ using OzshBot.Application.AppErrors;
 using OzshBot.Application.RepositoriesInterfaces;
 using OzshBot.Application.Services.Interfaces;
 using OzshBot.Domain.Entities;
+using OzshBot.Domain.Enums;
 using OzshBot.Domain.ValueObjects;
 
 namespace OzshBot.Application.Services;
@@ -18,7 +19,9 @@ public class UserFindService: IUserFindService
     public async Task<User[]> FindUsersByClassAsync(int classNumber)
     {
         var users = await userRepository.GetUsersByClassAsync(classNumber);
-        return users ?? [];
+        if (users == null) return [];
+        return users.Where(user => user.Role == Role.Child && user.ChildInfo.Group != null)
+            .ToArray();
     }
     
     public async Task<User[]> FindUsersByGroupAsync(int group)
