@@ -27,11 +27,11 @@ class Program
         {
             Id = Guid.NewGuid(),
             FullName = new FullName
-            {
-                Name = "Сестра",
-                Surname = "Озшова",
-                Patronymic = null
-            },
+            (
+                name: "Сестра",
+                surname: "Озшова",
+                patronymic: null
+            ),
             TelegramInfo = new TelegramInfo
             {
                 TgUsername = "sister",
@@ -61,11 +61,7 @@ class Program
         var user = await dbRepository.GetUserByTgAsync(new TelegramInfo { TgUsername = "student_ozsh", TgId = 1000000000 });
         user.ChildInfo.ContactPeople.Add(new ContactPerson
         {
-            FullName = new FullName
-            {
-                Name = "Мама",
-                Surname = "Озш"
-            },
+            FullName = new FullName(name: "Мама", surname: "Озшова"),
             PhoneNumber = "+79001000000"
         });
         await dbRepository.UpdateUserAsync(user);

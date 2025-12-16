@@ -120,6 +120,40 @@ public class AppDbContext : DbContext
                   .OnDelete(DeleteBehavior.Cascade);
         });
 
+        modelBuilder.Entity<StudentSession>(entity =>
+        {
+            entity.HasKey(ss => new { ss.StudentId, ss.SessionId });
 
+            entity.HasOne(ss => ss.Student)
+                  .WithMany(s => s.SessionRelations)
+                  .HasForeignKey(ss => ss.StudentId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(ss => ss.Session)
+                  .WithMany(s => s.StudentsRelations)
+                  .HasForeignKey(ss => ss.SessionId)
+                  .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(ss => ss.StudentId);
+            entity.HasIndex(ss => ss.SessionId);
+        });
+        
+        modelBuilder.Entity<CounsellorSession>(entity =>
+        {
+            entity.HasKey(cs => new { cs.CounsellorId, cs.SessionId });
+            
+            entity.HasOne(cs => cs.Counsellor)
+                  .WithMany(c => c.SessionRelations)
+                  .HasForeignKey(cs => cs.CounsellorId)
+                  .OnDelete(DeleteBehavior.Cascade);
+                  
+            entity.HasOne(cs => cs.Session)
+                  .WithMany(s => s.CounsellorsRelations)
+                  .HasForeignKey(cs => cs.SessionId)
+                  .OnDelete(DeleteBehavior.Cascade);
+            
+            entity.HasIndex(cs => cs.CounsellorId);
+            entity.HasIndex(cs => cs.SessionId);
+        });
     }
 }

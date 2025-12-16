@@ -23,9 +23,11 @@ public class Session
     public DateOnly EndDate { get; set; }
 
     public virtual List<StudentSession>? StudentsRelations { get; set; }
+    [NotMapped]
     public virtual List<Student>? Students => StudentsRelations?.Select(r => r.Student).ToList() ?? [];
 
     public virtual List<CounsellorSession>? CounsellorsRelations { get; set; }
+    [NotMapped]
     public virtual List<Counsellor>? Counsellors => CounsellorsRelations?.Select(r => r.Counsellor).ToList() ?? [];
 }
 

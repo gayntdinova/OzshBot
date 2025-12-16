@@ -19,7 +19,12 @@ public class DbRepository(AppDbContext context) : IUserRepository, ISessionRepos
             .Include(u => u.Student)
                 .ThenInclude(s => s.ParentRelations)
                 .ThenInclude(r => r.Parent)
+            .Include(u => u.Student)
+                .ThenInclude(s => s.SessionRelations)
+                .ThenInclude(sr => sr.Session)
             .Include(u => u.Counsellor)
+                .ThenInclude(c => c.SessionRelations)
+                .ThenInclude(csr => csr.Session)
             .Where(u => u.TgName == telegramInfo.TgUsername)
             .FirstOrDefaultAsync();
         if (dbUser == null)
@@ -35,7 +40,12 @@ public class DbRepository(AppDbContext context) : IUserRepository, ISessionRepos
             .Include(u => u.Student)
                 .ThenInclude(s => s.ParentRelations)
                 .ThenInclude(r => r.Parent)
+            .Include(u => u.Student)
+                .ThenInclude(s => s.SessionRelations)
+                .ThenInclude(sr => sr.Session)
             .Include(u => u.Counsellor)
+                .ThenInclude(c => c.SessionRelations)
+                .ThenInclude(csr => csr.Session)
             .Where(u => (u.Student != null && u.Student.Phone == phoneNumber) || (u.Counsellor != null && u.Counsellor.Phone == phoneNumber))
             .Select(u => u.ToDomainUser())
             .FirstOrDefaultAsync();
@@ -47,7 +57,12 @@ public class DbRepository(AppDbContext context) : IUserRepository, ISessionRepos
             .Include(u => u.Student)
                 .ThenInclude(s => s.ParentRelations)
                 .ThenInclude(r => r.Parent)
+            .Include(u => u.Student)
+                .ThenInclude(s => s.SessionRelations)
+                .ThenInclude(sr => sr.Session)
             .Include(u => u.Counsellor)
+                .ThenInclude(c => c.SessionRelations)
+                .ThenInclude(csr => csr.Session)
             .Where(u => u.UserId == userId)
             .Select(u => u.ToDomainUser())
             .FirstOrDefaultAsync();
@@ -62,7 +77,12 @@ public class DbRepository(AppDbContext context) : IUserRepository, ISessionRepos
             .Include(u => u.Student)
                 .ThenInclude(s => s.ParentRelations)
                 .ThenInclude(r => r.Parent)
+            .Include(u => u.Student)
+                .ThenInclude(s => s.SessionRelations)
+                .ThenInclude(sr => sr.Session)
             .Include(u => u.Counsellor)
+                .ThenInclude(c => c.SessionRelations)
+                .ThenInclude(csr => csr.Session)
             .Where(u =>
                 (string.IsNullOrWhiteSpace(fullName.Name) ||
                  (u.Student != null && u.Student.Name == fullName.Name) ||
@@ -86,7 +106,12 @@ public class DbRepository(AppDbContext context) : IUserRepository, ISessionRepos
             .Include(u => u.Student)
                 .ThenInclude(s => s.ParentRelations)
                 .ThenInclude(r => r.Parent)
+            .Include(u => u.Student)
+                .ThenInclude(s => s.SessionRelations)
+                .ThenInclude(sr => sr.Session)
             .Include(u => u.Counsellor)
+                .ThenInclude(c => c.SessionRelations)
+                .ThenInclude(csr => csr.Session) 
             .Where(u => (u.Student != null &&
                         u.Student.Name == Name) ||
                     (u.Counsellor != null &&
@@ -101,7 +126,12 @@ public class DbRepository(AppDbContext context) : IUserRepository, ISessionRepos
             .Include(u => u.Student)
                 .ThenInclude(s => s.ParentRelations)
                 .ThenInclude(r => r.Parent)
+            .Include(u => u.Student)
+                .ThenInclude(s => s.SessionRelations)
+                .ThenInclude(sr => sr.Session)
             .Include(u => u.Counsellor)
+                .ThenInclude(c => c.SessionRelations)
+                .ThenInclude(csr => csr.Session)
             .Where(u => (u.Student != null &&
                         u.Student.Surname == Surname) ||
                     (u.Counsellor != null &&
@@ -116,7 +146,12 @@ public class DbRepository(AppDbContext context) : IUserRepository, ISessionRepos
             .Include(u => u.Student)
                 .ThenInclude(s => s.ParentRelations)
                 .ThenInclude(r => r.Parent)
+            .Include(u => u.Student)
+                .ThenInclude(s => s.SessionRelations)
+                .ThenInclude(sr => sr.Session)
             .Include(u => u.Counsellor)
+                .ThenInclude(c => c.SessionRelations)
+                .ThenInclude(csr => csr.Session)
             .Where(u => (u.Student != null && u.Student.City == town) || (u.Counsellor != null && u.Counsellor.City == town))
             .Select(u => u.ToDomainUser())
             .ToArrayAsync();
@@ -128,7 +163,12 @@ public class DbRepository(AppDbContext context) : IUserRepository, ISessionRepos
             .Include(u => u.Student)
                 .ThenInclude(s => s.ParentRelations)
                 .ThenInclude(r => r.Parent)
+            .Include(u => u.Student)
+                .ThenInclude(s => s.SessionRelations)
+                .ThenInclude(sr => sr.Session)
             .Include(u => u.Counsellor)
+                .ThenInclude(c => c.SessionRelations)
+                .ThenInclude(csr => csr.Session)
             .Where(u => u.Student != null && u.Student.CurrentClass == classNumber)
             .Select(u => u.ToDomainUser())
             .ToArrayAsync();
@@ -140,7 +180,12 @@ public class DbRepository(AppDbContext context) : IUserRepository, ISessionRepos
             .Include(u => u.Student)
                 .ThenInclude(s => s.ParentRelations)
                 .ThenInclude(r => r.Parent)
+            .Include(u => u.Student)
+                .ThenInclude(s => s.SessionRelations)
+                .ThenInclude(sr => sr.Session)
             .Include(u => u.Counsellor)
+                .ThenInclude(c => c.SessionRelations)
+                .ThenInclude(csr => csr.Session)
             .Where(u => (u.Student != null && u.Student.CurrentGroup == group) || (u.Counsellor != null && u.Counsellor.CurrentGroup == group))
             .Select(u => u.ToDomainUser())
             .ToArrayAsync();
@@ -152,7 +197,12 @@ public class DbRepository(AppDbContext context) : IUserRepository, ISessionRepos
             .Include(u => u.Student)
                 .ThenInclude(s => s.ParentRelations)
                 .ThenInclude(r => r.Parent)
+            .Include(u => u.Student)
+                .ThenInclude(s => s.SessionRelations)
+                .ThenInclude(sr => sr.Session)
             .Include(u => u.Counsellor)
+                .ThenInclude(c => c.SessionRelations)
+                .ThenInclude(csr => csr.Session)
             .Where(u => u.Student != null && u.Student.School == school)
             .Select(u => u.ToDomainUser())
             .ToArrayAsync();
