@@ -1,6 +1,5 @@
 using FluentResults;
 using OzshBot.Domain.Entities;
-using OzshBot.Domain.ValueObjects;
 
 namespace OzshBot.Application.Services.Interfaces;
 

@@ -1,5 +1,3 @@
-using FluentResults;
-using OzshBot.Application.AppErrors;
 using OzshBot.Application.RepositoriesInterfaces;
 using OzshBot.Application.Services.Interfaces;
 using OzshBot.Domain.Entities;
@@ -51,7 +49,7 @@ public class UserFindService: IUserFindService
         if (splitedInput.Length == 1)
         {
             var tg = input.Replace("@", "");
-            var userByTg = await FindUserByTgAsync(new TelegramInfo { TgId = null, TgUsername = input });
+            var userByTg = await FindUserByTgAsync(new TelegramInfo { TgId = null, TgUsername = tg });
             if (userByTg is not null) return [userByTg];
         }
 
@@ -64,8 +62,8 @@ public class UserFindService: IUserFindService
         var combinations = GenerateFullNameCombinationsByInput(splitedInput);
         foreach (var combination in combinations)
         {
-            var userByFullName = await FindUsersByFullNameAsync(combination);
-            if (userByFullName.Length != 0) return userByFullName;
+            var usersByFullName = await FindUsersByFullNameAsync(combination);
+            if (usersByFullName.Length != 0) return usersByFullName;
         }
         return [];
     }

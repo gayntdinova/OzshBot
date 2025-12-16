@@ -6,7 +6,7 @@ namespace OzshBot.Application.DtoModels;
 
 public class ChildDto: UserDtoModel
 {
-    public ChildInfo ChildInfo { get; set; }
+    public required ChildInfo ChildInfo { get; set; }
 
     public override User ToUser()
     {

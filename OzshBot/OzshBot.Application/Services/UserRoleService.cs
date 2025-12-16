@@ -18,14 +18,14 @@ public class UserRoleService: IUserRoleService
     public async Task<Role> GetUserRoleByTgAsync(TelegramInfo telegramInfo)
     {
         var user = await userRepository.GetUserByTgAsync(telegramInfo);
-        if (user != null) UpdateTelegramInfo(user, telegramInfo);
+        if (user != null) await UpdateTelegramInfo(user, telegramInfo);
         return user?.Role ?? Role.Unknown;
     }
 
     public async Task<Role> ActivateUserByPhoneNumberAsync(string phoneNumber, TelegramInfo telegramInfo)
     {
         var user = await userRepository.GetUserByPhoneNumberAsync(phoneNumber);
-        if (user != null) UpdateTelegramInfo(user, telegramInfo);
+        if (user != null) await UpdateTelegramInfo(user, telegramInfo);
         return user?.Role ?? Role.Unknown; 
     }
 
@@ -44,9 +44,9 @@ public class UserRoleService: IUserRoleService
         return Result.Ok(user);
     }
 
-    private void UpdateTelegramInfo(User user, TelegramInfo telegramInfo)
+    private async Task UpdateTelegramInfo(User user, TelegramInfo telegramInfo)
     {
         user.TelegramInfo = telegramInfo;
-        userRepository.UpdateUserAsync(user);
+        await userRepository.UpdateUserAsync(user);
     }
 }
