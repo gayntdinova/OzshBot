@@ -8,5 +8,5 @@ public interface ISessionService
 {
     Task<Result> AddSessionAsync(Session session);
     Task<Result<Session>> EditSessionAsync(Session session);
-    Task<Result<Session[]>> GetLastSessionsAsync(int numberOfSessions);
+    Task<Session[]> GetAllSessionsAsync();
 }

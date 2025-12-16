@@ -36,12 +36,10 @@ public class SessionService: ISessionService
         return Result.Ok(session);
     }  
 
-    public async Task<Result<Session[]>> GetLastSessionsAsync(int numberOfSessions)
+    public async Task<Session[]> GetAllSessionsAsync()
     {
-        var sessions = await sessionRepository.GetLastSessionsAsync(numberOfSessions);
-        if (sessions == null)
-            return Result.Fail(new SessionNotFoundError());
-        return Result.Ok(sessions);
+        var sessions = await sessionRepository.GetAllSessions();
+        return sessions ?? [];
     }
 
     private async Task<bool> CheckIfSessionIntersectsAsync(Session currentSession)
