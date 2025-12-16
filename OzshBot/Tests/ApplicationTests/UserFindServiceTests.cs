@@ -21,7 +21,7 @@ public class UserFindServiceTests
     }
     
     [Test]
-    public async Task FindUserByTgAsync_KnownUser_ReturnsResultOk()
+    public async Task FindUserByTgAsync_KnownUser()
     {
         var telegramInfo = new TelegramInfo { TgId = null, TgUsername = "testUser1" };
         var foundUser = new User
@@ -33,26 +33,25 @@ public class UserFindServiceTests
         A.CallTo(() => userRepository.GetUserByTgAsync(telegramInfo))!
             .Returns(Task.FromResult(foundUser));
         
-        var result = await userFindService.FindUserByTgAsync(telegramInfo);
+        var user = await userFindService.FindUserByTgAsync(telegramInfo);
         
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeEquivalentTo(foundUser);
+        user.Should().BeEquivalentTo(foundUser);
     }
     
     [Test]
-    public async Task FindUserByTgAsync_UnknownUser_ReturnsResultFail()
+    public async Task FindUserByTgAsync_UnknownUser_ReturnsNull()
     {
         var telegramInfo = new TelegramInfo { TgId = null, TgUsername = "testUser1" };
         A.CallTo(() => userRepository.GetUserByTgAsync(telegramInfo))
             .Returns(Task.FromResult<User?>(null));
         
-        var result = await userFindService.FindUserByTgAsync(telegramInfo);
-        
-        result.IsSuccess.Should().BeFalse();
+        var user = await userFindService.FindUserByTgAsync(telegramInfo);
+
+        user.Should().BeNull();
     }
 
     [Test]
-    public async Task FindUsersByClassAsync_ClassWithChildren_ReturnsResultOk()
+    public async Task FindUsersByClassAsync_ClassWithChildren()
     {
         var firstChild = new User
         {
@@ -70,25 +69,24 @@ public class UserFindServiceTests
         A.CallTo(() => userRepository.GetUsersByClassAsync(6))!
             .Returns(Task.FromResult<User[]>([firstChild]));
         
-        var result = await userFindService.FindUsersByClassAsync(6);
+        var users = await userFindService.FindUsersByClassAsync(6);
         
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeEquivalentTo([firstChild]);
+        users.Should().BeEquivalentTo([firstChild]);
     }
 
     [Test]
-    public async Task FindUsersByClassAsync_EmptyClass_ReturnsResultFail()
+    public async Task FindUsersByClassAsync_EmptyClass_ReturnsEmptyArray()
     {
         A.CallTo(() => userRepository.GetUsersByClassAsync(1))
             .Returns(Task.FromResult<User[]?>(null));
         
-        var result = await userFindService.FindUsersByClassAsync(1);
-        
-        result.IsSuccess.Should().BeFalse();
+        var users = await userFindService.FindUsersByClassAsync(1);
+
+        users.Should().BeEmpty();
     }
 
     [Test]
-    public async Task FindUsersByGroupAsync_GroupWithChildren_ReturnsResultOk()
+    public async Task FindUsersByGroupAsync_GroupWithChildren()
     {
         var firstChild = new User
         {
@@ -102,26 +100,25 @@ public class UserFindServiceTests
         A.CallTo(() => userRepository.GetUsersByGroupAsync(1))!
             .Returns([firstChild]);
         
-        var result = await userFindService.FindUsersByGroupAsync(1);
+        var users = await userFindService.FindUsersByGroupAsync(1);
         
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeEquivalentTo([firstChild]);
+        users.Should().BeEquivalentTo([firstChild]);
     }
     
     [Test]
-    public async Task FindUsersByGroupAsync_EmptyGroup_ReturnsResultFail()
+    public async Task FindUsersByGroupAsync_EmptyGroup_ReturnsEmptyArray()
     {
         A.CallTo(() => userRepository.GetUsersByGroupAsync(0))!
             .Returns(Task.FromResult<User[]?>(null));
         
-        var result = await userFindService.FindUsersByGroupAsync(0);
+        var users = await userFindService.FindUsersByGroupAsync(0);
         
-        result.IsSuccess.Should().BeFalse();
+        users.Should().BeEmpty();
     }
 
     #region FindUsersAsyncTests
     [Test]
-    public async Task FindUsersAsync_ByTelegram_ReturnsResultOk()
+    public async Task FindUsersAsync_ByTelegram()
     {
         var telegramInfo = new TelegramInfo { TgId = null, TgUsername = "testUser1" };
         var foundUser = new User
@@ -136,14 +133,13 @@ public class UserFindServiceTests
                     t.TgId == null)))!
             .Returns(Task.FromResult(foundUser));
         
-        var result = await userFindService.FindUserAsync("testUser1");
+        var users = await userFindService.FindUserAsync("testUser1");
         
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeEquivalentTo([foundUser]);
+        users.Should().BeEquivalentTo([foundUser]);
     }
     
     [Test]
-    public async Task FindUsersAsync_ByCity_ReturnsResultOk()
+    public async Task FindUsersAsync_ByCity()
     {
         var foundUser = new User
         {
@@ -159,14 +155,13 @@ public class UserFindServiceTests
         A.CallTo(() => userRepository.GetUsersByCityAsync("Екатеринбург"))
             .Returns(Task.FromResult<User[]?>([foundUser]));
         
-        var result = await userFindService.FindUserAsync("Екатеринбург");
+        var users = await userFindService.FindUserAsync("Екатеринбург");
         
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeEquivalentTo([foundUser]); 
+        users.Should().BeEquivalentTo([foundUser]); 
     }
     
     [Test]
-    public async Task FindUsersAsync_BySchool_ReturnsResultOk()
+    public async Task FindUsersAsync_BySchool()
     {
         var foundUser = new User
         {
@@ -191,14 +186,13 @@ public class UserFindServiceTests
         A.CallTo(() => userRepository.GetUsersBySchoolAsync("СУНЦ"))
             .Returns(Task.FromResult<User[]?>([foundUser]));
         
-        var result = await userFindService.FindUserAsync("СУНЦ");
+        var users = await userFindService.FindUserAsync("СУНЦ");
         
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeEquivalentTo([foundUser]); 
+        users.Should().BeEquivalentTo([foundUser]); 
     }
     
     [Test]
-    public async Task FindUsersAsync_BySurnameAndName_ReturnsResultOk()
+    public async Task FindUsersAsync_BySurnameAndName()
     {
         var input = "Иванов Иван";
         var foundUser = new User
@@ -226,14 +220,13 @@ public class UserFindServiceTests
                     fn.Patronymic == null)))
             .Returns(Task.FromResult<User[]?>([foundUser]));
         
-        var result = await userFindService.FindUserAsync(input);
+        var users = await userFindService.FindUserAsync(input);
         
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeEquivalentTo([foundUser]); 
+        users.Should().BeEquivalentTo([foundUser]); 
     }
     
     [Test]
-    public async Task FindUsersAsync_ByNameAndSurname_ReturnsResultOk()
+    public async Task FindUsersAsync_ByNameAndSurname()
     {
         var input = "Иван Иванов";
         var foundUser = new User
@@ -255,15 +248,14 @@ public class UserFindServiceTests
                     fn.Patronymic == null)))
             .Returns(Task.FromResult<User[]?>([foundUser]));
         
-        var result = await userFindService.FindUserAsync(input);
+        var users = await userFindService.FindUserAsync(input);
         
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeEquivalentTo([foundUser]); 
+        users.Should().BeEquivalentTo([foundUser]); 
     }
     
     
     [Test]
-    public async Task FindUsersAsync_ByPatronomyc_ReturnsResultOk()
+    public async Task FindUsersAsync_ByPatronomyc()
     {
         var input = "Иванович";
         var foundUser = new User
@@ -298,14 +290,13 @@ public class UserFindServiceTests
                     fn.Patronymic == null)))
             .Returns(Task.FromResult<User[]?>(null));
         
-        var result = await userFindService.FindUserAsync(input);
+        var users = await userFindService.FindUserAsync(input);
         
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeEquivalentTo([foundUser]); 
+        users.Should().BeEquivalentTo([foundUser]); 
     }
     
     [Test]
-    public async Task FindUsersAsync_BySurname_ReturnsResultOk()
+    public async Task FindUsersAsync_BySurname()
     {
         var input = "Иванов";
         var foundUser = new User
@@ -340,14 +331,13 @@ public class UserFindServiceTests
                     fn.Patronymic == null)))
             .Returns(Task.FromResult<User[]?>([foundUser]));
         
-        var result = await userFindService.FindUserAsync(input);
+        var users = await userFindService.FindUserAsync(input);
         
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeEquivalentTo([foundUser]); 
+        users.Should().BeEquivalentTo([foundUser]); 
     }
     
     [Test]
-    public async Task FindUsersAsync_ByName_ReturnsResultOk()
+    public async Task FindUsersAsync_ByName()
     {
         var input = "Иван";
         var foundUser = new User
@@ -382,14 +372,13 @@ public class UserFindServiceTests
                     fn.Patronymic == null)))
             .Returns(Task.FromResult<User[]?>(null));
         
-        var result = await userFindService.FindUserAsync(input);
+        var users = await userFindService.FindUserAsync(input);
         
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeEquivalentTo([foundUser]); 
+        users.Should().BeEquivalentTo([foundUser]); 
     }
     
     [Test]
-    public async Task FindUsersAsync_ByFullName_ReturnsResultOk()
+    public async Task FindUsersAsync_ByFullName()
     {
         var input = "Иванов Иван Иванович";
         var foundUser = new User
@@ -412,14 +401,13 @@ public class UserFindServiceTests
                     fn.Patronymic == "Иванович")))
             .Returns(Task.FromResult<User[]?>([foundUser]));
         
-        var result = await userFindService.FindUserAsync(input);
+        var users = await userFindService.FindUserAsync(input);
         
-        result.IsSuccess.Should().BeTrue();
-        result.Value.Should().BeEquivalentTo([foundUser]); 
+        users.Should().BeEquivalentTo([foundUser]); 
     }
 
     [Test]
-    public async Task FindUsersAsync_ReturnsResultFail()
+    public async Task FindUsersAsync_ReturnsEmptyArray()
     {
         var input = "Иванов Иван Иванович";
         var foundUser = new User
@@ -442,9 +430,10 @@ public class UserFindServiceTests
                     fn.Patronymic == "Иванович")))
             .Returns(Task.FromResult<User[]?>(null));
         
-        var result = await userFindService.FindUserAsync(input);
-        
-        result.IsSuccess.Should().BeFalse();
+        var users = await userFindService.FindUserAsync(input);
+
+        users.Should().BeEmpty();
+
     }
     #endregion
 }
