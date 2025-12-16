@@ -36,9 +36,9 @@ public class SessionService: ISessionService
         return Result.Ok(session);
     }  
 
-    public async Task<Session[]> GetLastSessionsAsync(int numberOfSessions)
+    public async Task<Session[]> GetAllSessionsAsync()
     {
-        var sessions = await sessionRepository.GetLastSessionsAsync(numberOfSessions);
+        var sessions = await sessionRepository.GetAllSessions();
         return sessions ?? [];
     }
 
