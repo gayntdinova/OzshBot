@@ -12,13 +12,15 @@ namespace Tests.ApplicationTests;
 public class UserFindServiceTests
 {
     private IUserRepository userRepository;
+    private ISessionRepository sessionRepository;
     private UserFindService userFindService;
     
     [SetUp]
     public void Setup()
     {
         userRepository = A.Fake<IUserRepository>();
-        userFindService = new(userRepository);
+        sessionRepository = A.Fake<ISessionRepository>();
+        userFindService = new(userRepository, sessionRepository);
     }
     
     [Test]

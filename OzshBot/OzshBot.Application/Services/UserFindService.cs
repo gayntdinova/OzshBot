@@ -11,23 +11,32 @@ namespace OzshBot.Application.Services;
 public class UserFindService: IUserFindService
 {
     private readonly IUserRepository userRepository;
-    public UserFindService(IUserRepository userRepository)
+    private readonly ISessionRepository sessionRepository;
+    public UserFindService(IUserRepository userRepository, ISessionRepository sessionRepository)
     {
         this.userRepository = userRepository;
+        this.sessionRepository = sessionRepository;
     }
     
     public async Task<User[]> FindUsersByClassAsync(int classNumber)
     {
-        var users = await userRepository.GetUsersByClassAsync(classNumber);
+        var lastSession = await sessionRepository.GetLastSessionsAsync(1);
+        if (lastSession == null) return [];
+        var users = await userRepository.GetUsersBySessionIdAsync(lastSession[0].Id);
         if (users == null) return [];
-        return users.Where(user => user.Role == Role.Child && user.ChildInfo.Group != null)
+        return users.Where(user => user.Role == Role.Child && user.ChildInfo.EducationInfo.Class == classNumber)
             .ToArray();
     }
     
     public async Task<User[]> FindUsersByGroupAsync(int group)
     {
-        var users = await userRepository.GetUsersByGroupAsync(group);
-        return users ?? [];
+        var lastSession = await sessionRepository.GetLastSessionsAsync(1);
+        if (lastSession == null) return [];
+        var users = await userRepository.GetUsersBySessionIdAsync(lastSession[0].Id);
+        if (users == null) return [];
+        return users.Where(user => (user.Role == Role.Child && user.ChildInfo.Group == group)
+                                   || (user.Role == Role.Counsellor && user.CounsellorInfo.Group == group))
+            .ToArray();
     }
 
     public async Task<User?> FindUserByPhoneNumberAsync(string phoneNumber)
