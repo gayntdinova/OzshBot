@@ -3,6 +3,7 @@ using OzshBot.Application.Services;
 using FakeItEasy;
 using FluentAssertions;
 using OzshBot.Domain.Entities;
+using OzshBot.Domain.Enums;
 using OzshBot.Domain.ValueObjects;
 
 namespace Tests.ApplicationTests;
@@ -51,7 +52,7 @@ public class UserFindServiceTests
     }
 
     [Test]
-    public async Task FindUsersByClassAsync_ClassWithChildren()
+    public async Task FindUsersByClassAsync_ReturnChildrenWithInputClassAndGroup()
     {
         var firstChild = new User
         {
@@ -64,14 +65,31 @@ public class UserFindServiceTests
                 },
             },
             FullName = new FullName("Иванов", "Иван", "Иванович"),
-            PhoneNumber = "+79999999999"
+            PhoneNumber = "+79999999999",
+            Role = Role.Child
+        };
+        
+        var secondChild = new User
+        {
+            ChildInfo = new ChildInfo
+            {
+                EducationInfo = new EducationInfo
+                {
+                    Class = 6,
+                    School = "школа 2"
+                },
+                Group = 2
+            },
+            FullName = new FullName("Иванов", "Иван", "Иванович"),
+            PhoneNumber = "+79999999999",
+            Role = Role.Child
         };
         A.CallTo(() => userRepository.GetUsersByClassAsync(6))!
-            .Returns(Task.FromResult<User[]>([firstChild]));
+            .Returns(Task.FromResult<User[]>([firstChild, secondChild]));
         
         var users = await userFindService.FindUsersByClassAsync(6);
         
-        users.Should().BeEquivalentTo([firstChild]);
+        users.Should().BeEquivalentTo([secondChild]);
     }
 
     [Test]

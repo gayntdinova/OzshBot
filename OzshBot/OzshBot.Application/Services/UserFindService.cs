@@ -67,6 +67,24 @@ public class UserFindService: IUserFindService
         return user;
     }
 
+    private async Task<User[]> FindUsersByFullNameAsync(NameSearch name)
+    {
+        var users = await userRepository.GetUsersByFullNameAsync(name);
+        return users ?? [];
+    }
+
+    private async Task<User[]> FindUsersByCityAsync(string city)
+    {
+        var users = await userRepository.GetUsersByCityAsync(city);
+        return users ?? [];
+    }
+
+    private async Task<User[]> FindUsersBySchoolAsync(string school)
+    {
+        var users = await userRepository.GetUsersBySchoolAsync(school);
+        return users ?? [];
+    } 
+    
     private static List<NameSearch> GenerateFullNameCombinationsByInput(string[] splitedTarget)
     {
         var fullNameCombinations = new List<NameSearch>();
@@ -89,22 +107,4 @@ public class UserFindService: IUserFindService
 
         return fullNameCombinations;
     }
-
-    private async Task<User[]> FindUsersByFullNameAsync(NameSearch name)
-    {
-        var users = await userRepository.GetUsersByFullNameAsync(name);
-        return users ?? [];
-    }
-
-    private async Task<User[]> FindUsersByCityAsync(string city)
-    {
-        var users = await userRepository.GetUsersByCityAsync(city);
-        return users ?? [];
-    }
-
-    private async Task<User[]> FindUsersBySchoolAsync(string school)
-    {
-        var users = await userRepository.GetUsersBySchoolAsync(school);
-        return users ?? [];
-    } 
 }
