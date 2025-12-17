@@ -7,8 +7,21 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\OzshBot.Application\OzshBot.Application.csproj" />
-      <ProjectReference Include="..\OzshBot.Domain\OzshBot.Domain.csproj" />
+        <ProjectReference Include="..\OzshBot.Application\OzshBot.Application.csproj" />
+        <PackageReference Include="Google.Apis.Sheets.v4" Version="1.70.0.3819" />
+        <ProjectReference Include="..\OzshBot.Domain\OzshBot.Domain.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Compile Update="Parser\GoogleDocsReader.cs">
+        <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+      </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="core-song-477709-a0-db7e8f5a3e78.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+    
 </Project>
