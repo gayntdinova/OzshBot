@@ -55,8 +55,9 @@ public class UserManagementService: IUserManagementService
         var result = await tableParser.GetChildrenAsync(link);
         if (result.IsFailed)
         {
-            if (result.HasError<IncorrectUrlError>()) return Result.Fail(new IncorrectUrlError());
-            if (result.HasError<IncorrectRowError>()) return Result.Fail(result.Errors);
+            if (result.HasError<IncorrectRowError>()
+                || result.HasError<IncorrectUrlError>()
+                || result.HasError<IncorrectTableFormatError>()) return Result.Fail(result.Errors);
             return result.ToResult();
         }
         
