@@ -3,7 +3,6 @@ using OzshBot.Application.AppErrors;
 using OzshBot.Application.RepositoriesInterfaces;
 using OzshBot.Application.Services.Interfaces;
 using OzshBot.Domain.Entities;
-using OzshBot.Domain.ValueObjects;
 
 namespace OzshBot.Application.Services;
 
