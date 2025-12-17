@@ -66,7 +66,7 @@ public class MadeUpData
     {
         Sessions = new();
         var date = new DateOnly().AddYears(2002);
-        for(var i = 0; i < 30; i++)
+        for(var i = 0; i < 5; i++)
         {
             date = date.AddDays(200);
             Sessions.Add(new Session{SessionDates = new SessionDates(date,date.AddDays(100))});
@@ -195,7 +195,7 @@ public class MadeUpData
 
     private HashSet<Session> GenerateRandomVisitedSessions(Random random)
     {
-        var numberOfSessions = random.Next(Sessions.Count());
+        var numberOfSessions = random.Next(1,Sessions.Count());
         return  Sessions
             .OrderBy(_ => random.Next())
             .Take(numberOfSessions)
@@ -296,6 +296,12 @@ public class MyUserRepository : IUserRepository
 
         return users.FirstOrDefault();
     }
+
+    public async Task<UserDomain[]?> GetUsersBySessionIdAsync(Guid sessionId)
+    {
+        return null;
+    }
+
 }
 
 public class MyUserRoleService: IUserRoleService
@@ -355,9 +361,10 @@ public class MySessionRepository : ISessionRepository
         return madeUpData.Sessions.FirstOrDefault(session=>session.Id==sessionId);
     }
 
-    public Task UpdateSessionAsync(Session session)
+    public async Task UpdateSessionAsync(Session session)
     {
-        throw new NotImplementedException();
+        var ses = madeUpData.Sessions.First(ses=>ses.Id==session.Id);
+        ses = session;
     }
 
 }

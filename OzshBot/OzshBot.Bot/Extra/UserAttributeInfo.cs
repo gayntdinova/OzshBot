@@ -145,7 +145,7 @@ public static class UserAttributesInfoManager
                             var startDate = DateOnly.ParseExact(splitted[0], "dd.MM.yyyy");
                             var endDate = DateOnly.ParseExact(splitted[1], "dd.MM.yyyy");
 
-                            var sessions = await sessionService.GetLastSessionsAsync(30);
+                            var sessions = await sessionService.GetAllSessionsAsync();
 
                             if (sessions.Any(session=>session.SessionDates.StartDate==startDate && session.SessionDates.EndDate == endDate))
                                 return true;
@@ -159,7 +159,7 @@ public static class UserAttributesInfoManager
                         var startDate = DateOnly.ParseExact(splitted[0], "dd.MM.yyyy");
                         var endDate = DateOnly.ParseExact(splitted[1], "dd.MM.yyyy");
 
-                        var sessions = await sessionService.GetLastSessionsAsync(30);
+                        var sessions = await sessionService.GetAllSessionsAsync();
 
                         var session = sessions.First(session=>session.SessionDates.StartDate==startDate && session.SessionDates.EndDate == endDate);
                         
@@ -168,7 +168,7 @@ public static class UserAttributesInfoManager
                         if(user.CounsellorInfo!=null)
                             user.CounsellorInfo.Sessions.Add(session);
                     },
-                    async (user)=> new ReplyKeyboardMarkup((await sessionService.GetLastSessionsAsync(30))
+                    async (user)=> new ReplyKeyboardMarkup((await sessionService.GetAllSessionsAsync())
                         .Select(session=>new KeyboardButton[]{new KeyboardButton($"{session.SessionDates.StartDate.ToString("dd.MM.yyyy")} {session.SessionDates.EndDate.ToString("dd.MM.yyyy")}")}))
                     {ResizeKeyboard = true})
             },
@@ -185,7 +185,7 @@ public static class UserAttributesInfoManager
                             var startDate = DateOnly.ParseExact(splitted[1], "dd.MM.yyyy");
                             var endDate = DateOnly.ParseExact(splitted[2], "dd.MM.yyyy");
 
-                            var sessions = await sessionService.GetLastSessionsAsync(30);
+                            var sessions = await sessionService.GetAllSessionsAsync();
 
                             if (sessions.Any(session=>session.SessionDates.StartDate==startDate && session.SessionDates.EndDate == endDate))
                                 return true;
@@ -200,7 +200,7 @@ public static class UserAttributesInfoManager
                         var startDate = DateOnly.ParseExact(splitted[1], "dd.MM.yyyy");
                         var endDate = DateOnly.ParseExact(splitted[2], "dd.MM.yyyy");
 
-                        var sessions = await sessionService.GetLastSessionsAsync(30);
+                        var sessions = await sessionService.GetAllSessionsAsync();
 
                         var session = sessions.First(session=>session.SessionDates.StartDate==startDate && session.SessionDates.EndDate == endDate);
                         
@@ -229,7 +229,7 @@ public static class UserAttributesInfoManager
 
                         var toAdd = userSessions
                             .Select(session=>new KeyboardButton[]{new KeyboardButton($"remove {session.SessionDates.StartDate.ToString("dd.MM.yyyy")} {session.SessionDates.EndDate.ToString("dd.MM.yyyy")}")});
-                        var toDelete = (await sessionService.GetLastSessionsAsync(30))
+                        var toDelete = (await sessionService.GetAllSessionsAsync())
                             .Where(ses=>!userSessions.Any(sess=>sess.Id==ses.Id))
                             .Select(session=>new KeyboardButton[]{new KeyboardButton($"add {session.SessionDates.StartDate.ToString("dd.MM.yyyy")} {session.SessionDates.EndDate.ToString("dd.MM.yyyy")}")});
                         

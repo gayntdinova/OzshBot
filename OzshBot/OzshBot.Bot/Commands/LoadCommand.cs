@@ -68,7 +68,7 @@ public class LoadCommand : IBotCommand
                     return false;
                 }
 
-                var sessions = await userService.SessionService.GetLastSessionsAsync(30);
+                var sessions = await userService.SessionService.GetAllSessionsAsync();
 
                 //если уже находится в ожидании какого то ответа
                 if(stateDict.TryGetValue(update.Message!.From!.Id, out var state))
@@ -84,33 +84,30 @@ public class LoadCommand : IBotCommand
                             if (sessions.Any(session=>session.SessionDates.StartDate==startDate && session.SessionDates.EndDate == endDate))
                             {
                                 state.SessionDates = new SessionDates(startDate,endDate);
-                                var messageId = (await bot.SendMessage(
+                                state.messagesIds.Push((await bot.SendMessage(
                                     chat.Id,
                                     "Напишите url(ссылку) таблицы с учениками",
                                     replyMarkup: GetSessionsKeyboard(sessions)
-                                    )).Id;
-                                state.messagesIds.Push(messageId);
+                                    )).Id);
                                 return true;
                             }
                             else
                             {
-                                var messageId = (await bot.SendMessage(
+                                state.messagesIds.Push((await bot.SendMessage(
                                     chat.Id,
                                     "Такой сессии не существует, выберите из списка",
                                     replyMarkup: GetSessionsKeyboard(sessions)
-                                    )).Id;
-                                state.messagesIds.Push(messageId);
+                                    )).Id);
                                 return true;
                             }
                         }
                         else
                         {
-                            var messageId = (await bot.SendMessage(
+                            state.messagesIds.Push((await bot.SendMessage(
                                 chat.Id,
                                 "неправильный формат, верный формат: dd.MM.yyyy dd.MM.yyyy , но лучше просто нажать на вариант в клавиатуре",
                                 replyMarkup: GetSessionsKeyboard(sessions)
-                                )).Id;
-                            state.messagesIds.Push(messageId);
+                                )).Id);
                             return true;
                         }
                     }
@@ -119,14 +116,12 @@ public class LoadCommand : IBotCommand
                         var result = await userService.ManagementService.LoadTableAsync(messageText,state.SessionDates);
                         if (result.IsFailed)
                         {
-                            var messageId = (await bot.SendMessage(
+                            await bot.SendMessage(
                                 chat.Id,
                                 result.Errors.First().GetExplanation(),
                                 replyMarkup: new ReplyKeyboardRemove(),
                                 parseMode: ParseMode.MarkdownV2
-                                )).Id;
-                            state.messagesIds.Push(messageId);
-                            return true;
+                                );
                         }
                         else
                         {
@@ -136,9 +131,10 @@ public class LoadCommand : IBotCommand
                                 replyMarkup: new ReplyKeyboardRemove(),
                                 parseMode: ParseMode.MarkdownV2
                                 );
-                            await TryCancelState(bot,chat,userId);
-                            return false;
+                            
                         }
+                        await TryCancelState(bot,chat,userId);
+                        return false;
                     }
                 }
                 //если нам написали /load
@@ -147,22 +143,20 @@ public class LoadCommand : IBotCommand
                     await TryCancelState(bot,chat,userId);
                     stateDict[userId] = new LoadState();
 
-                    var messageId = (await bot.SendMessage(
+                    stateDict[userId].messagesIds.Push((await bot.SendMessage(
                         chat.Id,
                         "Начинаем добавление людей из таблицы",
                         replyMarkup: new InlineKeyboardMarkup(
                             InlineKeyboardButton.WithCallbackData("Отмена", "loadCancel"))
-                        )).Id;
-                    stateDict[userId].messagesIds.Push(messageId);
+                        )).Id);
 
                     
 
-                    messageId = (await bot.SendMessage(
+                    stateDict[userId].messagesIds.Push((await bot.SendMessage(
                         chat.Id,
                         "Введите даты смены, в которую вы хотите добавить пользователей из таблицы",
                         replyMarkup: GetSessionsKeyboard(sessions)
-                        )).Id;
-                    stateDict[userId].messagesIds.Push(messageId);
+                        )).Id);
                     return true;
                 }
 

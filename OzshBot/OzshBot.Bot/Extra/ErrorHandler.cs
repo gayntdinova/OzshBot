@@ -33,7 +33,9 @@ public static class ErrorHandler
     {
         { typeof(IncorrectUrlError), "Некорректный url" },
         { typeof(IncorrectRowError), "Некорректный столбец" },
-        { typeof(SessionNotFoundError), "Сессий нету, ну вообще"}
+        { typeof(SessionNotFoundError), "Сессий нету, ну вообще"},
+        { typeof(SessionAlreadyExistsError),"Сессия уже существует"},
+        { typeof(SessionIntersectError),"Нельзя чтобы даты сессий пересекались"}
     };
 
     public static string GetExplanation(this IError error)

@@ -101,8 +101,6 @@ public class GroupCommand : IBotCommand
                         replyMarkup: new ReplyKeyboardRemove(),
                         parseMode: ParseMode.MarkdownV2
                         );
-                
-                
                 return false;
             default:
                 return false;

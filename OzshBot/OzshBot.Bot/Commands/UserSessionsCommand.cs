@@ -66,17 +66,17 @@ public class UserSessionsCommand : IBotCommand
                 {
                     var sessions = new Session[0];
                     if (user.ChildInfo != null)
-                        sessions.Concat(user.ChildInfo.Sessions);
+                        sessions = sessions.Concat(user.ChildInfo.Sessions).ToArray();
                     if (user.CounsellorInfo != null)
-                        sessions.Concat(user.CounsellorInfo.Sessions);
+                        sessions = sessions.Concat(user.CounsellorInfo.Sessions).ToArray();
 
-                    var messageId = (await bot.SendMessage(
+                    await bot.SendMessage(
                         chat.Id,
                         sessions.FormateAnswer(user),
                         replyMarkup: new ReplyKeyboardRemove(),
                         parseMode: ParseMode.MarkdownV2
-                    )).Id;
-                    return true;
+                    );
+                    return false;
                 }
         }
         return false;

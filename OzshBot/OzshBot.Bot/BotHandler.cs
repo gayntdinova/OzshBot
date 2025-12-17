@@ -61,6 +61,8 @@ class BotHandler
 
         botClient.StartReceiving(UpdateHandler, ErrorHandler, receiverOptions, cts.Token);
 
+        UserAttributesInfoManager.Initialize(userService.SessionService);
+
         Console.WriteLine($"{(await botClient.GetMe()).FirstName} запущен!");
 
         await Task.Delay(-1);

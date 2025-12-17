@@ -105,10 +105,19 @@ public static class BotFormatter
 
     public static string FormateAnswer(this Session[] sessions,UserDomain user)
     {
-        var answer = $"Смены, на которых был {user.FullName.Name}"+
+        var answer = $"Смены, на которых был {user.FullName.Name}:\n"+
             String.Join("\n", sessions
                 .Select(session =>
-                    $" -`{session.SessionDates.StartDate.ToString("dd.MM.yyyy")} {session.SessionDates.EndDate.ToString("dd.MM.yyyy")}`"));
+                    $" - `{session.SessionDates.StartDate.ToString("dd.MM.yyyy")} {session.SessionDates.EndDate.ToString("dd.MM.yyyy")}`"));
+        return FormateString(answer);
+    }
+
+    public static string FormateAnswer(this Session[] sessions)
+    {
+        var answer = $"Смены:\n"+
+            String.Join("\n", sessions
+                .Select(session =>
+                    $" - `{session.SessionDates.StartDate.ToString("dd.MM.yyyy")} {session.SessionDates.EndDate.ToString("dd.MM.yyyy")}`"));
         return FormateString(answer);
     }
 

@@ -94,11 +94,10 @@ public class EditCommand : IBotCommand
                         attributeInfo.FillingAction(state.EditUser,messageText);
                         state.WaitingSelectField = true;
 
-                        var messageId = (await bot.SendMessage( 
+                        state.messagesIds.Push((await bot.SendMessage( 
                             chat.Id,
                             "Изменено",
-                            replyMarkup: new ReplyKeyboardRemove())).Id;
-                        state.messagesIds.Push(messageId);
+                            replyMarkup: new ReplyKeyboardRemove())).Id);
                         return true;
                     }
                     //если не подходит под регулярку то переспрашиваем
@@ -151,16 +150,15 @@ public class EditCommand : IBotCommand
         }
         else
         {
-
-            var messageId = (await bot.SendMessage(
+            var state = new EditState(editedUser);
+            state.messagesIds.Push((await bot.SendMessage(
                 chat.Id,
                 "Выбирите что редактировать, если вы напишете сообщение не по теме, редактирование отменится",
                 replyMarkup: CreateKeyboard(editedUser.Role),
                 parseMode: ParseMode.MarkdownV2
-            )).Id;
-            var newState = new EditState(editedUser);
-            newState.messagesIds.Push(messageId);
-            stateDict[userId] = newState;
+            )).Id);
+            
+            stateDict[userId] = state;
             return true;
         }
     }
@@ -197,7 +195,6 @@ public class EditCommand : IBotCommand
                 replyMarkup: new ReplyKeyboardRemove(),
                 parseMode: ParseMode.MarkdownV2
                 );
-            await TryCancelState(bot,chat,userId);
         }
         else
         {
@@ -207,7 +204,6 @@ public class EditCommand : IBotCommand
                 replyMarkup: new ReplyKeyboardRemove(),
                 parseMode: ParseMode.MarkdownV2
                 );
-            await TryCancelState(bot,chat,userId);
             await bot.SendMessage(
                 chat.Id,
                 state.EditUser.FormateAnswer(Role.Counsellor),
@@ -218,6 +214,7 @@ public class EditCommand : IBotCommand
                 parseMode: ParseMode.MarkdownV2
             );
         }
+        await TryCancelState(bot,chat,userId);
         return false;
     }
 
@@ -277,13 +274,12 @@ public class EditCommand : IBotCommand
         var attributeInfo = attribute.GetInfo();
         ReplyMarkup markup = attributeInfo.KeyboardMarkup!=null?await attributeInfo.KeyboardMarkup(state.EditUser): new ReplyKeyboardRemove();
 
-        var messageId = (await bot.SendMessage(
+        state.messagesIds.Push((await bot.SendMessage(
             chat.Id,
             ((wasIncorrect?"Некорректный формат\n":"")+attributeInfo.WritingInfo).FormateString(),
             parseMode: ParseMode.MarkdownV2,
             replyMarkup: markup
-            )).Id;
-        state.messagesIds.Push(messageId);
+            )).Id);
         state.UserAttribute = attribute;
         state.MessagesToDelete += 1;
     }

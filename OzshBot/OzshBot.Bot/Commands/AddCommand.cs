@@ -109,13 +109,12 @@ public class AddCommand : IBotCommand
 
                     stateDict[userId] = new AddState();
 
-                    var messageId = (await bot.SendMessage(
+                    stateDict[userId].messagesIds.Push((await bot.SendMessage(
                         chat.Id,
                         "Начинаем создание пользователя, для отмены нажмите отмена",
                         replyMarkup: new InlineKeyboardMarkup(
                             InlineKeyboardButton.WithCallbackData("Отмена", "addCancel"))
-                        )).Id;
-                    stateDict[userId].messagesIds.Push(messageId);
+                        )).Id);
 
                     await SendStateInfoMessage(chat,bot,stateDict[userId],UserAttribute.Role,false);
                     return true;
@@ -145,7 +144,6 @@ public class AddCommand : IBotCommand
                 replyMarkup: new ReplyKeyboardRemove(),
                 parseMode: ParseMode.MarkdownV2
                 );
-            await TryCancelState(bot,chat,userId);
         }
         else
         {
@@ -155,7 +153,6 @@ public class AddCommand : IBotCommand
                 replyMarkup: new ReplyKeyboardRemove(),
                 parseMode: ParseMode.MarkdownV2
                 );
-            await TryCancelState(bot,chat,userId);
             await bot.SendMessage(
                 chat.Id,
                 state.AddUser.FormateAnswer(Role.Counsellor),
@@ -166,6 +163,7 @@ public class AddCommand : IBotCommand
                 parseMode: ParseMode.MarkdownV2
             );
         }
+        await TryCancelState(bot,chat,userId);
         return false;
     }
 
@@ -184,13 +182,12 @@ public class AddCommand : IBotCommand
         var attributeInfo = attribute.GetInfo();
         ReplyMarkup markup = attributeInfo.KeyboardMarkup!=null?await attributeInfo.KeyboardMarkup(state.AddUser):new ReplyKeyboardRemove();
 
-        var messageId = (await bot.SendMessage(
+        state.messagesIds.Push((await bot.SendMessage(
             chat.Id,
             ((wasIncorrect?"Некорректный формат\n":"")+attributeInfo.WritingInfo).FormateString(),
             parseMode: ParseMode.MarkdownV2,
             replyMarkup: markup
-            )).Id;
-        state.messagesIds.Push(messageId);
+            )).Id);
         state.UserAttribute = attribute;
     }
 
