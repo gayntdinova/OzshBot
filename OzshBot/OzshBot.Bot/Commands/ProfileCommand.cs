@@ -51,13 +51,19 @@ public class ProfileCommand : IBotCommand
         var you = await userService.FindService.FindUserByTgAsync(
             new TelegramInfo { TgUsername = username });
 
-        if (you.IsFailed)
+        if (you == null)
         {
-            await bot.SendMessage(chat.Id, "вас не существует");
+            await bot.SendMessage(
+                chat.Id,
+                "вас не существует",
+                replyMarkup: new ReplyKeyboardRemove());
             return false;
         }
 
-        await bot.SendMessage(chat.Id, you.Value.FormateAnswer(you.Value.Role));
+        await bot.SendMessage(
+            chat.Id, 
+            you.FormateAnswer(you.Role),
+            replyMarkup: new ReplyKeyboardRemove());
 
         return false;
     }

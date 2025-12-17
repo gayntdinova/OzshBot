@@ -121,7 +121,11 @@ class BotHandler
         await SetCommandsForUser(role,userId);
 
         if(role == Role.Unknown)
-            await botClient.SendMessage(chat.Id, "для того чтобы пользоваться этим ботом вы должны быть учавстником лагеря ОЗШ");
+            await botClient.SendMessage(
+                chat.Id,
+                 "для того чтобы пользоваться этим ботом вы должны быть учавстником лагеря ОЗШ",
+                 replyMarkup: new ReplyKeyboardRemove()
+                 );
 
         if (stateDict.TryGetValue(userId,out var state))
         {
@@ -146,44 +150,46 @@ class BotHandler
 
     private async Task HandleSearching(Chat chat, Role role, string messageText)
     {
-        var result = await userService.FindService.FindUserAsync(messageText);
+        var users = await userService.FindService.FindUserAsync(messageText);
 
-        if (result.IsFailed)
+        if (users.Length==0)
         {
             await botClient.SendMessage(
                     chat.Id,
                     $"никто не найден",
+                    replyMarkup: new ReplyKeyboardRemove(),
+                    parseMode: ParseMode.MarkdownV2
+                    );
+        }
+        else if (users.Length == 1)
+        {
+            if(role == Role.Counsellor)
+                await botClient.SendMessage(
+                    chat.Id,
+                    users[0].FormateAnswer(role),
+                    replyMarkup: new InlineKeyboardMarkup(
+                        InlineKeyboardButton.WithCallbackData("Посещённые смены", "userSessions "+users[0].PhoneNumber),
+                        InlineKeyboardButton.WithCallbackData("Редактировать", "edit "+users[0].PhoneNumber)
+                    ),
+                    parseMode: ParseMode.MarkdownV2
+                    );
+            else
+                await botClient.SendMessage(
+                    chat.Id,
+                    users[0].FormateAnswer(role),
+                    replyMarkup: new InlineKeyboardMarkup(
+                        InlineKeyboardButton.WithCallbackData("Посещённые смены", "userSessions "+users[0].PhoneNumber)
+                        ),
                     parseMode: ParseMode.MarkdownV2
                     );
         }
         else
-        {
-            var users = result.Value;
-            if (users.Count() == 1)
-            {
-                if(role == Role.Counsellor)
-                    await botClient.SendMessage(
-                        chat.Id,
-                        users[0].FormateAnswer(role),
-                        replyMarkup: new InlineKeyboardMarkup(
-                            InlineKeyboardButton.WithCallbackData("Редактировать", "edit "+users[0].PhoneNumber)
-                        ),
-                        parseMode: ParseMode.MarkdownV2
-                        );
-                else
-                    await botClient.SendMessage(
-                        chat.Id,
-                        users[0].FormateAnswer(role),
-                        parseMode: ParseMode.MarkdownV2
-                        );
-            }
-            else
-                await botClient.SendMessage(
-                    chat.Id,
-                    users.FormateAnswer(messageText),
-                    parseMode: ParseMode.MarkdownV2
-                    );
-        }
+            await botClient.SendMessage(
+                chat.Id,
+                users.FormateAnswer(messageText),
+                replyMarkup: new ReplyKeyboardRemove(),
+                parseMode: ParseMode.MarkdownV2
+                );
     }
 
     //================================CallbackQueryMethods============================
@@ -207,7 +213,10 @@ class BotHandler
         await SetCommandsForUser(role,userId);
 
         if(role == Role.Unknown)
-            await botClient.SendMessage(chat.Id, "для того чтобы пользоваться этим ботом вы должны быть учавстником лагеря ОЗШ");
+            await botClient.SendMessage(
+                chat.Id,
+                "для того чтобы пользоваться этим ботом вы должны быть учавстником лагеря ОЗШ",
+                replyMarkup: new ReplyKeyboardRemove());
 
         if (stateDict.TryGetValue(userId,out var state))
         {
@@ -228,6 +237,7 @@ class BotHandler
             await botClient.AnswerCallbackQuery(callback.Id);
             return;
         }
+        
         await botClient.AnswerCallbackQuery(callback.Id);
     }
 

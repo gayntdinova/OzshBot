@@ -53,6 +53,7 @@ public class PromoteCommand : IBotCommand
             await bot.SendMessage(
                 chat.Id,
                 "У вас нет прав пользоваться этой командой",
+                replyMarkup: new ReplyKeyboardRemove(),
                 parseMode: ParseMode.MarkdownV2
                 );
             return false;
@@ -64,6 +65,7 @@ public class PromoteCommand : IBotCommand
             await bot.SendMessage(
                 chat.Id,
                 "Использование: /promote номер телефона",
+                replyMarkup: new ReplyKeyboardRemove(),
                 parseMode: ParseMode.MarkdownV2
                 );
             return false;
@@ -75,6 +77,7 @@ public class PromoteCommand : IBotCommand
             await bot.SendMessage(
                 chat.Id,
                 $"Не удалось повысить до вожатого",
+                replyMarkup: new ReplyKeyboardRemove(),
                 parseMode: ParseMode.MarkdownV2
                 );
         }
@@ -83,6 +86,7 @@ public class PromoteCommand : IBotCommand
             await bot.SendMessage(
                 chat.Id,
                 $"Пользователь успешно повышен до вожатого",
+                replyMarkup: new ReplyKeyboardRemove(),
                 parseMode: ParseMode.MarkdownV2
                 );
         }

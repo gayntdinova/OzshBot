@@ -59,6 +59,7 @@ public class AddCommand : IBotCommand
                     await bot.SendMessage(
                         chat.Id,
                         "У вас нет прав пользоваться этой командой",
+                        replyMarkup: new ReplyKeyboardRemove(),
                         parseMode: ParseMode.MarkdownV2
                         );
 
@@ -71,22 +72,21 @@ public class AddCommand : IBotCommand
                 {
                     state.messagesIds.Push(update.Message.Id);
                     var attributeInfo = state.UserAttribute.GetInfo();
+
                     //если подходит под регулярку этого аттрибута то перекидываем на следующий или заканчиваем
-                    if (Regex.IsMatch(messageText,attributeInfo.RegularExpression))
+                    if (await attributeInfo.CorrectFormateFunction(messageText))
                     {
                         attributeInfo.FillingAction(state.AddUser,messageText);
 
-                        var numberOfAttributes = Enum.GetNames(typeof(UserAttribute)).Length;
+                        var addableWithRole = UserAttributesInfoManager.AddableAttributes.Where(attr=>role.ImplementsAttribute(attr)).ToArray();
 
-                        var counter = (int)state.UserAttribute + 1;
-                        Console.WriteLine(counter);
-                        while (counter < numberOfAttributes && !state.AddUser.Role.ImplementsAttribute((UserAttribute)counter))
-                            counter+=1;
+                        var index = Array.IndexOf(addableWithRole,state.UserAttribute);
+                        index+=1;
 
                         //если этот атрибут нашёлся(при условии что он есть у роли создаваемого человека)
-                        if (counter < numberOfAttributes)
+                        if (index < addableWithRole.Length)
                         {
-                            await SendStateInfoMessage(chat,bot,stateDict[userId],(UserAttribute)counter,false);
+                            await SendStateInfoMessage(chat,bot,stateDict[userId],addableWithRole[index],false);
                             return true;
                         }
                         //если нет то заканчиваем пытаясь добавить пользователя и выводим его в чат
@@ -105,6 +105,8 @@ public class AddCommand : IBotCommand
                 //если нам написали /add
                 else
                 {
+                    await TryCancelState(bot,chat,userId);
+
                     stateDict[userId] = new AddState();
 
                     var messageId = (await bot.SendMessage(
@@ -140,6 +142,7 @@ public class AddCommand : IBotCommand
             await bot.SendMessage(
                 chat.Id,
                 $"Не удалось добавить пользователя",
+                replyMarkup: new ReplyKeyboardRemove(),
                 parseMode: ParseMode.MarkdownV2
                 );
             await TryCancelState(bot,chat,userId);
@@ -149,6 +152,7 @@ public class AddCommand : IBotCommand
             await bot.SendMessage(
                 chat.Id,
                 $"Пользователь успешно добавлен",
+                replyMarkup: new ReplyKeyboardRemove(),
                 parseMode: ParseMode.MarkdownV2
                 );
             await TryCancelState(bot,chat,userId);
@@ -156,7 +160,8 @@ public class AddCommand : IBotCommand
                 chat.Id,
                 state.AddUser.FormateAnswer(Role.Counsellor),
                 replyMarkup: new InlineKeyboardMarkup(
-                    InlineKeyboardButton.WithCallbackData("Редактировать", "editMenu "+state.AddUser.PhoneNumber)
+                    InlineKeyboardButton.WithCallbackData("Редактировать", "editMenu "+state.AddUser.PhoneNumber),
+                    InlineKeyboardButton.WithCallbackData("Смены", "sessions "+state.AddUser.PhoneNumber)
                 ),
                 parseMode: ParseMode.MarkdownV2
             );
@@ -177,10 +182,13 @@ public class AddCommand : IBotCommand
     private async Task SendStateInfoMessage(Chat chat,ITelegramBotClient bot,AddState state,UserAttribute attribute, bool wasIncorrect)
     {
         var attributeInfo = attribute.GetInfo();
+        ReplyMarkup markup = attributeInfo.KeyboardMarkup!=null?await attributeInfo.KeyboardMarkup(state.AddUser):new ReplyKeyboardRemove();
+
         var messageId = (await bot.SendMessage(
             chat.Id,
             ((wasIncorrect?"Некорректный формат\n":"")+attributeInfo.WritingInfo).FormateString(),
-            parseMode: ParseMode.MarkdownV2
+            parseMode: ParseMode.MarkdownV2,
+            replyMarkup: markup
             )).Id;
         state.messagesIds.Push(messageId);
         state.UserAttribute = attribute;

@@ -68,6 +68,7 @@ public class HelpCommand : IBotCommand
             "\\- найти контактную информацию своих знакомых из лагеря\n" +
             "\\- найти данные вожатых лагеря\n" +
             "\\- понять, кто пишет сообщение в общем чате, если вы знаете только юзернейм телеграма\n",
+            replyMarkup: new ReplyKeyboardRemove(),
             parseMode: ParseMode.MarkdownV2
             );
         return false;

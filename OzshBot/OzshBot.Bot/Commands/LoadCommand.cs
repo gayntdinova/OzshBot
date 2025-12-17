@@ -60,6 +60,7 @@ public class LoadCommand : IBotCommand
                     await bot.SendMessage(
                         chat.Id,
                         "У вас нет прав пользоваться этой командой",
+                        replyMarkup: new ReplyKeyboardRemove(),
                         parseMode: ParseMode.MarkdownV2
                         );
 
@@ -67,18 +68,7 @@ public class LoadCommand : IBotCommand
                     return false;
                 }
 
-                var sessionsResult = await userService.SessionService.GetLastSessionsAsync(100);
-                if (sessionsResult.IsFailed)
-                {
-                    await bot.SendMessage(
-                        chat.Id,
-                        sessionsResult.Errors.First().GetExplanation(),
-                        parseMode: ParseMode.MarkdownV2
-                        );
-
-                    await TryCancelState(bot,chat,userId);
-                    return false;
-                }
+                var sessions = await userService.SessionService.GetLastSessionsAsync(30);
 
                 //если уже находится в ожидании какого то ответа
                 if(stateDict.TryGetValue(update.Message!.From!.Id, out var state))
@@ -91,13 +81,13 @@ public class LoadCommand : IBotCommand
                             var splitted = messageText.Split(" ");
                             var startDate = DateOnly.ParseExact(splitted[0], "dd.MM.yyyy");
                             var endDate = DateOnly.ParseExact(splitted[1], "dd.MM.yyyy");
-                            if (sessionsResult.Value.Any(session=>session.SessionDates.StartDate==startDate && session.SessionDates.EndDate == endDate))
+                            if (sessions.Any(session=>session.SessionDates.StartDate==startDate && session.SessionDates.EndDate == endDate))
                             {
                                 state.SessionDates = new SessionDates(startDate,endDate);
                                 var messageId = (await bot.SendMessage(
                                     chat.Id,
                                     "Напишите url(ссылку) таблицы с учениками",
-                                    replyMarkup: GetSessionsKeyboard(sessionsResult.Value)
+                                    replyMarkup: GetSessionsKeyboard(sessions)
                                     )).Id;
                                 state.messagesIds.Push(messageId);
                                 return true;
@@ -107,7 +97,7 @@ public class LoadCommand : IBotCommand
                                 var messageId = (await bot.SendMessage(
                                     chat.Id,
                                     "Такой сессии не существует, выберите из списка",
-                                    replyMarkup: GetSessionsKeyboard(sessionsResult.Value)
+                                    replyMarkup: GetSessionsKeyboard(sessions)
                                     )).Id;
                                 state.messagesIds.Push(messageId);
                                 return true;
@@ -118,7 +108,7 @@ public class LoadCommand : IBotCommand
                             var messageId = (await bot.SendMessage(
                                 chat.Id,
                                 "неправильный формат, верный формат: dd.MM.yyyy dd.MM.yyyy , но лучше просто нажать на вариант в клавиатуре",
-                                replyMarkup: GetSessionsKeyboard(sessionsResult.Value)
+                                replyMarkup: GetSessionsKeyboard(sessions)
                                 )).Id;
                             state.messagesIds.Push(messageId);
                             return true;
@@ -132,6 +122,7 @@ public class LoadCommand : IBotCommand
                             var messageId = (await bot.SendMessage(
                                 chat.Id,
                                 result.Errors.First().GetExplanation(),
+                                replyMarkup: new ReplyKeyboardRemove(),
                                 parseMode: ParseMode.MarkdownV2
                                 )).Id;
                             state.messagesIds.Push(messageId);
@@ -142,6 +133,7 @@ public class LoadCommand : IBotCommand
                             await bot.SendMessage(
                                 chat.Id,
                                 "Таблица успешно загружена",
+                                replyMarkup: new ReplyKeyboardRemove(),
                                 parseMode: ParseMode.MarkdownV2
                                 );
                             await TryCancelState(bot,chat,userId);
@@ -152,6 +144,7 @@ public class LoadCommand : IBotCommand
                 //если нам написали /load
                 else
                 {
+                    await TryCancelState(bot,chat,userId);
                     stateDict[userId] = new LoadState();
 
                     var messageId = (await bot.SendMessage(
@@ -167,11 +160,10 @@ public class LoadCommand : IBotCommand
                     messageId = (await bot.SendMessage(
                         chat.Id,
                         "Введите даты смены, в которую вы хотите добавить пользователей из таблицы",
-                        replyMarkup: GetSessionsKeyboard(sessionsResult.Value)
+                        replyMarkup: GetSessionsKeyboard(sessions)
                         )).Id;
                     stateDict[userId].messagesIds.Push(messageId);
                     return true;
-                
                 }
 
             case UpdateType.CallbackQuery:

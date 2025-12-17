@@ -103,6 +103,15 @@ public static class BotFormatter
         return FormateString(answer);
     }
 
+    public static string FormateAnswer(this Session[] sessions,UserDomain user)
+    {
+        var answer = $"Смены, на которых был {user.FullName.Name}"+
+            String.Join("\n", sessions
+                .Select(session =>
+                    $" -`{session.SessionDates.StartDate.ToString("dd.MM.yyyy")} {session.SessionDates.EndDate.ToString("dd.MM.yyyy")}`"));
+        return FormateString(answer);
+    }
+
     public static string FormateString(this string text)
     => text.Replace(".","\\.").Replace("-","\\-").Replace("+","\\+").Replace("*","\\*")
         .Replace("(","\\(").Replace(")","\\)").Replace("_","\\_");

@@ -60,9 +60,18 @@ public class MadeUpData
     };
 
     public List<UserDomain> Users;
+    public List<Session> Sessions;
 
     public MadeUpData()
     {
+        Sessions = new();
+        var date = new DateOnly().AddYears(2002);
+        for(var i = 0; i < 30; i++)
+        {
+            date = date.AddDays(200);
+            Sessions.Add(new Session{SessionDates = new SessionDates(date,date.AddDays(100))});
+        }
+
         Users = new()
         {
             new UserDomain
@@ -89,7 +98,7 @@ public class MadeUpData
                         School = "Сунц УрФУ"
                     },
                     Group = 1000 + id,
-                    Sessions = new HashSet<Session> { },
+                    Sessions = new HashSet<Session> {Sessions[0],Sessions[1] },
                     ContactPeople = new HashSet<ContactPerson>{}
                 },
                 TelegramInfo = new()
@@ -107,6 +116,7 @@ public class MadeUpData
             Users.Add(GenerateRandomCounsellor(rand));
         }
     }
+
     private int id = 0;
     private UserDomain GenerateRandomChild(Random random)
     => new UserDomain
@@ -114,7 +124,7 @@ public class MadeUpData
         FullName = GenerateRandomFullName(random),
         Birthday = new DateOnly(),
         City = Towns[random.Next(Towns.Length)],
-        PhoneNumber = $"+79{(random.Next(100000000, 999999999))}",
+        PhoneNumber = $"+79{random.Next(100000000, 999999999)}",
         Email = $"child{id}@child{id}.com",
         TelegramInfo = new TelegramInfo
         {
@@ -130,7 +140,7 @@ public class MadeUpData
                 School = Schools[random.Next(Schools.Length)]
             },
             Group = 1000 + id,
-            Sessions = new HashSet<Session>(){},
+            Sessions = GenerateRandomVisitedSessions(random),
             ContactPeople = GenerateContactPersonList(random)
         },
         Role = Role.Child
@@ -143,7 +153,7 @@ public class MadeUpData
         Birthday = new DateOnly(),
         City = Towns[random.Next(Towns.Length)],
             
-        PhoneNumber = $"+79{(random.Next(100000000, 999999999))}",
+        PhoneNumber = $"+79{random.Next(100000000, 999999999)}",
         Email = $"counsellor{id}@counsellor{id}.com",
         TelegramInfo = new TelegramInfo
         {
@@ -154,7 +164,7 @@ public class MadeUpData
         CounsellorInfo = new CounsellorInfo
         {
             Group = 1000 + id,
-            Sessions = new HashSet<Session>(){}
+            Sessions = GenerateRandomVisitedSessions(random)
         },
         Role = Role.Counsellor
     };
@@ -169,7 +179,7 @@ public class MadeUpData
             {
                 FullName = GenerateRandomFullName(random),
                 Id = new Guid(),
-                PhoneNumber = $"+79{(random.Next(100000000, 999999999))}"
+                PhoneNumber = $"+79{random.Next(100000000, 999999999)}"
             });
         }
         return list.ToHashSet();
@@ -182,6 +192,15 @@ public class MadeUpData
         Surnames[random.Next(Names.Length)],
         Patronymics[random.Next(Names.Length)]
     );
+
+    private HashSet<Session> GenerateRandomVisitedSessions(Random random)
+    {
+        var numberOfSessions = random.Next(Sessions.Count());
+        return  Sessions
+            .OrderBy(_ => random.Next())
+            .Take(numberOfSessions)
+            .ToHashSet();
+    }
 }
 
 public class MyUserRepository : IUserRepository
@@ -305,29 +324,35 @@ public class MyUserRoleService: IUserRoleService
 
 public class MySessionRepository : ISessionRepository
 {
-    public Task AddSessionAsync(Session session)
+    private readonly MadeUpData madeUpData;
+    public MySessionRepository(MadeUpData madeUpData)
     {
-        throw new NotImplementedException();
+        this.madeUpData = madeUpData;
     }
 
-    public Task<Session[]?> GetAllSessions()
+    public async Task AddSessionAsync(Session session)
     {
-        throw new NotImplementedException();
+        madeUpData.Sessions.Add(session);
     }
 
-    public Task<Session[]?> GetLastSessionsAsync(int numberOfSessions)
+    public async Task<Session[]?> GetAllSessions()
     {
-        throw new NotImplementedException();
+        return madeUpData.Sessions.ToArray();
     }
 
-    public Task<Session?> GetSessionByDatesAsync(SessionDates sessionDates)
+    public async Task<Session[]?> GetLastSessionsAsync(int numberOfSessions)
     {
-        throw new NotImplementedException();
+        return madeUpData.Sessions.GetRange(madeUpData.Sessions.Count()-numberOfSessions,numberOfSessions).ToArray();
     }
 
-    public Task<Session?> GetSessionByIdAsync(Guid sessionId)
+    public async Task<Session?> GetSessionByDatesAsync(SessionDates sessionDates)
     {
-        throw new NotImplementedException();
+        return madeUpData.Sessions.FirstOrDefault(session=>session.SessionDates==sessionDates);
+    }
+
+    public async Task<Session?> GetSessionByIdAsync(Guid sessionId)
+    {
+        return madeUpData.Sessions.FirstOrDefault(session=>session.Id==sessionId);
     }
 
     public Task UpdateSessionAsync(Session session)

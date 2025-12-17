@@ -53,6 +53,7 @@ public class DeleteCommand : IBotCommand
             await bot.SendMessage(
                 chat.Id,
                 "У вас нет прав пользоваться этой командой",
+                replyMarkup: new ReplyKeyboardRemove(),
                 parseMode: ParseMode.MarkdownV2
                 );
             return false;
@@ -64,6 +65,7 @@ public class DeleteCommand : IBotCommand
             await bot.SendMessage(
                 chat.Id,
                 "Использование: /delete номер телефона",
+                replyMarkup: new ReplyKeyboardRemove(),
                 parseMode: ParseMode.MarkdownV2
                 );
             return false;
@@ -75,6 +77,7 @@ public class DeleteCommand : IBotCommand
             await bot.SendMessage(
                 chat.Id,
                 $"Не удалось удалить пользователя",
+                replyMarkup: new ReplyKeyboardRemove(),
                 parseMode: ParseMode.MarkdownV2
                 );
         }
@@ -83,6 +86,7 @@ public class DeleteCommand : IBotCommand
             await bot.SendMessage(
                 chat.Id,
                 $"Пользователь успешно удалён",
+                replyMarkup: new ReplyKeyboardRemove(),
                 parseMode: ParseMode.MarkdownV2
                 );
         }

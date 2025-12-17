@@ -42,6 +42,8 @@ static class Program
         container.Bind<IBotCommand>().To<LoadCommand>().InSingletonScope();
         container.Bind<IBotCommand>().To<GroupCommand>().InSingletonScope();
         container.Bind<IBotCommand>().To<ClassCommand>().InSingletonScope();
+        container.Bind<IBotCommand>().To<UserSessionsCommand>().InSingletonScope();
+        container.Bind<IBotCommand>().To<SessionsCommand>().InSingletonScope();
 
         return container;
     }

@@ -58,49 +58,50 @@ public class GroupCommand : IBotCommand
                     await bot.SendMessage(
                         chat.Id,
                         $"Использование: /group номер группы",
+                        replyMarkup: new ReplyKeyboardRemove(),
                         parseMode: ParseMode.MarkdownV2
                         );
                     return false;
                 }
 
-                var result = await userService.FindService.FindUsersByGroupAsync(int.Parse(splitted[1]));
+                var users = await userService.FindService.FindUsersByGroupAsync(int.Parse(splitted[1]));
 
-                if (result.IsFailed)
+                if (users.Length == 0)
                 {
                     await bot.SendMessage(
                         chat.Id,
                         $"никто не найден",
+                        replyMarkup: new ReplyKeyboardRemove(),
                         parseMode: ParseMode.MarkdownV2
                         );
                 }
-                else
+                else if (users.Count() == 1)
                 {
-                    var users = result.Value;
-                    if (users.Count() == 1)
-                    {
-                        if(role == Role.Counsellor)
-                            await bot.SendMessage(
-                                chat.Id,
-                                users[0].FormateAnswer(role),
-                                replyMarkup: new InlineKeyboardMarkup(
-                                    InlineKeyboardButton.WithCallbackData("Редактировать", "edit "+users[0].PhoneNumber)
-                                ),
-                                parseMode: ParseMode.MarkdownV2
-                                );
-                        else
-                            await bot.SendMessage(
-                                chat.Id,
-                                users[0].FormateAnswer(role),
-                                parseMode: ParseMode.MarkdownV2
-                                );
-                    }
+                    if(role == Role.Counsellor)
+                        await bot.SendMessage(
+                            chat.Id,
+                            users[0].FormateAnswer(role),
+                            replyMarkup: new InlineKeyboardMarkup(
+                                InlineKeyboardButton.WithCallbackData("Редактировать", "edit "+users[0].PhoneNumber)
+                            ),
+                            parseMode: ParseMode.MarkdownV2
+                            );
                     else
                         await bot.SendMessage(
                             chat.Id,
-                            users.FormateAnswer(messageText),
+                            users[0].FormateAnswer(role),
+                            replyMarkup: new ReplyKeyboardRemove(),
                             parseMode: ParseMode.MarkdownV2
                             );
                 }
+                else
+                    await bot.SendMessage(
+                        chat.Id,
+                        users.FormateAnswer(messageText),
+                        replyMarkup: new ReplyKeyboardRemove(),
+                        parseMode: ParseMode.MarkdownV2
+                        );
+                
                 
                 return false;
             default:
