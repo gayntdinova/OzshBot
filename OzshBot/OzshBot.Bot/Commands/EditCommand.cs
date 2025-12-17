@@ -208,7 +208,7 @@ public class EditCommand : IBotCommand
                 chat.Id,
                 state.EditUser.FormateAnswer(Role.Counsellor),
                 replyMarkup: new InlineKeyboardMarkup(
-                    InlineKeyboardButton.WithCallbackData("Редактировать", "edit "+state.EditUser.PhoneNumber),
+                    InlineKeyboardButton.WithCallbackData("Посещённые смены", "userSessions "+state.EditUser.PhoneNumber),
                     InlineKeyboardButton.WithCallbackData("Смены", "sessions "+state.EditUser.PhoneNumber)
                 ),
                 parseMode: ParseMode.MarkdownV2

@@ -157,8 +157,8 @@ public class AddCommand : IBotCommand
                 chat.Id,
                 state.AddUser.FormateAnswer(Role.Counsellor),
                 replyMarkup: new InlineKeyboardMarkup(
-                    InlineKeyboardButton.WithCallbackData("Редактировать", "editMenu "+state.AddUser.PhoneNumber),
-                    InlineKeyboardButton.WithCallbackData("Смены", "sessions "+state.AddUser.PhoneNumber)
+                    InlineKeyboardButton.WithCallbackData("Посещённые смены", "userSessions "+state.AddUser.PhoneNumber),
+                    InlineKeyboardButton.WithCallbackData("Редактировать", "editMenu "+state.AddUser.PhoneNumber)
                 ),
                 parseMode: ParseMode.MarkdownV2
             );
