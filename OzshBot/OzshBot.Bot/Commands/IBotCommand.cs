@@ -30,7 +30,6 @@ public interface IBotCommand
     public string Name();
     public Role GetRole();
     public string GetDescription();
-    public Task<bool> ExecuteAsync(Update update, 
-                                   ITelegramBotClient bot, 
-                                   ServiseManager serviseManager);
+    public Task<bool> ExecuteAsync(BotHandler botHandler,
+                                    Update update);
 }

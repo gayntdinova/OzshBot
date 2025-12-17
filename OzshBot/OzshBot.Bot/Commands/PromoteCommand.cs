@@ -37,10 +37,12 @@ public class PromoteCommand : IBotCommand
     public string GetDescription()
     =>"Выдать права вожатого";
 
-    public async Task<bool> ExecuteAsync(Update update, 
-                                   ITelegramBotClient bot, 
-                                   ServiseManager serviseManager)
+    public async Task<bool> ExecuteAsync(BotHandler botHandler,
+                                        Update update)
     {
+        var bot = botHandler.botClient;
+        var serviseManager = botHandler.serviseManager;
+        
         var message = update.Message!;
         var messageText = message.Text!;
         var username = message.From!.Username!;

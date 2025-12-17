@@ -34,11 +34,12 @@ public class SessionsCommand : IBotCommand
     public Role GetRole() => Role.Counsellor;
     public string GetDescription() => "Добавить / Изменить смену";
 
-    public async Task<bool> ExecuteAsync(
-        Update update,
-        ITelegramBotClient bot,
-        ServiseManager serviseManager)
+    public async Task<bool> ExecuteAsync(BotHandler botHandler,
+                                        Update update)
     {
+        var bot = botHandler.botClient;
+        var serviseManager = botHandler.serviseManager;
+        
         switch (update.Type)
         {
             case UpdateType.Message:

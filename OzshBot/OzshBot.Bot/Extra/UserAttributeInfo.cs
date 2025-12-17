@@ -127,7 +127,7 @@ public static class UserAttributesInfoManager
         UserAttribute.School,
         UserAttribute.Class};
 
-    public static void Initialize(ISessionService sessionService)
+    public static async Task Initialize(ISessionService sessionService)
     {
         UserAttributeInfoDict = new()
         {
@@ -242,7 +242,7 @@ public static class UserAttributesInfoManager
                 new UserAttributeInfo(
                     "Роль",
                     "Напишите какой роли человека вы хотите создать: `ребёнок` или `вожатый`",
-                    async str=>Regex.IsMatch(str,@"^(ребёнок|вожатый)$"),
+                    async str=> Regex.IsMatch(str,@"^(ребёнок|вожатый)$"),
                     (UserDomain user, string message) =>
                     {
                         if(message == "ребёнок")

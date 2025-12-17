@@ -77,12 +77,12 @@ public class MadeUpData
             new UserDomain
             {
 
-                FullName = new()
-                {
-                    Name = "Абоба",
-                    Surname = "Абобович",
-                    Patronymic = "Абобин"
-                },
+                FullName = new
+                (
+                    "Абоба",
+                    "Абобович",
+                    "Абобин"
+                ),
                 Birthday = new DateOnly(),
                 City = "Екатеринбург",
                 PhoneNumber = $"+79326189209",
@@ -95,37 +95,9 @@ public class MadeUpData
                         Class = 11,
                         School = "Сунц УрФУ"
                     },
-                    Group = 1000 + id,
-                    Sessions = new List<Session> { },
-                    ContactPeople = new List<ContactPerson>{}
-                },
-                TelegramInfo = null,
-                Role = Role.Counsellor
-            },
-            new UserDomain
-            {
-
-                FullName = new()
-                {
-                    Name = "Абоба",
-                    Surname = "Абобович",
-                    Patronymic = "Абобин"
-                },
-                Birthday = new DateOnly(),
-                City = "Екатеринбург",
-                PhoneNumber = $"+79326189209",
-                Email = $"child@child.com",
-                CounsellorInfo = null,
-                ChildInfo = new()
-                {
-                    EducationInfo = new EducationInfo
-                    {
-                        Class = 11,
-                        School = "Сунц УрФУ"
-                    },
-                    Group = 1000 + id,
-                    Sessions = new List<Session> { },
-                    ContactPeople = new List<ContactPerson>{}
+                    Group = 1000,
+                    Sessions = new HashSet<Session> {Sessions[Sessions.Count()-1] },
+                    ContactPeople = new HashSet<ContactPerson>{}
                 },
                 TelegramInfo = null,
                 Role = Role.Counsellor
@@ -141,39 +113,16 @@ public class MadeUpData
                 ),
                 Birthday = new DateOnly(),
                 City = "Екатеринбург",
-                PhoneNumber = $"+792826457546",
+                PhoneNumber = $"+79221517046",
                 Email = $"child@child.com",
-                CounsellorInfo = null,
-                ChildInfo = new()
+                CounsellorInfo = new()
                 {
-                    
-                    
-                    EducationInfo = new EducationInfo
-                    {
-                        Class = 11,
-                        School = "Сунц УрФУ"
-                    },
-                    Group = 1000 + id,
+                    Group = 1000,
                     Sessions = new HashSet<Session> {Sessions[0],Sessions[1] },
-                    ContactPeople = new HashSet<ContactPerson>{}
-                    Sessions = new List<Session> { },
-                    ContactPeople = new List<ContactPerson>{new ContactPerson()
-                    {
-                        
-                        FullName = new()
-                        {
-                            Name = "А",
-                            Surname = "А",
-                            Patronymic = "А"
-                        }
-                    }}
                 },
-                TelegramInfo = new()
-                {
-                    TgUsername = "ITimIlin",
-                    TgId = 10
-                },
-                Role = Role.Child
+                ChildInfo = null,
+                TelegramInfo = null,
+                Role = Role.Counsellor
             }
         };
         var rand = new Random();
@@ -304,6 +253,7 @@ public class MyUserRepository : IUserRepository
 
     public async Task<UserDomain[]?> GetUsersByClassAsync(int classNumber)
     {
+        Console.WriteLine(classNumber);
         var users = madeUpData.Users.Where(user =>user.ChildInfo?.EducationInfo?.Class == classNumber);
         
         return users.Any()?users.ToArray():null;
@@ -367,30 +317,6 @@ public class MyUserRepository : IUserRepository
     public async Task<UserDomain[]?> GetUsersBySessionIdAsync(Guid sessionId)
     {
         return null;
-    }
-
-}
-
-public class MyUserRoleService: IUserRoleService
-{
-    private readonly IUserRepository userRepository;
-    public MyUserRoleService(IUserRepository userRepository)
-    {
-        this.userRepository = userRepository;
-    }
-    public async Task<Role> GetUserRoleByTgAsync(TelegramInfo telegramInfo)
-    {
-        return Role.Counsellor;
-    }
-
-    public Task<Role> ActivateUserByPhoneNumberAsync(string phoneNumber, TelegramInfo telegramInfo)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<Result<UserDomain>> PromoteToCounsellorAsync(string phoneNumber)
-    {
-        throw new NotImplementedException();
     }
 
 }

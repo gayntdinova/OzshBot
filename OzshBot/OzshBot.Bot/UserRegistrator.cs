@@ -4,26 +4,25 @@ using OzshBot.Application.AppErrors;
 using OzshBot.Application.RepositoriesInterfaces;
 using OzshBot.Application.Services;
 using OzshBot.Domain.ValueObjects;
-using OzshBot.Application.Services;
 using OzshBot.Domain.Enums;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.ReplyMarkups;
 using User = OzshBot.Domain.Entities.User;
+using OzshBot.Application.Services.Interfaces;
 
 namespace OzshBot.Bot;
 
 public class UserRegistrator
 {
-    private readonly IUserRepository userRepository;
-    public UserRegistrator(IUserRepository userRepository)
+    private readonly IUserRoleService userRoleService;
+    public UserRegistrator(IUserRoleService userRoleService)
     {
-        this.userRepository = userRepository;
+        this.userRoleService = userRoleService;
     }
     public async Task<Role> LogInAndRegisterUserAsync(Message msg)
     {
-        var userRoleService = new UserRoleService(userRepository);
-        var tgInfo = new TelegramInfo { TgUsername = msg.From.Username, TgId = msg.From.Id };
+        var tgInfo = new TelegramInfo { TgUsername = msg.From!.Username!, TgId = msg.From.Id };
         var userRole = await userRoleService.GetUserRoleByTgAsync(tgInfo);
         if (userRole == Role.Unknown)
             userRole = await Register(tgInfo, msg);
@@ -33,7 +32,6 @@ public class UserRegistrator
     
     private async Task<Role> Register(TelegramInfo tgInfo, Message msg)
     {
-        var userRoleService = new UserRoleService(userRepository);
         var phone = GetPhoneNumber(msg);
         Console.WriteLine(phone);
         if (phone == null) return Role.Unknown;

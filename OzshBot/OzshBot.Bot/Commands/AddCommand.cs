@@ -39,10 +39,11 @@ public class AddCommand : IBotCommand
     public string GetDescription()
     =>"добавить нового пользователя";
 
-    public async Task<bool> ExecuteAsync(Update update, 
-                                   ITelegramBotClient bot, 
-                                   ServiseManager serviseManager)
+    public async Task<bool> ExecuteAsync(BotHandler botHandler,
+                                        Update update)
     {
+        var bot = botHandler.botClient;
+        var serviseManager = botHandler.serviseManager;
         switch (update.Type)
         {
             case UpdateType.Message:
@@ -92,7 +93,29 @@ public class AddCommand : IBotCommand
                         //если нет то заканчиваем пытаясь добавить пользователя и выводим его в чат
                         else
                         {
-                            return await HandleAddUser(bot,chat,serviseManager,userId,state);
+                            UserDtoModel dto = (state.AddUser.Role==Role.Counsellor)?state.AddUser.ToCounsellorDto():state.AddUser.ToChildDto();
+                            var result = await serviseManager.ManagementService.AddUserAsync(dto);
+                            if (result.IsFailed)
+                            {
+                                await bot.SendMessage(
+                                    chat.Id,
+                                    $"Не удалось добавить пользователя",
+                                    replyMarkup: new ReplyKeyboardRemove(),
+                                    parseMode: ParseMode.MarkdownV2
+                                    );
+                            }
+                            else
+                            {
+                                await bot.SendMessage(
+                                    chat.Id,
+                                    $"Пользователь успешно добавлен",
+                                    replyMarkup: new ReplyKeyboardRemove(),
+                                    parseMode: ParseMode.MarkdownV2
+                                    );
+                                await botHandler.SendResultMessage(new UserDomain[] {state.AddUser},chat,userId,Role.Counsellor, "");
+                            }
+                            await TryCancelState(bot,chat,userId);
+                            return false;
                         }
                     }
                     //если не подходит под регулярку то переспрашиваем
@@ -130,41 +153,6 @@ public class AddCommand : IBotCommand
             default:
                 return false;
         }
-    }
-
-    private async Task<bool> HandleAddUser(ITelegramBotClient bot,Chat chat,ServiseManager serviseManager, long userId, AddState state)
-    {
-        UserDtoModel dto = (state.AddUser.Role==Role.Counsellor)?state.AddUser.ToCounsellorDto():state.AddUser.ToChildDto();
-        var result = await serviseManager.ManagementService.AddUserAsync(dto);
-        if (result.IsFailed)
-        {
-            await bot.SendMessage(
-                chat.Id,
-                $"Не удалось добавить пользователя",
-                replyMarkup: new ReplyKeyboardRemove(),
-                parseMode: ParseMode.MarkdownV2
-                );
-        }
-        else
-        {
-            await bot.SendMessage(
-                chat.Id,
-                $"Пользователь успешно добавлен",
-                replyMarkup: new ReplyKeyboardRemove(),
-                parseMode: ParseMode.MarkdownV2
-                );
-            await bot.SendMessage(
-                chat.Id,
-                state.AddUser.FormateAnswer(Role.Counsellor),
-                replyMarkup: new InlineKeyboardMarkup(
-                    InlineKeyboardButton.WithCallbackData("Посещённые смены", "userSessions "+state.AddUser.PhoneNumber),
-                    InlineKeyboardButton.WithCallbackData("Редактировать", "editMenu "+state.AddUser.PhoneNumber)
-                ),
-                parseMode: ParseMode.MarkdownV2
-            );
-        }
-        await TryCancelState(bot,chat,userId);
-        return false;
     }
 
     private async Task TryCancelState(ITelegramBotClient bot, Chat chat,long userId)

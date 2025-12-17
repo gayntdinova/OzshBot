@@ -39,10 +39,12 @@ public class UserSessionsCommand : IBotCommand
     public string GetDescription()
     =>"";
 
-    public async Task<bool> ExecuteAsync(Update update, 
-                                   ITelegramBotClient bot, 
-                                   ServiseManager serviseManager)
+    public async Task<bool> ExecuteAsync(BotHandler botHandler,
+                                        Update update)
     {
+        var bot = botHandler.botClient;
+        var serviseManager = botHandler.serviseManager;
+        
         switch (update.Type)
         {
             case UpdateType.CallbackQuery:

@@ -37,10 +37,12 @@ public class ProfileCommand : IBotCommand
     public string GetDescription()
     =>"Мой профиль";
 
-    public async Task<bool> ExecuteAsync(Update update, 
-                                   ITelegramBotClient bot, 
-                                   ServiseManager serviseManager)
+    public async Task<bool> ExecuteAsync(BotHandler botHandler,
+                                        Update update)
     {
+        var bot = botHandler.botClient;
+        var serviseManager = botHandler.serviseManager;
+        
         var message = update.Message!;
         var messageText = message.Text!;
         var username = message.From!.Username!;
@@ -56,14 +58,16 @@ public class ProfileCommand : IBotCommand
             await bot.SendMessage(
                 chat.Id,
                 "вас не существует",
-                replyMarkup: new ReplyKeyboardRemove());
+                replyMarkup: new ReplyKeyboardRemove(),
+                parseMode: ParseMode.MarkdownV2);
             return false;
         }
 
         await bot.SendMessage(
             chat.Id, 
             you.FormateAnswer(you.Role),
-            replyMarkup: new ReplyKeyboardRemove());
+            replyMarkup: new ReplyKeyboardRemove(),
+            parseMode: ParseMode.MarkdownV2);
 
         return false;
     }

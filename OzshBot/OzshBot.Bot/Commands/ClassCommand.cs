@@ -38,10 +38,12 @@ public class ClassCommand : IBotCommand
     public string GetDescription()
     =>"поиск пользователей по классу";
 
-    public async Task<bool> ExecuteAsync(Update update, 
-                                   ITelegramBotClient bot, 
-                                   ServiseManager serviseManager)
+    public async Task<bool> ExecuteAsync(BotHandler botHandler,
+                                        Update update)
     {
+        var bot = botHandler.botClient;
+        var serviseManager = botHandler.serviseManager;
+
         switch (update.Type)
         {
             case UpdateType.Message:
@@ -66,40 +68,7 @@ public class ClassCommand : IBotCommand
 
                 var users = await serviseManager.FindService.FindUsersByClassAsync(int.Parse(splitted[1]));
 
-                if (users.Length == 0)
-                {
-                    await bot.SendMessage(
-                        chat.Id,
-                        $"никто не найден",
-                        parseMode: ParseMode.MarkdownV2
-                        );
-                }
-                else if (users.Count() == 1)
-                {
-                    if(role == Role.Counsellor)
-                        await bot.SendMessage(
-                            chat.Id,
-                            users[0].FormateAnswer(role),
-                            replyMarkup: new InlineKeyboardMarkup(
-                                InlineKeyboardButton.WithCallbackData("Редактировать", "edit "+users[0].PhoneNumber)
-                            ),
-                            parseMode: ParseMode.MarkdownV2
-                            );
-                    else
-                        await bot.SendMessage(
-                            chat.Id,
-                            users[0].FormateAnswer(role),
-                            replyMarkup: new ReplyKeyboardRemove(),
-                            parseMode: ParseMode.MarkdownV2
-                            );
-                }
-                else
-                    await bot.SendMessage(
-                        chat.Id,
-                        users.FormateAnswer(messageText),
-                        replyMarkup: new ReplyKeyboardRemove(),
-                        parseMode: ParseMode.MarkdownV2
-                        );
+                await botHandler.SendResultMessage(users,chat,userId,role, messageText);
                 
                 return false;
             default:

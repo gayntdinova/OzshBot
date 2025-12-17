@@ -40,10 +40,12 @@ public class EditCommand : IBotCommand
     public string GetDescription()
     =>"";
 
-    public async Task<bool> ExecuteAsync(Update update, 
-                                   ITelegramBotClient bot, 
-                                   ServiseManager serviseManager)
+    public async Task<bool> ExecuteAsync(BotHandler botHandler,
+                                        Update update)
     {
+        var bot = botHandler.botClient;
+        var serviseManager = botHandler.serviseManager;
+        
         switch (update.Type)
         {
             case UpdateType.Message:
@@ -112,19 +114,45 @@ public class EditCommand : IBotCommand
             case UpdateType.CallbackQuery:
                 var callback = update.CallbackQuery!;
                 var splitted = callback.Data!.Split();
+                var chat1 = callback.Message!.Chat;
+                var userId1 = callback.From.Id;
                 switch (splitted[0])
                 {
                     case "edit":
-                        return await HandleEditMenu(bot,serviseManager, callback.Message!.Chat,callback.From.Id, splitted[1]);
+                        return await HandleEditMenu(bot,serviseManager, chat1,userId1, splitted[1]);
 
                     case "editTheme":
-                        return await HandleEditThemes(bot,callback.Message!.Chat,callback.From.Id,(UserAttribute)int.Parse(splitted[1]));
+                        return await HandleEditThemes(bot,chat1,callback.From.Id,(UserAttribute)int.Parse(splitted[1]));
 
                     case "editApply":
-                        return await HandleEditApply(bot,serviseManager, callback.Message!.Chat,callback.From.Id);
+                        if(!stateDict.TryGetValue(userId1,out var state1)) return false;//невозможный в теории случай но я на всякий оставлю
+
+                        var result = await serviseManager.ManagementService.EditUserAsync(state1.EditUser);
+
+                        if (result.IsFailed)
+                        {
+                            await bot.SendMessage(
+                                chat1.Id,
+                                $"Не удалось отредактировать пользователя пользователя",
+                                replyMarkup: new ReplyKeyboardRemove(),
+                                parseMode: ParseMode.MarkdownV2
+                                );
+                        }
+                        else
+                        {
+                            await bot.SendMessage(
+                                chat1.Id,
+                                $"Пользователь успешно отредактирован",
+                                replyMarkup: new ReplyKeyboardRemove(),
+                                parseMode: ParseMode.MarkdownV2
+                                );
+                            await botHandler.SendResultMessage(new UserDomain[]{state1.EditUser},chat1,userId1,Role.Counsellor, "");
+                        }
+                        await TryCancelState(bot,chat1,userId1);
+                        return false;
 
                     default:
-                        await TryCancelState(bot,callback.Message!.Chat,callback.From.Id);
+                        await TryCancelState(bot,chat1,userId1);
                         return false;
                 }
             default:
@@ -178,44 +206,6 @@ public class EditCommand : IBotCommand
         await SendStateInfoMessage(bot,chat,state,attribute,false);
         state.WaitingSelectField = false;
         return true;
-    }
-
-    private async Task<bool> HandleEditApply(ITelegramBotClient bot,ServiseManager serviseManager, Chat chat, long userId)
-    {
-        if(!stateDict.Keys.Contains(userId)) return false;//невозможный в теории случай но я на всякий оставлю
-
-        var state = stateDict[userId];
-        var result = await serviseManager.ManagementService.EditUserAsync(state.EditUser);
-
-        if (result.IsFailed)
-        {
-            await bot.SendMessage(
-                chat.Id,
-                $"Не удалось отредактировать пользователя пользователя",
-                replyMarkup: new ReplyKeyboardRemove(),
-                parseMode: ParseMode.MarkdownV2
-                );
-        }
-        else
-        {
-            await bot.SendMessage(
-                chat.Id,
-                $"Пользователь успешно отредактирован",
-                replyMarkup: new ReplyKeyboardRemove(),
-                parseMode: ParseMode.MarkdownV2
-                );
-            await bot.SendMessage(
-                chat.Id,
-                state.EditUser.FormateAnswer(Role.Counsellor),
-                replyMarkup: new InlineKeyboardMarkup(
-                    InlineKeyboardButton.WithCallbackData("Посещённые смены", "userSessions "+state.EditUser.PhoneNumber),
-                    InlineKeyboardButton.WithCallbackData("Редактировать", "edit "+state.EditUser.PhoneNumber)
-                ),
-                parseMode: ParseMode.MarkdownV2
-            );
-        }
-        await TryCancelState(bot,chat,userId);
-        return false;
     }
 
     private InlineKeyboardMarkup CreateKeyboard(Role role)

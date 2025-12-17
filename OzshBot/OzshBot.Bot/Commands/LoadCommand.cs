@@ -40,10 +40,12 @@ public class LoadCommand : IBotCommand
     public string GetDescription()
     =>"Загрузить новых пользователей из таблицы в смену";
 
-    public async Task<bool> ExecuteAsync(Update update, 
-                                   ITelegramBotClient bot, 
-                                   ServiseManager serviseManager)
+    public async Task<bool> ExecuteAsync(BotHandler botHandler,
+                                        Update update)
     {
+        var bot = botHandler.botClient;
+        var serviseManager = botHandler.serviseManager;
+        
         switch (update.Type)
         {
             case UpdateType.Message:
