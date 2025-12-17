@@ -24,7 +24,7 @@ public class UserFindServiceTests
     }
     
     [Test]
-    public async Task FindUserByTgAsync_KnownUser()
+    public async Task FindUserByTgAsync_KnownUser_ReturnsUser()
     {
         var telegramInfo = new TelegramInfo { TgId = null, TgUsername = "testUser1" };
         var foundUser = new User

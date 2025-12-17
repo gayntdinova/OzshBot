@@ -156,7 +156,7 @@ public class SessionServiceTests
     }
     
     [Test]
-    public async Task GetAllSessionsAsync()
+    public async Task GetAllSessionsAsync_ReturnsAllSessions()
     {
         var session = new Session
         {
