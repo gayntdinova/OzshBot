@@ -29,10 +29,7 @@ static class Program
         container.Bind<ServiseManager>().ToSelf();
         container.Bind<IBLogger>().To<MyLogger>();
         container.Bind<IUserManagementService>().To<UserManagementService>();
-        container.Bind<ISessionService>().To<SessionService>();
-        container.Bind<ISessionRepository>().To<MySessionRepository>();
-        container.Bind<IUserRoleService>().To<MyUserRoleService>();
-        container.Bind<ITableParser>().To<MyTableParser>();
+        container.Bind<ITableParser>().ToConstant(new MyTableParser());
         container.Bind<IUserFindService>().To<UserFindService>();
         container.Bind<IUserRepository>().To<MyUserRepository>();
         container.Bind<MadeUpData>().ToConstant(new MadeUpData());

@@ -77,6 +77,62 @@ public class MadeUpData
             new UserDomain
             {
 
+                FullName = new()
+                {
+                    Name = "Абоба",
+                    Surname = "Абобович",
+                    Patronymic = "Абобин"
+                },
+                Birthday = new DateOnly(),
+                City = "Екатеринбург",
+                PhoneNumber = $"+79326189209",
+                Email = $"child@child.com",
+                CounsellorInfo = null,
+                ChildInfo = new()
+                {
+                    EducationInfo = new EducationInfo
+                    {
+                        Class = 11,
+                        School = "Сунц УрФУ"
+                    },
+                    Group = 1000 + id,
+                    Sessions = new List<Session> { },
+                    ContactPeople = new List<ContactPerson>{}
+                },
+                TelegramInfo = null,
+                Role = Role.Counsellor
+            },
+            new UserDomain
+            {
+
+                FullName = new()
+                {
+                    Name = "Абоба",
+                    Surname = "Абобович",
+                    Patronymic = "Абобин"
+                },
+                Birthday = new DateOnly(),
+                City = "Екатеринбург",
+                PhoneNumber = $"+79326189209",
+                Email = $"child@child.com",
+                CounsellorInfo = null,
+                ChildInfo = new()
+                {
+                    EducationInfo = new EducationInfo
+                    {
+                        Class = 11,
+                        School = "Сунц УрФУ"
+                    },
+                    Group = 1000 + id,
+                    Sessions = new List<Session> { },
+                    ContactPeople = new List<ContactPerson>{}
+                },
+                TelegramInfo = null,
+                Role = Role.Counsellor
+            },
+            new UserDomain
+            {
+
                 FullName = new FullName
                 (
                     "Сергей",
@@ -100,6 +156,17 @@ public class MadeUpData
                     Group = 1000 + id,
                     Sessions = new HashSet<Session> {Sessions[0],Sessions[1] },
                     ContactPeople = new HashSet<ContactPerson>{}
+                    Sessions = new List<Session> { },
+                    ContactPeople = new List<ContactPerson>{new ContactPerson()
+                    {
+                        
+                        FullName = new()
+                        {
+                            Name = "А",
+                            Surname = "А",
+                            Patronymic = "А"
+                        }
+                    }}
                 },
                 TelegramInfo = new()
                 {
