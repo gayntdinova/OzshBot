@@ -22,8 +22,9 @@ using System.Data;
 using System.Text.RegularExpressions;
 using FluentResults;
 using System.Net.Http.Headers;
-using Microsoft.Extensions.Logging;
 namespace OzshBot.Bot;
+
+using IBLogger = OzshBot.Application.ToolsInterfaces.ILogger;
 
 class BotHandler
 {
@@ -34,7 +35,7 @@ class BotHandler
     private readonly ReceiverOptions receiverOptions;
 
     //сервис для работы с правами
-    private readonly UserService userService;
+    private readonly ServiseManager serviseManager;
 
     //список в каком состоянии какие человек
     private Dictionary<long,string> stateDict = new();
@@ -45,12 +46,12 @@ class BotHandler
     public BotHandler(
         ITelegramBotClient botClient,
         ReceiverOptions receiverOptions,
-        UserService userService,
+        ServiseManager serviseManager,
         IBotCommand[] commands)
     {
         this.botClient = botClient;
         this.receiverOptions = receiverOptions;
-        this.userService = userService;
+        this.serviseManager = serviseManager;
         this.commandsDict = commands.ToDictionary(command=>command.Name());
     }
 
@@ -61,7 +62,7 @@ class BotHandler
 
         botClient.StartReceiving(UpdateHandler, ErrorHandler, receiverOptions, cts.Token);
 
-        UserAttributesInfoManager.Initialize(userService.SessionService);
+        UserAttributesInfoManager.Initialize(serviseManager.SessionService);
 
         Console.WriteLine($"{(await botClient.GetMe()).FirstName} запущен!");
 
@@ -112,7 +113,7 @@ class BotHandler
         var userId = message.From.Id;
         var splittedMessage = messageText.Split();
 
-        var role = userService.RoleService.GetUserRoleByTgAsync(
+        var role = serviseManager.RoleService.GetUserRoleByTgAsync(
             new TelegramInfo { TgUsername = message.From.Username, TgId = message.From.Id }).Result;
         var chat = message.Chat;
 
@@ -131,7 +132,7 @@ class BotHandler
 
         if (stateDict.TryGetValue(userId,out var state))
         {
-            if (await commandsDict[state].ExecuteAsync(update,botClient,userService))
+            if (await commandsDict[state].ExecuteAsync(update,botClient,serviseManager))
                 stateDict[userId] = state;
             else
                 stateDict.Remove(userId);
@@ -140,22 +141,23 @@ class BotHandler
 
         if (messageText[0] == '/' && commandsDict.TryGetValue(splittedMessage[0],out var command))
         {
-            if (await command.ExecuteAsync(update,botClient,userService))
+            if (await command.ExecuteAsync(update,botClient,serviseManager))
                 stateDict[userId] = splittedMessage[0];
             else
                 stateDict.Remove(userId);
             return;
         }
 
-        await HandleSearching(chat,role,messageText);
+        await HandleSearching(chat,role,messageText,userId);
     }
 
-    private async Task HandleSearching(Chat chat, Role role, string messageText)
+    private async Task HandleSearching(Chat chat, Role role, string messageText,long userId)
     {
-        var users = await userService.FindService.FindUserAsync(messageText);
+        var users = await serviseManager.FindService.FindUserAsync(messageText);
 
         if (users.Length==0)
         {
+            await serviseManager.Logger.Log(userId,DateOnly.FromDateTime(DateTime.Now),false);
             await botClient.SendMessage(
                     chat.Id,
                     $"никто не найден",
@@ -165,6 +167,7 @@ class BotHandler
         }
         else if (users.Length == 1)
         {
+            await serviseManager.Logger.Log(userId,DateOnly.FromDateTime(DateTime.Now),true);
             if(role == Role.Counsellor)
                 await botClient.SendMessage(
                     chat.Id,
@@ -186,12 +189,15 @@ class BotHandler
                     );
         }
         else
+        {
+            await serviseManager.Logger.Log(userId,DateOnly.FromDateTime(DateTime.Now),false);
             await botClient.SendMessage(
                 chat.Id,
                 users.FormateAnswer(messageText),
                 replyMarkup: new ReplyKeyboardRemove(),
                 parseMode: ParseMode.MarkdownV2
                 );
+        }
     }
 
     //================================CallbackQueryMethods============================
@@ -207,7 +213,7 @@ class BotHandler
         var chat = callback.Message.Chat;
         var splittedCommand = callback.Data.Split();
 
-        var role = userService.RoleService.GetUserRoleByTgAsync(
+        var role = serviseManager.RoleService.GetUserRoleByTgAsync(
             new TelegramInfo { TgUsername = callback.From.Username, TgId = callback.From.Id }).Result;
 
         Console.WriteLine($"id: {userId}\nusername {callback.From.Username }\nроль: {role}"+(stateDict.Keys.Contains(userId)?("\nсостояние: "+ stateDict[userId]):""));
@@ -222,7 +228,7 @@ class BotHandler
 
         if (stateDict.TryGetValue(userId,out var state))
         {
-            if (await commandsDict[state].ExecuteAsync(update,botClient,userService))
+            if (await commandsDict[state].ExecuteAsync(update,botClient,serviseManager))
                 stateDict[userId] = state;
             else
                 stateDict.Remove(userId);
@@ -232,7 +238,7 @@ class BotHandler
 
         if (commandsDict.TryGetValue(splittedCommand[0],out var command))
         {
-            if (await command.ExecuteAsync(update,botClient,userService))
+            if (await command.ExecuteAsync(update,botClient,serviseManager))
                 stateDict[userId] = splittedCommand[0];
             else
                 stateDict.Remove(userId);

@@ -39,14 +39,14 @@ public class PromoteCommand : IBotCommand
 
     public async Task<bool> ExecuteAsync(Update update, 
                                    ITelegramBotClient bot, 
-                                   UserService userService)
+                                   ServiseManager serviseManager)
     {
         var message = update.Message!;
         var messageText = message.Text!;
         var username = message.From!.Username!;
         var userId = message.From.Id;
         var chat = message.Chat;
-        var role = userService.RoleService.GetUserRoleByTgAsync(new TelegramInfo { TgUsername = username, TgId = userId }).Result;
+        var role = serviseManager.RoleService.GetUserRoleByTgAsync(new TelegramInfo { TgUsername = username, TgId = userId }).Result;
 
         if (role == Role.Child)
         {
@@ -71,7 +71,7 @@ public class PromoteCommand : IBotCommand
             return false;
         }
 
-        var result = await userService.RoleService.PromoteToCounsellorAsync(splitted[1]);
+        var result = await serviseManager.RoleService.PromoteToCounsellorAsync(splitted[1]);
         if (result.IsFailed)
         {
             await bot.SendMessage(

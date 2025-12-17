@@ -39,14 +39,14 @@ public class DeleteCommand : IBotCommand
 
     public async Task<bool> ExecuteAsync(Update update, 
                                    ITelegramBotClient bot, 
-                                   UserService userService)
+                                   ServiseManager serviseManager)
     {
         var message = update.Message!;
         var messageText = message.Text!;
         var username = message.From!.Username!;
         var userId = message.From.Id;
         var chat = message.Chat;
-        var role = userService.RoleService.GetUserRoleByTgAsync(new TelegramInfo { TgUsername = username, TgId = userId }).Result;
+        var role = serviseManager.RoleService.GetUserRoleByTgAsync(new TelegramInfo { TgUsername = username, TgId = userId }).Result;
 
         if (role == Role.Child)
         {
@@ -71,7 +71,7 @@ public class DeleteCommand : IBotCommand
             return false;
         }
 
-        var result = await userService.ManagementService.DeleteUserAsync(splitted[1]);
+        var result = await serviseManager.ManagementService.DeleteUserAsync(splitted[1]);
         if (result.IsFailed)
         {
             await bot.SendMessage(

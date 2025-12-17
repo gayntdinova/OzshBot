@@ -37,15 +37,15 @@ public class SessionsCommand : IBotCommand
     public async Task<bool> ExecuteAsync(
         Update update,
         ITelegramBotClient bot,
-        UserService userService)
+        ServiseManager serviseManager)
     {
         switch (update.Type)
         {
             case UpdateType.Message:
-                return await HandleMessage(update.Message!, bot, userService);
+                return await HandleMessage(update.Message!, bot, serviseManager);
 
             case UpdateType.CallbackQuery:
-                return await HandleCallback(update.CallbackQuery!, bot, userService);
+                return await HandleCallback(update.CallbackQuery!, bot, serviseManager);
 
             default:
                 return false;
@@ -55,13 +55,13 @@ public class SessionsCommand : IBotCommand
     private async Task<bool> HandleMessage(
         Message message,
         ITelegramBotClient bot,
-        UserService userService)
+        ServiseManager serviseManager)
     {
         var chat = message.Chat;
         var userId = message.From!.Id;
         var text = message.Text!;
 
-        var role = await userService.RoleService.GetUserRoleByTgAsync(
+        var role = await serviseManager.RoleService.GetUserRoleByTgAsync(
             new TelegramInfo { TgId = userId, TgUsername = message.From.Username! });
 
         if (role == Role.Child)
@@ -94,7 +94,7 @@ public class SessionsCommand : IBotCommand
                         var start = DateOnly.ParseExact(splitted[0], "dd.MM.yyyy");
                         var end = DateOnly.ParseExact(splitted[1], "dd.MM.yyyy");
 
-                        var sessions = await userService.SessionService.GetAllSessionsAsync();
+                        var sessions = await serviseManager.SessionService.GetAllSessionsAsync();
                         if(sessions.Any(session=>session.SessionDates==new SessionDates(start, end)))
                         {
                             state.sessionToEdit = sessions.First(session=>session.SessionDates==new SessionDates(start, end));
@@ -127,7 +127,7 @@ public class SessionsCommand : IBotCommand
                         var end = DateOnly.ParseExact(splitted[1], "dd.MM.yyyy");
 
                         state.sessionToEdit.SessionDates = new(start,end);
-                        var result = await userService.SessionService.EditSessionAsync(state.sessionToEdit);
+                        var result = await serviseManager.SessionService.EditSessionAsync(state.sessionToEdit);
 
                         if (result.IsFailed)
                         {
@@ -164,14 +164,14 @@ public class SessionsCommand : IBotCommand
 
             if (state.Mode == SessionsMode.Add)
             {
-                var sessions = await userService.SessionService.GetAllSessionsAsync();
+                var sessions = await serviseManager.SessionService.GetAllSessionsAsync();
                 if (Regex.IsMatch(text,
                     @"^(0[1-9]|[12]\d|3[01])\.(0[1-9]|1[0-2])\.(19\d{2}|20\d{2}) (0[1-9]|[12]\d|3[01])\.(0[1-9]|1[0-2])\.(19\d{2}|20\d{2})$"))
                 {
                     var splitted = text.Split(' ');
                     var start = DateOnly.ParseExact(splitted[0], "dd.MM.yyyy");
                     var end = DateOnly.ParseExact(splitted[1], "dd.MM.yyyy");
-                    var result = await userService.SessionService.AddSessionAsync(new Session{SessionDates = new(start, end)});
+                    var result = await serviseManager.SessionService.AddSessionAsync(new Session{SessionDates = new(start, end)});
 
                     if (result.IsFailed)
                     {
@@ -213,7 +213,7 @@ public class SessionsCommand : IBotCommand
         //если написали /sessions
         else
         {
-            var sessions = await userService.SessionService.GetAllSessionsAsync();
+            var sessions = await serviseManager.SessionService.GetAllSessionsAsync();
             await TryCancelState(bot, chat, userId);
 
             stateDict[userId] = new SessionsState();
@@ -245,7 +245,7 @@ public class SessionsCommand : IBotCommand
     private async Task<bool> HandleCallback(
         CallbackQuery callback,
         ITelegramBotClient bot,
-        UserService userService)
+        ServiseManager serviseManager)
     {
         var chat = callback.Message!.Chat;
         var userId = callback.From.Id;
@@ -283,7 +283,7 @@ public class SessionsCommand : IBotCommand
                     state.messagesIds.Push((await bot.SendMessage(
                         chat.Id,
                         "Выберите смену для редактирования:".FormateString(),
-                        replyMarkup: await GetSessionsKeyboard(userService.SessionService),
+                        replyMarkup: await GetSessionsKeyboard(serviseManager.SessionService),
                         parseMode: ParseMode.MarkdownV2
                     )).Id);
                     state.MessagesToDelete += 1;

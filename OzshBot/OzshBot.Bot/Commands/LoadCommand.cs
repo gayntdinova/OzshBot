@@ -42,7 +42,7 @@ public class LoadCommand : IBotCommand
 
     public async Task<bool> ExecuteAsync(Update update, 
                                    ITelegramBotClient bot, 
-                                   UserService userService)
+                                   ServiseManager serviseManager)
     {
         switch (update.Type)
         {
@@ -52,7 +52,7 @@ public class LoadCommand : IBotCommand
                 var username = message.From!.Username!;
                 var userId = message.From.Id;
                 var chat = message.Chat;
-                var role = userService.RoleService.GetUserRoleByTgAsync(new TelegramInfo { TgUsername = username, TgId = userId }).Result;
+                var role = serviseManager.RoleService.GetUserRoleByTgAsync(new TelegramInfo { TgUsername = username, TgId = userId }).Result;
 
                 //если студент то не может пользоваться этой командой
                 if (role == Role.Child)
@@ -68,7 +68,7 @@ public class LoadCommand : IBotCommand
                     return false;
                 }
 
-                var sessions = await userService.SessionService.GetAllSessionsAsync();
+                var sessions = await serviseManager.SessionService.GetAllSessionsAsync();
 
                 //если уже находится в ожидании какого то ответа
                 if(stateDict.TryGetValue(update.Message!.From!.Id, out var state))
@@ -113,7 +113,7 @@ public class LoadCommand : IBotCommand
                     }
                     else
                     {
-                        var result = await userService.ManagementService.LoadTableAsync(messageText,state.SessionDates);
+                        var result = await serviseManager.ManagementService.LoadTableAsync(messageText,state.SessionDates);
                         if (result.IsFailed)
                         {
                             await bot.SendMessage(

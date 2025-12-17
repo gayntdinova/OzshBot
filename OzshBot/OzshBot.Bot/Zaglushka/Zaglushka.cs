@@ -377,3 +377,12 @@ public class MyTableParser : ITableParser
     }
 
 }
+
+public class MyLogger : ILogger
+{
+    public async Task Log(long tgId, DateOnly date, bool success)
+    {
+        return;
+    }
+
+}

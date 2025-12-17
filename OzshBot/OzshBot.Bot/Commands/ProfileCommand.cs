@@ -39,16 +39,16 @@ public class ProfileCommand : IBotCommand
 
     public async Task<bool> ExecuteAsync(Update update, 
                                    ITelegramBotClient bot, 
-                                   UserService userService)
+                                   ServiseManager serviseManager)
     {
         var message = update.Message!;
         var messageText = message.Text!;
         var username = message.From!.Username!;
         var userId = message.From.Id;
         var chat = message.Chat;
-        var role = userService.RoleService.GetUserRoleByTgAsync(new TelegramInfo { TgUsername = username, TgId = userId }).Result;
+        var role = serviseManager.RoleService.GetUserRoleByTgAsync(new TelegramInfo { TgUsername = username, TgId = userId }).Result;
 
-        var you = await userService.FindService.FindUserByTgAsync(
+        var you = await serviseManager.FindService.FindUserByTgAsync(
             new TelegramInfo { TgUsername = username });
 
         if (you == null)

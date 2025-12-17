@@ -40,7 +40,7 @@ public class GroupCommand : IBotCommand
 
     public async Task<bool> ExecuteAsync(Update update, 
                                    ITelegramBotClient bot, 
-                                   UserService userService)
+                                   ServiseManager serviseManager)
     {
         switch (update.Type)
         {
@@ -50,7 +50,7 @@ public class GroupCommand : IBotCommand
                 var username = message.From!.Username!;
                 var userId = message.From.Id;
                 var chat = message.Chat;
-                var role = userService.RoleService.GetUserRoleByTgAsync(new TelegramInfo { TgUsername = username, TgId = userId }).Result;
+                var role = serviseManager.RoleService.GetUserRoleByTgAsync(new TelegramInfo { TgUsername = username, TgId = userId }).Result;
                 
                 var splitted = messageText.Split(" ");
                 if(splitted.Length!=2 || !Regex.IsMatch(splitted[1],@"^\d+$"))
@@ -64,7 +64,7 @@ public class GroupCommand : IBotCommand
                     return false;
                 }
 
-                var users = await userService.FindService.FindUsersByGroupAsync(int.Parse(splitted[1]));
+                var users = await serviseManager.FindService.FindUsersByGroupAsync(int.Parse(splitted[1]));
 
                 if (users.Length == 0)
                 {

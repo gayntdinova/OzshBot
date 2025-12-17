@@ -41,7 +41,7 @@ public class UserSessionsCommand : IBotCommand
 
     public async Task<bool> ExecuteAsync(Update update, 
                                    ITelegramBotClient bot, 
-                                   UserService userService)
+                                   ServiseManager serviseManager)
     {
         switch (update.Type)
         {
@@ -50,7 +50,7 @@ public class UserSessionsCommand : IBotCommand
                 var splitted = callback.Data!.Split();
                 var chat = callback.Message!.Chat;
 
-                var user = await userService.FindService.FindUserByPhoneNumberAsync(splitted[1]);
+                var user = await serviseManager.FindService.FindUserByPhoneNumberAsync(splitted[1]);
 
                 if (user==null)
                 {

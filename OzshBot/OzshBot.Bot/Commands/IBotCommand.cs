@@ -32,5 +32,5 @@ public interface IBotCommand
     public string GetDescription();
     public Task<bool> ExecuteAsync(Update update, 
                                    ITelegramBotClient bot, 
-                                   UserService userService);
+                                   ServiseManager serviseManager);
 }

@@ -41,7 +41,7 @@ public class AddCommand : IBotCommand
 
     public async Task<bool> ExecuteAsync(Update update, 
                                    ITelegramBotClient bot, 
-                                   UserService userService)
+                                   ServiseManager serviseManager)
     {
         switch (update.Type)
         {
@@ -51,7 +51,7 @@ public class AddCommand : IBotCommand
                 var username = message.From!.Username!;
                 var userId = message.From.Id;
                 var chat = message.Chat;
-                var role = userService.RoleService.GetUserRoleByTgAsync(new TelegramInfo { TgUsername = username, TgId = userId }).Result;
+                var role = serviseManager.RoleService.GetUserRoleByTgAsync(new TelegramInfo { TgUsername = username, TgId = userId }).Result;
 
                 //если студент то не может пользоваться этой командой
                 if (role == Role.Child)
@@ -92,7 +92,7 @@ public class AddCommand : IBotCommand
                         //если нет то заканчиваем пытаясь добавить пользователя и выводим его в чат
                         else
                         {
-                            return await HandleAddUser(bot,chat,userService,userId,state);
+                            return await HandleAddUser(bot,chat,serviseManager,userId,state);
                         }
                     }
                     //если не подходит под регулярку то переспрашиваем
@@ -132,10 +132,10 @@ public class AddCommand : IBotCommand
         }
     }
 
-    private async Task<bool> HandleAddUser(ITelegramBotClient bot,Chat chat,UserService userService, long userId, AddState state)
+    private async Task<bool> HandleAddUser(ITelegramBotClient bot,Chat chat,ServiseManager serviseManager, long userId, AddState state)
     {
         UserDtoModel dto = (state.AddUser.Role==Role.Counsellor)?state.AddUser.ToCounsellorDto():state.AddUser.ToChildDto();
-        var result = await userService.ManagementService.AddUserAsync(dto);
+        var result = await serviseManager.ManagementService.AddUserAsync(dto);
         if (result.IsFailed)
         {
             await bot.SendMessage(

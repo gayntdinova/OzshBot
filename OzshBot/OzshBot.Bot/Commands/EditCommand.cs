@@ -42,7 +42,7 @@ public class EditCommand : IBotCommand
 
     public async Task<bool> ExecuteAsync(Update update, 
                                    ITelegramBotClient bot, 
-                                   UserService userService)
+                                   ServiseManager serviseManager)
     {
         switch (update.Type)
         {
@@ -52,7 +52,7 @@ public class EditCommand : IBotCommand
                 var username = message.From!.Username!;
                 var userId = message.From.Id;
                 var chat = message.Chat;
-                var role = userService.RoleService.GetUserRoleByTgAsync(new TelegramInfo { TgUsername = username, TgId = userId }).Result;
+                var role = serviseManager.RoleService.GetUserRoleByTgAsync(new TelegramInfo { TgUsername = username, TgId = userId }).Result;
                 
                 
                 
@@ -115,13 +115,13 @@ public class EditCommand : IBotCommand
                 switch (splitted[0])
                 {
                     case "edit":
-                        return await HandleEditMenu(bot,userService, callback.Message!.Chat,callback.From.Id, splitted[1]);
+                        return await HandleEditMenu(bot,serviseManager, callback.Message!.Chat,callback.From.Id, splitted[1]);
 
                     case "editTheme":
                         return await HandleEditThemes(bot,callback.Message!.Chat,callback.From.Id,(UserAttribute)int.Parse(splitted[1]));
 
                     case "editApply":
-                        return await HandleEditApply(bot,userService, callback.Message!.Chat,callback.From.Id);
+                        return await HandleEditApply(bot,serviseManager, callback.Message!.Chat,callback.From.Id);
 
                     default:
                         await TryCancelState(bot,callback.Message!.Chat,callback.From.Id);
@@ -132,11 +132,11 @@ public class EditCommand : IBotCommand
         }
     }
 
-    private async Task<bool> HandleEditMenu( ITelegramBotClient bot,UserService userService, Chat chat, long userId, string phoneNumber)
+    private async Task<bool> HandleEditMenu( ITelegramBotClient bot,ServiseManager serviseManager, Chat chat, long userId, string phoneNumber)
     {
         await TryCancelState(bot, chat, userId);
 
-        var editedUser = await userService.FindService.FindUserByPhoneNumberAsync(phoneNumber);
+        var editedUser = await serviseManager.FindService.FindUserByPhoneNumberAsync(phoneNumber);
 
         if (editedUser==null)
         {
@@ -180,12 +180,12 @@ public class EditCommand : IBotCommand
         return true;
     }
 
-    private async Task<bool> HandleEditApply(ITelegramBotClient bot,UserService userService, Chat chat, long userId)
+    private async Task<bool> HandleEditApply(ITelegramBotClient bot,ServiseManager serviseManager, Chat chat, long userId)
     {
         if(!stateDict.Keys.Contains(userId)) return false;//невозможный в теории случай но я на всякий оставлю
 
         var state = stateDict[userId];
-        var result = await userService.ManagementService.EditUserAsync(state.EditUser);
+        var result = await serviseManager.ManagementService.EditUserAsync(state.EditUser);
 
         if (result.IsFailed)
         {
