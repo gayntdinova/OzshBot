@@ -7,9 +7,9 @@ namespace OzshBot.Application.Services.Interfaces;
 
 public interface IUserManagementService
 {
-    public Task<Result<User>> EditUserAsync(User editedUser);
-    public Task<Result<User>> AddUserAsync<T>(T user) where T: UserDtoModel;
-    public Task<Result> DeleteUserAsync(string phoneNumber);
+    Task<Result<User>> EditUserAsync(User editedUser);
+    Task<Result<User>> AddUserAsync<T>(T user) where T: UserDtoModel;
+    Task<Result> DeleteUserAsync(string phoneNumber);
 
-    public Task<Result> LoadTableAsync(string link, SessionDates sessionDates);
+    Task<Result> LoadTableAsync(string link, SessionDates sessionDates);
 }

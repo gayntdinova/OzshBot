@@ -3,7 +3,6 @@ using OzshBot.Application.AppErrors;
 using OzshBot.Application.RepositoriesInterfaces;
 using OzshBot.Application.Services.Interfaces;
 using OzshBot.Domain.Entities;
-using OzshBot.Domain.ValueObjects;
 
 namespace OzshBot.Application.Services;
 
@@ -36,18 +35,16 @@ public class SessionService: ISessionService
         return Result.Ok(session);
     }  
 
-    public async Task<Result<Session[]>> GetLastSessionsAsync(int numberOfSessions)
+    public async Task<Session[]> GetAllSessionsAsync()
     {
-        var sessions = await sessionRepository.GetLastSessionsAsync(numberOfSessions);
-        if (sessions == null)
-            return Result.Fail(new SessionNotFoundError());
-        return Result.Ok(sessions);
+        var sessions = await sessionRepository.GetAllSessions();
+        return sessions;
     }
 
     private async Task<bool> CheckIfSessionIntersectsAsync(Session currentSession)
     {
         var sessions = await sessionRepository.GetAllSessions();
-        if (sessions == null) return false;
+        if (sessions.Length == 0) return false;
         foreach (var session in sessions)
         {
             if (session.Id == currentSession.Id) continue;
