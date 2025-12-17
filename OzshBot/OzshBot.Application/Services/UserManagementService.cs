@@ -64,14 +64,14 @@ public class UserManagementService: IUserManagementService
         {
             child.ChildInfo.Sessions.Add(session);
             var existedUser = await userRepository.GetUserByPhoneNumberAsync(child.PhoneNumber);
+            var newUser = child.ToUser();
             if (existedUser != null)
             {
-                existedUser.UpdateBy(child.ToUser());
+                existedUser.UpdateBy(newUser);
                 await userRepository.UpdateUserAsync(existedUser);
             }
             else
             {
-                var newUser = child.ToUser();
                 await userRepository.AddUserAsync(newUser);
             }
         }

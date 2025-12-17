@@ -6,7 +6,7 @@ namespace OzshBot.Application.DtoModels;
 
 public class CounsellorDto: UserDtoModel
 {
-    public CounsellorInfo CounsellorInfo { get; set; }
+    public required CounsellorInfo CounsellorInfo { get; set; }
 
     public override User ToUser()
     {

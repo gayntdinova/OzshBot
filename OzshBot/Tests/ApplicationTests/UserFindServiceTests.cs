@@ -3,6 +3,7 @@ using OzshBot.Application.Services;
 using FakeItEasy;
 using FluentAssertions;
 using OzshBot.Domain.Entities;
+using OzshBot.Domain.Enums;
 using OzshBot.Domain.ValueObjects;
 
 namespace Tests.ApplicationTests;
@@ -11,13 +12,15 @@ namespace Tests.ApplicationTests;
 public class UserFindServiceTests
 {
     private IUserRepository userRepository;
+    private ISessionRepository sessionRepository;
     private UserFindService userFindService;
     
     [SetUp]
     public void Setup()
     {
         userRepository = A.Fake<IUserRepository>();
-        userFindService = new(userRepository);
+        sessionRepository = A.Fake<ISessionRepository>();
+        userFindService = new(userRepository, sessionRepository);
     }
     
     [Test]
@@ -51,8 +54,13 @@ public class UserFindServiceTests
     }
 
     [Test]
-    public async Task FindUsersByClassAsync_ClassWithChildren()
+    public async Task FindUsersByClassAsync_ReturnChildrenWithInputClassFromCurrentSession()
     {
+        var currentSession = new Session
+        {
+            SessionDates = new SessionDates(new DateOnly(2025, 6, 6), new DateOnly(2025, 7, 6))
+        };
+        
         var firstChild = new User
         {
             ChildInfo = new ChildInfo
@@ -62,22 +70,50 @@ public class UserFindServiceTests
                     Class = 6,
                     School = "школа 2"
                 },
+                Sessions = [currentSession]
             },
             FullName = new FullName("Иванов", "Иван", "Иванович"),
-            PhoneNumber = "+79999999999"
+            PhoneNumber = "+79999999999",
+            Role = Role.Child
         };
-        A.CallTo(() => userRepository.GetUsersByClassAsync(6))!
-            .Returns(Task.FromResult<User[]>([firstChild]));
+        
+        var secondChild = new User
+        {
+            ChildInfo = new ChildInfo
+            {
+                EducationInfo = new EducationInfo
+                {
+                    Class = 7,
+                    School = "школа 2"
+                },
+                Group = 2,
+                Sessions = [currentSession]
+            },
+            FullName = new FullName("Иванов", "Иван", "Иванович"),
+            PhoneNumber = "+79999999999",
+            Role = Role.Child
+        };
+        A.CallTo(() => sessionRepository.GetLastSessionsAsync(1))
+            .Returns(Task.FromResult<Session[]?>([currentSession]));
+        A.CallTo(() => userRepository.GetUsersBySessionIdAsync(currentSession.Id))
+            .Returns(Task.FromResult<User[]?>([firstChild, secondChild]));
         
         var users = await userFindService.FindUsersByClassAsync(6);
         
         users.Should().BeEquivalentTo([firstChild]);
     }
-
+    
+    
     [Test]
-    public async Task FindUsersByClassAsync_EmptyClass_ReturnsEmptyArray()
+    public async Task FindUsersByClassAsync_NoUsersInCurrentSession_ReturnsEmptyArray()
     {
-        A.CallTo(() => userRepository.GetUsersByClassAsync(1))
+        var currentSession = new Session
+        {
+            SessionDates = new SessionDates(new DateOnly(2025, 6, 6), new DateOnly(2025, 7, 6))
+        };
+        A.CallTo(() => sessionRepository.GetLastSessionsAsync(1))
+            .Returns(Task.FromResult<Session[]?>([currentSession]));
+        A.CallTo(() => userRepository.GetUsersBySessionIdAsync(currentSession.Id))
             .Returns(Task.FromResult<User[]?>(null));
         
         var users = await userFindService.FindUsersByClassAsync(1);
@@ -86,33 +122,70 @@ public class UserFindServiceTests
     }
 
     [Test]
-    public async Task FindUsersByGroupAsync_GroupWithChildren()
+    public async Task FindUsersByGroupAsync_ReturnsChildrenWithInputGroupFromCurrentSession()
     {
+        var currentSession = new Session
+        {
+            SessionDates = new SessionDates(new DateOnly(2025, 6, 6), new DateOnly(2025, 7, 6))
+        };
+        
         var firstChild = new User
         {
             ChildInfo = new ChildInfo
             {
-                Group = 1,
+                EducationInfo = new EducationInfo
+                {
+                    Class = 6,
+                    School = "школа 2"
+                },
+                Group = 3,
+                Sessions = [currentSession]
             },
             FullName = new FullName("Иванов", "Иван", "Иванович"),
-            PhoneNumber = "+79999999999"
+            PhoneNumber = "+79999999999",
+            Role = Role.Child
         };
-        A.CallTo(() => userRepository.GetUsersByGroupAsync(1))!
-            .Returns([firstChild]);
         
-        var users = await userFindService.FindUsersByGroupAsync(1);
+        var secondChild = new User
+        {
+            ChildInfo = new ChildInfo
+            {
+                EducationInfo = new EducationInfo
+                {
+                    Class = 7,
+                    School = "школа 2"
+                },
+                Group = 2,
+                Sessions = [currentSession]
+            },
+            FullName = new FullName("Иванов", "Иван", "Иванович"),
+            PhoneNumber = "+79999999999",
+            Role = Role.Child
+        };
+        A.CallTo(() => sessionRepository.GetLastSessionsAsync(1))
+            .Returns(Task.FromResult<Session[]?>([currentSession]));
+        A.CallTo(() => userRepository.GetUsersBySessionIdAsync(currentSession.Id))
+            .Returns(Task.FromResult<User[]?>([firstChild, secondChild]));
+        
+        var users = await userFindService.FindUsersByGroupAsync(3);
         
         users.Should().BeEquivalentTo([firstChild]);
     }
     
     [Test]
-    public async Task FindUsersByGroupAsync_EmptyGroup_ReturnsEmptyArray()
+    public async Task FindUsersByGroupAsync_NoChildrenInCurrentSession_ReturnsEmptyArray()
     {
-        A.CallTo(() => userRepository.GetUsersByGroupAsync(0))!
+        var currentSession = new Session
+        {
+            SessionDates = new SessionDates(new DateOnly(2025, 6, 6), new DateOnly(2025, 7, 6))
+        };
+        A.CallTo(() => sessionRepository.GetLastSessionsAsync(1))
+            .Returns(Task.FromResult<Session[]?>([currentSession]));
+        A.CallTo(() => userRepository.GetUsersBySessionIdAsync(currentSession.Id))
             .Returns(Task.FromResult<User[]?>(null));
         
-        var users = await userFindService.FindUsersByGroupAsync(0);
-        
+        var users = await userFindService.FindUsersByGroupAsync(1);
+
         users.Should().BeEmpty();
     }
 

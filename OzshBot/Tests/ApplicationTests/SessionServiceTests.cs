@@ -145,18 +145,18 @@ public class SessionServiceTests
     }
     
     [Test]
-    public async Task GetLastSessions_NoSessions_ReturnsEmptyArray()
+    public async Task GetAllSessions_NoSessions_ReturnsEmptyArray()
     {
-        A.CallTo(() => sessionRepository.GetLastSessionsAsync(5))
+        A.CallTo(() => sessionRepository.GetAllSessions())
             .Returns(Task.FromResult<Session[]?>(null));
 
-        var sessions = await sessionService.GetLastSessionsAsync(5);
+        var sessions = await sessionService.GetAllSessionsAsync();
         
         sessions.Should().BeEmpty();
     }
     
     [Test]
-    public async Task GetLastSessionsAsync_5_ReturnsLast5Sessions()
+    public async Task GetAllSessionsAsync()
     {
         var session = new Session
         {
@@ -166,10 +166,10 @@ public class SessionServiceTests
         {
             SessionDates = new(new DateOnly(2025, 8, 25), new DateOnly(2025, 9, 17))
         };
-        A.CallTo(() => sessionRepository.GetLastSessionsAsync(5))
+        A.CallTo(() => sessionRepository.GetAllSessions())
             .Returns(Task.FromResult<Session[]?>([session, session2]));
 
-        var sessions = await sessionService.GetLastSessionsAsync(5);
+        var sessions = await sessionService.GetAllSessionsAsync();
         
         sessions.Should().BeEquivalentTo([session, session2]);
     }

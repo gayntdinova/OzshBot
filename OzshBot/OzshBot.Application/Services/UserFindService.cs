@@ -1,8 +1,7 @@
-using FluentResults;
-using OzshBot.Application.AppErrors;
 using OzshBot.Application.RepositoriesInterfaces;
 using OzshBot.Application.Services.Interfaces;
 using OzshBot.Domain.Entities;
+using OzshBot.Domain.Enums;
 using OzshBot.Domain.ValueObjects;
 
 namespace OzshBot.Application.Services;
@@ -10,21 +9,32 @@ namespace OzshBot.Application.Services;
 public class UserFindService: IUserFindService
 {
     private readonly IUserRepository userRepository;
-    public UserFindService(IUserRepository userRepository)
+    private readonly ISessionRepository sessionRepository;
+    public UserFindService(IUserRepository userRepository, ISessionRepository sessionRepository)
     {
         this.userRepository = userRepository;
+        this.sessionRepository = sessionRepository;
     }
     
     public async Task<User[]> FindUsersByClassAsync(int classNumber)
     {
-        var users = await userRepository.GetUsersByClassAsync(classNumber);
-        return users ?? [];
+        var lastSession = await sessionRepository.GetLastSessionsAsync(1);
+        if (lastSession == null) return [];
+        var users = await userRepository.GetUsersBySessionIdAsync(lastSession[0].Id);
+        if (users == null) return [];
+        return users.Where(user => user.Role == Role.Child && user.ChildInfo.EducationInfo.Class == classNumber)
+            .ToArray();
     }
     
     public async Task<User[]> FindUsersByGroupAsync(int group)
     {
-        var users = await userRepository.GetUsersByGroupAsync(group);
-        return users ?? [];
+        var lastSession = await sessionRepository.GetLastSessionsAsync(1);
+        if (lastSession == null) return [];
+        var users = await userRepository.GetUsersBySessionIdAsync(lastSession[0].Id);
+        if (users == null) return [];
+        return users.Where(user => (user.Role == Role.Child && user.ChildInfo.Group == group)
+                                   || (user.Role == Role.Counsellor && user.CounsellorInfo.Group == group))
+            .ToArray();
     }
 
     public async Task<User?> FindUserByPhoneNumberAsync(string phoneNumber)
@@ -39,7 +49,7 @@ public class UserFindService: IUserFindService
         if (splitedInput.Length == 1)
         {
             var tg = input.Replace("@", "");
-            var userByTg = await FindUserByTgAsync(new TelegramInfo { TgId = null, TgUsername = input });
+            var userByTg = await FindUserByTgAsync(new TelegramInfo { TgId = null, TgUsername = tg });
             if (userByTg is not null) return [userByTg];
         }
 
@@ -52,8 +62,8 @@ public class UserFindService: IUserFindService
         var combinations = GenerateFullNameCombinationsByInput(splitedInput);
         foreach (var combination in combinations)
         {
-            var userByFullName = await FindUsersByFullNameAsync(combination);
-            if (userByFullName.Length != 0) return userByFullName;
+            var usersByFullName = await FindUsersByFullNameAsync(combination);
+            if (usersByFullName.Length != 0) return usersByFullName;
         }
         return [];
     }
@@ -64,6 +74,24 @@ public class UserFindService: IUserFindService
         return user;
     }
 
+    private async Task<User[]> FindUsersByFullNameAsync(NameSearch name)
+    {
+        var users = await userRepository.GetUsersByFullNameAsync(name);
+        return users ?? [];
+    }
+
+    private async Task<User[]> FindUsersByCityAsync(string city)
+    {
+        var users = await userRepository.GetUsersByCityAsync(city);
+        return users ?? [];
+    }
+
+    private async Task<User[]> FindUsersBySchoolAsync(string school)
+    {
+        var users = await userRepository.GetUsersBySchoolAsync(school);
+        return users ?? [];
+    } 
+    
     private static List<NameSearch> GenerateFullNameCombinationsByInput(string[] splitedTarget)
     {
         var fullNameCombinations = new List<NameSearch>();
@@ -86,22 +114,4 @@ public class UserFindService: IUserFindService
 
         return fullNameCombinations;
     }
-
-    private async Task<User[]> FindUsersByFullNameAsync(NameSearch name)
-    {
-        var users = await userRepository.GetUsersByFullNameAsync(name);
-        return users ?? [];
-    }
-
-    private async Task<User[]> FindUsersByCityAsync(string city)
-    {
-        var users = await userRepository.GetUsersByCityAsync(city);
-        return users ?? [];
-    }
-
-    private async Task<User[]> FindUsersBySchoolAsync(string school)
-    {
-        var users = await userRepository.GetUsersBySchoolAsync(school);
-        return users ?? [];
-    } 
 }
