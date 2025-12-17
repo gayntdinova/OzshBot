@@ -111,7 +111,7 @@ public class DbRepository(AppDbContext context) : IUserRepository, ISessionRepos
                 .ThenInclude(sr => sr.Session)
             .Include(u => u.Counsellor)
                 .ThenInclude(c => c.SessionRelations)
-                .ThenInclude(csr => csr.Session) 
+                .ThenInclude(csr => csr.Session)
             .Where(u => (u.Student != null &&
                         u.Student.Name == Name) ||
                     (u.Counsellor != null &&
@@ -195,17 +195,29 @@ public class DbRepository(AppDbContext context) : IUserRepository, ISessionRepos
     {
         return await context.Users
             .Include(u => u.Student)
-                .ThenInclude(s => s.ParentRelations)
-                .ThenInclude(r => r.Parent)
+                .ThenInclude(s => s.Parents)
             .Include(u => u.Student)
                 .ThenInclude(s => s.SessionRelations)
-                .ThenInclude(sr => sr.Session)
             .Include(u => u.Counsellor)
-                .ThenInclude(c => c.SessionRelations)
-                .ThenInclude(csr => csr.Session)
+                .ThenInclude(c => c.Sessions)
             .Where(u => u.Student != null && u.Student.School == school)
             .Select(u => u.ToDomainUser())
             .ToArrayAsync();
+    }
+
+    public async Task<Domain.Entities.User[]?> GetUsersBySessionIdAsync(Guid sessionId)
+    {
+        var studentUsersQuery = context.StudentsSessions
+        .Where(ss => ss.SessionId == sessionId)
+        .Select(ss => ss.Student.User)
+        .Select(u => u.ToDomainUser());
+        var counsellorUsersQuery = context.CounsellorsSessions
+            .Where(cs => cs.SessionId == sessionId)
+            .Select(cs => cs.Counsellor.User)
+            .Select(u => u.ToDomainUser());
+        var combinedQuery = studentUsersQuery.Concat(counsellorUsersQuery);
+        var users = await combinedQuery.ToArrayAsync();
+        return users;
     }
 
     public async Task AddUserAsync(Domain.Entities.User user)
