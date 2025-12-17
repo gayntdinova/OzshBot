@@ -19,9 +19,8 @@ public class UserFindService: IUserFindService
     public async Task<User[]> FindUsersByClassAsync(int classNumber)
     {
         var lastSession = await sessionRepository.GetLastSessionsAsync(1);
-        if (lastSession == null) return [];
+        if (lastSession.Length == 0) return [];
         var users = await userRepository.GetUsersBySessionIdAsync(lastSession[0].Id);
-        if (users == null) return [];
         return users.Where(user => user.Role == Role.Child && user.ChildInfo.EducationInfo.Class == classNumber)
             .ToArray();
     }
@@ -29,9 +28,8 @@ public class UserFindService: IUserFindService
     public async Task<User[]> FindUsersByGroupAsync(int group)
     {
         var lastSession = await sessionRepository.GetLastSessionsAsync(1);
-        if (lastSession == null) return [];
+        if (lastSession.Length == 0) return [];
         var users = await userRepository.GetUsersBySessionIdAsync(lastSession[0].Id);
-        if (users == null) return [];
         return users.Where(user => (user.Role == Role.Child && user.ChildInfo.Group == group)
                                    || (user.Role == Role.Counsellor && user.CounsellorInfo.Group == group))
             .ToArray();
@@ -77,19 +75,19 @@ public class UserFindService: IUserFindService
     private async Task<User[]> FindUsersByFullNameAsync(NameSearch name)
     {
         var users = await userRepository.GetUsersByFullNameAsync(name);
-        return users ?? [];
+        return users;
     }
 
     private async Task<User[]> FindUsersByCityAsync(string city)
     {
         var users = await userRepository.GetUsersByCityAsync(city);
-        return users ?? [];
+        return users;
     }
 
     private async Task<User[]> FindUsersBySchoolAsync(string school)
     {
         var users = await userRepository.GetUsersBySchoolAsync(school);
-        return users ?? [];
+        return users;
     } 
     
     private static List<NameSearch> GenerateFullNameCombinationsByInput(string[] splitedTarget)

@@ -53,7 +53,7 @@ public class SessionServiceTests
                     d.EndDate == new DateOnly(2025, 8, 24))))
             .Returns(Task.FromResult<Session?>(null));
         A.CallTo(() => sessionRepository.GetAllSessions())
-            .Returns(Task.FromResult<Session[]?>([session2]));
+            .Returns(Task.FromResult<Session[]>([session2]));
         
         var result = await sessionService.AddSessionAsync(session);
         
@@ -78,7 +78,7 @@ public class SessionServiceTests
                     d.EndDate == new DateOnly(2025, 8, 24))))
             .Returns(Task.FromResult<Session?>(null));
         A.CallTo(() => sessionRepository.GetAllSessions())
-            .Returns(Task.FromResult<Session[]?>([session2]));
+            .Returns(Task.FromResult<Session[]>([session2]));
         
         var result = await sessionService.AddSessionAsync(session);
         
@@ -115,7 +115,7 @@ public class SessionServiceTests
         A.CallTo(() => sessionRepository.GetSessionByIdAsync(session.Id))
             .Returns(Task.FromResult<Session?>(session));
         A.CallTo(() => sessionRepository.GetAllSessions())
-            .Returns(Task.FromResult<Session[]?>([session, session2]));
+            .Returns(Task.FromResult<Session[]>([session, session2]));
         
         var result = await sessionService.EditSessionAsync(session);
         
@@ -137,7 +137,7 @@ public class SessionServiceTests
         A.CallTo(() => sessionRepository.GetSessionByIdAsync(session.Id))
             .Returns(Task.FromResult<Session?>(session));
         A.CallTo(() => sessionRepository.GetAllSessions())
-            .Returns(Task.FromResult<Session[]?>([session, session2]));
+            .Returns(Task.FromResult<Session[]>([session, session2]));
         
         var result = await sessionService.EditSessionAsync(session);
         
@@ -148,7 +148,7 @@ public class SessionServiceTests
     public async Task GetAllSessions_NoSessions_ReturnsEmptyArray()
     {
         A.CallTo(() => sessionRepository.GetAllSessions())
-            .Returns(Task.FromResult<Session[]?>(null));
+            .Returns(Task.FromResult<Session[]>([]));
 
         var sessions = await sessionService.GetAllSessionsAsync();
         
@@ -167,7 +167,7 @@ public class SessionServiceTests
             SessionDates = new(new DateOnly(2025, 8, 25), new DateOnly(2025, 9, 17))
         };
         A.CallTo(() => sessionRepository.GetAllSessions())
-            .Returns(Task.FromResult<Session[]?>([session, session2]));
+            .Returns(Task.FromResult<Session[]>([session, session2]));
 
         var sessions = await sessionService.GetAllSessionsAsync();
         

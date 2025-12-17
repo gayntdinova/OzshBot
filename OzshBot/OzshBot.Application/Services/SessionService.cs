@@ -38,13 +38,13 @@ public class SessionService: ISessionService
     public async Task<Session[]> GetAllSessionsAsync()
     {
         var sessions = await sessionRepository.GetAllSessions();
-        return sessions ?? [];
+        return sessions;
     }
 
     private async Task<bool> CheckIfSessionIntersectsAsync(Session currentSession)
     {
         var sessions = await sessionRepository.GetAllSessions();
-        if (sessions == null) return false;
+        if (sessions.Length == 0) return false;
         foreach (var session in sessions)
         {
             if (session.Id == currentSession.Id) continue;
