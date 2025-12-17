@@ -209,7 +209,7 @@ public class EditCommand : IBotCommand
                 state.EditUser.FormateAnswer(Role.Counsellor),
                 replyMarkup: new InlineKeyboardMarkup(
                     InlineKeyboardButton.WithCallbackData("Посещённые смены", "userSessions "+state.EditUser.PhoneNumber),
-                    InlineKeyboardButton.WithCallbackData("Смены", "sessions "+state.EditUser.PhoneNumber)
+                    InlineKeyboardButton.WithCallbackData("Редактировать", "edit "+state.EditUser.PhoneNumber)
                 ),
                 parseMode: ParseMode.MarkdownV2
             );
