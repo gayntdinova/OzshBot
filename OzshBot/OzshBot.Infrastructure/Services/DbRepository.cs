@@ -236,11 +236,11 @@ public class DbRepository(AppDbContext context) : IUserRepository, ISessionRepos
         }
         if (user.ChildInfo != null && user.ChildInfo.Sessions.Count != 0)
         {
-            await UpdateStudentSessionsAsync(dbUser.Student, user.ChildInfo.Sessions);
+            UpdateStudentSessions(dbUser.Student, user.ChildInfo.Sessions);
         }
         if (user.CounsellorInfo != null && user.CounsellorInfo.Sessions.Count != 0)
         {
-            await UpdateCounsellorSessionsAsync(dbUser.Counsellor, user.CounsellorInfo.Sessions);
+            UpdateCounsellorSessions(dbUser.Counsellor, user.CounsellorInfo.Sessions);
         }
         await context.SaveChangesAsync();
     }
@@ -258,38 +258,58 @@ public class DbRepository(AppDbContext context) : IUserRepository, ISessionRepos
         existingUser.TgName = user.TelegramInfo.TgUsername;
         existingUser.TgId = user.TelegramInfo.TgId;
         existingUser.Role = user.Role;
-        if (existingUser.Counsellor != null)
+        if (existingUser.Role == Role.Counsellor)
         {
-            existingUser.Counsellor.Name = user.FullName.Name;
-            existingUser.Counsellor.Surname = user.FullName.Surname;
-            existingUser.Counsellor.Patronymic = user.FullName.Patronymic;
-            existingUser.Counsellor.City = user.City;
-            existingUser.Counsellor.Email = user.Email;
-            existingUser.Counsellor.Phone = user.PhoneNumber;
-            existingUser.Counsellor.BirthDate = user.Birthday ?? default;
-
-            existingUser.Counsellor.UpdateFromCounsellorInfo(user.CounsellorInfo);
-            await UpdateCounsellorSessionsAsync(existingUser.Counsellor, user.CounsellorInfo.Sessions);
-        }
-        else
-        {
-            var newCounsellor = new Counsellor
+            if (existingUser == null)
             {
-                UserId = existingUser.UserId,
-                Name = user.FullName.Name,
-                Surname = user.FullName.Surname,
-                Patronymic = user.FullName.Patronymic,
-                City = user.City,
-                Email = user.Email,
-                Phone = user.PhoneNumber,
-                BirthDate = user.Birthday ?? default
-            };
-            context.Counsellors.Add(newCounsellor);
-            existingUser.Counsellor.UpdateFromCounsellorInfo(user.CounsellorInfo);
-            await UpdateCounsellorSessionsAsync(existingUser.Counsellor, user.CounsellorInfo.Sessions);
+                var newCounsellor = new Counsellor
+                {
+                    UserId = existingUser.UserId,
+                    Name = user.FullName.Name,
+                    Surname = user.FullName.Surname,
+                    Patronymic = user.FullName.Patronymic,
+                    City = user.City,
+                    Email = user.Email,
+                    Phone = user.PhoneNumber,
+                    BirthDate = user.Birthday ?? default,
+                    CurrentGroup = user.CounsellorInfo.Group
+                };
+                context.Counsellors.Add(newCounsellor);
+                UpdateCounsellorSessions(newCounsellor, user.CounsellorInfo.Sessions);
+            }
+            else
+            {
+                existingUser.Counsellor.Name = user.FullName.Name;
+                existingUser.Counsellor.Surname = user.FullName.Surname;
+                existingUser.Counsellor.Patronymic = user.FullName.Patronymic;
+                existingUser.Counsellor.City = user.City;
+                existingUser.Counsellor.Email = user.Email;
+                existingUser.Counsellor.Phone = user.PhoneNumber;
+                existingUser.Counsellor.BirthDate = user.Birthday ?? default;
+                existingUser.Counsellor.CurrentGroup = user.CounsellorInfo.Group;
+                UpdateCounsellorSessions(existingUser.Counsellor, user.CounsellorInfo.Sessions);
+            }
         }
-        if (existingUser.Student != null)
+        if (existingUser.Role == Role.Child)
         {
+            if (existingUser.Student == null)
+            {
+                var newStudent = new Student
+                {
+                    UserId = existingUser.UserId,
+                    Name = user.FullName.Name,
+                    Surname = user.FullName.Surname,
+                    Patronymic = user.FullName.Patronymic,
+                    City = user.City,
+                    Email = user.Email,
+                    Phone = user.PhoneNumber,
+                    BirthDate = user.Birthday ?? default,
+                    School = user.ChildInfo.EducationInfo.School,
+                    CurrentClass = user.ChildInfo.EducationInfo.Class,
+                    CurrentGroup = user.ChildInfo.Group
+                };
+                context.Students.Add(newStudent);
+            }
             existingUser.Student.Name = user.FullName.Name;
             existingUser.Student.Surname = user.FullName.Surname;
             existingUser.Student.Patronymic = user.FullName.Patronymic;
@@ -298,10 +318,10 @@ public class DbRepository(AppDbContext context) : IUserRepository, ISessionRepos
             existingUser.Student.Phone = user.PhoneNumber;
             existingUser.Student.BirthDate = user.Birthday ?? default;
             existingUser.Student.UpdateFromChildInfo(user.ChildInfo);
-                    await UpdateContactPeopleAsync(existingUser.Student, user.ChildInfo.ContactPeople);
-                    await UpdateStudentSessionsAsync(existingUser.Student, user.ChildInfo.Sessions);
+            await UpdateContactPeopleAsync(existingUser.Student, user.ChildInfo.ContactPeople);
+            UpdateStudentSessions(existingUser.Student, user.ChildInfo.Sessions);
+
         }
-        await context.SaveChangesAsync();
     }
 
     public async Task DeleteUserAsync(TelegramInfo telegramInfo)
@@ -335,7 +355,7 @@ public class DbRepository(AppDbContext context) : IUserRepository, ISessionRepos
         }
     }
 
-    private async Task UpdateStudentSessionsAsync(Student student, HashSet<Domain.Entities.Session> sessions)
+    private void UpdateStudentSessions(Student student, HashSet<Domain.Entities.Session> sessions)
     {
         if (student.SessionRelations != null && student.SessionRelations.Any())
         {
@@ -355,7 +375,7 @@ public class DbRepository(AppDbContext context) : IUserRepository, ISessionRepos
         }
     }
 
-    private async Task UpdateCounsellorSessionsAsync(Counsellor counsellor, HashSet<Domain.Entities.Session> sessions)
+    private void UpdateCounsellorSessions(Counsellor counsellor, HashSet<Domain.Entities.Session> sessions)
     {
         if (counsellor.SessionRelations != null && counsellor.SessionRelations.Any())
         {
