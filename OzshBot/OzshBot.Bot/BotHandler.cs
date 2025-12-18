@@ -1,50 +1,28 @@
-using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types;
 using Telegram.Bot;
-using System;
 using OzshBot.Domain.ValueObjects;
 using OzshBot.Domain.Enums;
-using Ninject;
-using OzshBot.Application.DtoModels;
-using OzshBot.Domain.Entities;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
-using System.Formats.Asn1;
 using UserDomain = OzshBot.Domain.Entities.User;
-using UserTg = Telegram.Bot.Types.User;
-using OzshBot.Application.RepositoriesInterfaces;
-using OzshBot.Application.Services.Interfaces;
 using Telegram.Bot.Types.ReplyMarkups;
-using OzshBot.Application.Services;
 using System.Data;
-using System.Text.RegularExpressions;
-using FluentResults;
-using System.Net.Http.Headers;
-using Ninject.Planning.Bindings.Resolvers;
 namespace OzshBot.Bot;
 
-using IBLogger = OzshBot.Application.ToolsInterfaces.ILogger;
 
 public class BotHandler
 {
-    //клиент для работы с Bot API, позволяет отправлять сообщения, управлять ботом, подписываться на обновления и тд
-    public readonly ITelegramBotClient botClient;
-
-    //объект с настройками бота, здесь указываем какие типы Update будем получать, Timeout бота и тд
     private readonly ReceiverOptions receiverOptions;
-
-    //сервис для работы с правами
-    public readonly ServiceManager serviceManager;
 
     private readonly UserRegistrator userRegistrator;
 
-    //список в каком состоянии какие человек
     private Dictionary<long,string> stateDict = new();
 
-    //список комманд
     private readonly Dictionary<string,IBotCommand> commandsDict;
+
+    public readonly ITelegramBotClient BotClient;
+
+    public readonly ServiceManager ServiceManager;
 
     public BotHandler(
         ITelegramBotClient botClient,
@@ -53,23 +31,22 @@ public class BotHandler
         IBotCommand[] commands,
         UserRegistrator userRegistrator)
     {
-        this.botClient = botClient;
+        BotClient = botClient;
         this.receiverOptions = receiverOptions;
-        this.serviceManager = serviceManager;
-        this.commandsDict = commands.ToDictionary(command=>command.Name());
+        ServiceManager = serviceManager;
+        commandsDict = commands.ToDictionary(command=>command.Name);
         this.userRegistrator = userRegistrator;
     }
 
-    //================================CoolMethods===================================
     public async Task Start()
     {
         using var cts = new CancellationTokenSource();
 
-        botClient.StartReceiving(UpdateHandler, ErrorHandler, receiverOptions, cts.Token);
+        BotClient.StartReceiving(UpdateHandler, ErrorHandler, receiverOptions, cts.Token);
 
-        await UserAttributesInfoManager.Initialize(serviceManager.SessionService);
+        await UserAttributesInfoManager.Initialize(ServiceManager.SessionService);
 
-        Console.WriteLine($"{(await botClient.GetMe()).FirstName} запущен!");
+        Console.WriteLine($"{(await BotClient.GetMe()).FirstName} запущен!");
 
         await Task.Delay(-1);
     }
@@ -108,7 +85,6 @@ public class BotHandler
         return Task.CompletedTask;
     }
 
-    //================================MessageMethods=================================
     private async Task HandleMessage(Update update)
     {
         if (update.Message is not { } message) return;
@@ -116,15 +92,13 @@ public class BotHandler
         if (message.From.Username is not { } username) return;//хз
         var userId = message.From.Id;
 
-        var role = await HandleMessageIfRegestration(message);
+        var role = await HandleMessageIfRegistration(message);
         
         if (message.Text is not { } messageText) return;
         var splittedMessage = messageText.Split();
         var chat = message.Chat;
 
         Console.WriteLine($"id: {userId}\nusername {username}\nроль: {role}"+(stateDict.Keys.Contains(userId)?("\nсостояние: "+ stateDict[userId]):""));
-
-        //==================================================================================================
 
         await SetCommandsForUser(role,userId);
 
@@ -133,21 +107,21 @@ public class BotHandler
 
         if (stateDict.TryGetValue(userId,out var state))
         {
-            TryExecuteCommand(commandsDict[state],update,chat, userId, role);
+            await TryExecuteCommand(commandsDict[state],update,chat, userId, role);
             return;
         }
 
         if (messageText[0] == '/' && commandsDict.TryGetValue(splittedMessage[0],out var command))
         {
-            TryExecuteCommand(command,update,chat, userId, role);
+            await TryExecuteCommand(command,update,chat, userId, role);
             return;
         }
         await HandleSearching(chat, role, messageText, userId);
     }
 
-    private async Task<Role> HandleMessageIfRegestration(Message message)
+    private async Task<Role> HandleMessageIfRegistration(Message message)
     {
-        var role = serviceManager.RoleService.GetUserRoleByTgAsync(
+        var role = ServiceManager.RoleService.GetUserRoleByTgAsync(
             new TelegramInfo { TgUsername = message.From!.Username!, TgId = message.From.Id }).Result;
         if (role != Role.Unknown) return role;
         
@@ -166,7 +140,7 @@ public class BotHandler
                 await SetCommandsForUser(role,message.From.Id);
             }
                 
-            await botClient.SendMessage(message.Chat.Id, answer, parseMode: ParseMode.MarkdownV2);
+            await BotClient.SendMessage(message.Chat.Id, answer, parseMode: ParseMode.MarkdownV2);
             stateDict.Remove(message.From.Id);
         }
         return role;
@@ -177,7 +151,6 @@ public class BotHandler
     {
         if (message.Text != null)
         {
-            Console.WriteLine("AAAAAAAAAAAAAAAA");
             var button = new KeyboardButton("Отправить контакт") { RequestContact = true };
 
             var keyboard = new ReplyKeyboardMarkup(new[]
@@ -189,7 +162,7 @@ public class BotHandler
                 OneTimeKeyboard = true
             };
         
-            await botClient.SendMessage(
+            await BotClient.SendMessage(
                 message.Chat.Id,
                 "Пожалуйста, отправьте ваш контакт:",
                 replyMarkup: keyboard
@@ -199,7 +172,7 @@ public class BotHandler
 
     private async Task HandleSearching(Chat chat, Role role, string messageText,long userId)
     {
-        var users = await serviceManager.FindService.FindUserAsync(messageText);
+        var users = await ServiceManager.FindService.FindUserAsync(messageText);
         await SendResultMessage(users,chat,userId,role,messageText);
     }
 
@@ -207,19 +180,19 @@ public class BotHandler
     {
         if (users.Length==0)
         {
-            await serviceManager.Logger.Log(userId,DateOnly.FromDateTime(DateTime.Now),false);
-            await botClient.SendMessage(
-                    chat.Id,
-                    $"никто не найден",
-                    replyMarkup: new ReplyKeyboardRemove(),
-                    parseMode: ParseMode.MarkdownV2
-                    );
+            await ServiceManager.Logger.Log(userId,DateOnly.FromDateTime(DateTime.Now),false);
+            await BotClient.SendMessage(
+                chat.Id,
+                $"Никто не найден",
+                replyMarkup: new ReplyKeyboardRemove(),
+                parseMode: ParseMode.MarkdownV2
+                );
         }
         else if (users.Length == 1)
         {
-            await serviceManager.Logger.Log(userId,DateOnly.FromDateTime(DateTime.Now),true);
+            await ServiceManager.Logger.Log(userId,DateOnly.FromDateTime(DateTime.Now),true);
             if(role == Role.Counsellor)
-                await botClient.SendMessage(
+                await BotClient.SendMessage(
                     chat.Id,
                     users[0].FormateAnswer(role),
                     replyMarkup: new InlineKeyboardMarkup(
@@ -229,7 +202,7 @@ public class BotHandler
                     parseMode: ParseMode.MarkdownV2
                     );
             else
-                await botClient.SendMessage(
+                await BotClient.SendMessage(
                     chat.Id,
                     users[0].FormateAnswer(role),
                     replyMarkup: new InlineKeyboardMarkup(
@@ -240,8 +213,8 @@ public class BotHandler
         }
         else
         {
-            await serviceManager.Logger.Log(userId,DateOnly.FromDateTime(DateTime.Now),false);
-            await botClient.SendMessage(
+            await ServiceManager.Logger.Log(userId,DateOnly.FromDateTime(DateTime.Now),false);
+            await BotClient.SendMessage(
                 chat.Id,
                 users.FormateAnswer(messageText),
                 replyMarkup: new ReplyKeyboardRemove(),
@@ -250,7 +223,6 @@ public class BotHandler
         }
     }
 
-    //================================CallbackQueryMethods============================
     private async Task HandleCallbackQuery(Update update)
     {
         if (update.CallbackQuery is not { } callback) return;
@@ -263,7 +235,7 @@ public class BotHandler
         var chat = callback.Message.Chat;
         var splittedCommand = callback.Data.Split();
 
-        var role = serviceManager.RoleService.GetUserRoleByTgAsync(
+        var role = ServiceManager.RoleService.GetUserRoleByTgAsync(
             new TelegramInfo { TgUsername = callback.From.Username, TgId = callback.From.Id }).Result;
 
         Console.WriteLine($"id: {userId}\nusername {callback.From.Username }\nроль: {role}"+(stateDict.Keys.Contains(userId)?("\nсостояние: "+ stateDict[userId]):""));
@@ -271,54 +243,58 @@ public class BotHandler
         await SetCommandsForUser(role,userId);
 
         if(role == Role.Unknown)
-            await botClient.SendMessage(
+            await BotClient.SendMessage(
                 chat.Id,
                 "для того чтобы пользоваться этим ботом вы должны быть учавстником лагеря ОЗШ",
                 replyMarkup: new ReplyKeyboardRemove());
 
         if (stateDict.TryGetValue(userId,out var state))
         {
-            TryExecuteCommand(commandsDict[state],update,chat, userId, role);
+            await TryExecuteCommand(commandsDict[state],update,chat, userId, role);
         }
         else if (commandsDict.TryGetValue(splittedCommand[0],out var command))
         {
-            TryExecuteCommand(command,update,chat, userId, role);
+            await TryExecuteCommand(command,update,chat, userId, role);
         }
-        await botClient.AnswerCallbackQuery(callback.Id);
+        await BotClient.AnswerCallbackQuery(callback.Id);
     }
 
-    private async void TryExecuteCommand(IBotCommand command,Update update,Chat chat, long userId, Role role)
+    private async Task TryExecuteCommand(IBotCommand command,Update update,Chat chat, long userId, Role role)
     {
-        if (command.IsAvailible(role))
+        if (command.IsAvailable(role))
         {
             if (await command.ExecuteAsync(this,update))
-                stateDict[userId] = command.Name();
+                stateDict[userId] = command.Name;
             else
                 stateDict.Remove(userId);
         }
         else if (command is IBotCommandWithState commandWithState)
         {
-            await commandWithState.TryCancelState(botClient,chat,userId);
+            await BotClient.SendMessage(
+                chat.Id,
+                $"У вас нет прав пользоваться этой командой",
+                replyMarkup: new ReplyKeyboardRemove(),
+                parseMode: ParseMode.MarkdownV2
+                );
+            await commandWithState.TryCancelState(BotClient,chat,userId);
             stateDict.Remove(userId);
         }
     }
 
 
 
-    //================================AdditionalMethods===============================
-
-    public async Task SetCommandsForUser(Role role, long userId)
+    private async Task SetCommandsForUser(Role role, long userId)
     {
         var commands = new List<BotCommand>();
 
         commands.AddRange(
             commandsDict.Keys
                 .Where(command => command[0] == '/')
-                .Where(command => commandsDict[command].IsAvailible(role))
-                .Select(command => new BotCommand { Command = command.Substring(1), Description = commandsDict[command].GetDescription() }).ToArray()
+                .Where(command => commandsDict[command].IsAvailable(role))
+                .Select(command => new BotCommand { Command = command.Substring(1), Description = commandsDict[command].Description }).ToArray()
         );
 
-        await botClient.SetMyCommands(
+        await BotClient.SetMyCommands(
             commands,
             scope: new BotCommandScopeChat { ChatId = userId });
     }

@@ -1,30 +1,10 @@
-using Telegram.Bot.Exceptions;
-using Telegram.Bot.Polling;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types;
 using Telegram.Bot;
-using System;
-using OzshBot.Domain.ValueObjects;
 using OzshBot.Domain.Enums;
-using Ninject;
-using OzshBot.Application.DtoModels;
-using OzshBot.Domain.Entities;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
-using System.Formats.Asn1;
 using UserDomain = OzshBot.Domain.Entities.User;
-using UserTg = Telegram.Bot.Types.User;
-using OzshBot.Application.RepositoriesInterfaces;
-using OzshBot.Application.Services.Interfaces;
 using Telegram.Bot.Types.ReplyMarkups;
-using OzshBot.Application.Services;
 using System.Data;
-using System.Text.RegularExpressions;
-using FluentResults;
-using System.Net.Http.Headers;
-using System.Windows.Input;
-using System.ComponentModel.DataAnnotations;
-using System.Runtime.ExceptionServices;
 namespace OzshBot.Bot;
 
 
@@ -32,28 +12,27 @@ public class EditCommand : IBotCommandWithState
 {
     private readonly Role[] roles = new[]{Role.Counsellor};
     private readonly Dictionary<long,EditState> stateDict= new();
-    public string Name()
-    =>"edit";
+    public string Name
+    => "edit";
 
-    public bool IsAvailible(Role role)
-    =>roles.Contains(role);
+    public bool IsAvailable(Role role)
+    => roles.Contains(role);
 
-    public string GetDescription()
-    =>"";
+    public string Description
+    => "";
 
     public async Task<bool> ExecuteAsync(BotHandler botHandler,
                                         Update update)
     {
-        var bot = botHandler.botClient;
-        var serviceManager = botHandler.serviceManager;
+        var bot = botHandler.BotClient;
+        var serviceManager = botHandler.ServiceManager;
         
         switch (update.Type)
         {
             case UpdateType.Message:
                 var message = update.Message!;
                 var messageText = message.Text!;
-                var username = message.From!.Username!;
-                var userId = message.From.Id;
+                var userId = message.From!.Id;
                 var chat = message.Chat;
 
                 //если уже находится в ожидании какого то ответа
@@ -87,11 +66,8 @@ public class EditCommand : IBotCommandWithState
                         return true;
                     }
                     //если не подходит под регулярку то переспрашиваем
-                    else
-                    {
-                        await SendStateInfoMessage(bot,chat,stateDict[userId],state.UserAttribute,true);
-                        return true;
-                    }
+                    await SendStateInfoMessage(bot,chat,stateDict[userId],state.UserAttribute,true);
+                    return true;
                 }
                 return false;
 
@@ -258,12 +234,12 @@ public class EditCommand : IBotCommandWithState
         state.MessagesToDelete += 1;
     }
 
-    class EditState
+    private class EditState
     {
         public bool WaitingSelectField = true;
         public UserAttribute UserAttribute;
-        public UserDomain EditUser;
-        public Stack<MessageId> messagesIds = new();
+        public readonly UserDomain EditUser;
+        public readonly Stack<MessageId> messagesIds = new();
         public int MessagesToDelete = 0;
 
         public EditState(UserDomain editUser)

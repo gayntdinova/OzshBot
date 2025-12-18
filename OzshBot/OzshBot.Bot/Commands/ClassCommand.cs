@@ -1,49 +1,30 @@
-using Telegram.Bot.Exceptions;
-using Telegram.Bot.Polling;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types;
 using Telegram.Bot;
-using System;
 using OzshBot.Domain.ValueObjects;
 using OzshBot.Domain.Enums;
-using Ninject;
-using OzshBot.Application.DtoModels;
-using OzshBot.Domain.Entities;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
-using System.Formats.Asn1;
-using UserDomain = OzshBot.Domain.Entities.User;
-using UserTg = Telegram.Bot.Types.User;
-using OzshBot.Application.RepositoriesInterfaces;
-using OzshBot.Application.Services.Interfaces;
 using Telegram.Bot.Types.ReplyMarkups;
-using OzshBot.Application.Services;
-using System.Data;
 using System.Text.RegularExpressions;
-using FluentResults;
-using System.Net.Http.Headers;
-using System.Windows.Input;
-using System.ComponentModel.DataAnnotations;
 namespace OzshBot.Bot;
 
 
 public class ClassCommand : IBotCommand
 {
     private readonly Role[] roles = new[]{Role.Child, Role.Counsellor};
-    public string Name()
-    =>"/class";
+    public string Name
+    => "/class";
 
-    public bool IsAvailible(Role role)
-    =>roles.Contains(role);
+    public bool IsAvailable(Role role)
+    => roles.Contains(role);
 
-    public string GetDescription()
-    =>"поиск пользователей по классу";
+    public string Description
+    => "поиск пользователей по классу";
 
     public async Task<bool> ExecuteAsync(BotHandler botHandler,
                                         Update update)
     {
-        var bot = botHandler.botClient;
-        var serviceManager = botHandler.serviceManager;
+        var bot = botHandler.BotClient;
+        var serviceManager = botHandler.ServiceManager;
 
         switch (update.Type)
         {

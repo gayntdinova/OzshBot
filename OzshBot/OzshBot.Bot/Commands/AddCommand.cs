@@ -1,29 +1,11 @@
-using Telegram.Bot.Exceptions;
-using Telegram.Bot.Polling;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types;
 using Telegram.Bot;
-using System;
-using OzshBot.Domain.ValueObjects;
 using OzshBot.Domain.Enums;
-using Ninject;
 using OzshBot.Application.DtoModels;
-using OzshBot.Domain.Entities;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
-using System.Formats.Asn1;
 using UserDomain = OzshBot.Domain.Entities.User;
-using UserTg = Telegram.Bot.Types.User;
-using OzshBot.Application.RepositoriesInterfaces;
-using OzshBot.Application.Services.Interfaces;
 using Telegram.Bot.Types.ReplyMarkups;
-using OzshBot.Application.Services;
 using System.Data;
-using System.Text.RegularExpressions;
-using FluentResults;
-using System.Net.Http.Headers;
-using System.Windows.Input;
-using System.ComponentModel.DataAnnotations;
 namespace OzshBot.Bot;
 
 
@@ -32,27 +14,26 @@ public class AddCommand : IBotCommandWithState
     private readonly Role[] roles = new[]{Role.Counsellor};
     private readonly Dictionary<long,AddState> stateDict= new();
 
-    public string Name()
-    =>"/add";
+    public string Name
+    => "/add";
 
-    public bool IsAvailible(Role role)
-    =>roles.Contains(role);
+    public bool IsAvailable(Role role)
+    => roles.Contains(role);
 
-    public string GetDescription()
-    =>"добавить нового пользователя";
+    public string Description
+    => "добавить нового пользователя";
 
     public async Task<bool> ExecuteAsync(BotHandler botHandler,
                                         Update update)
     {
-        var bot = botHandler.botClient;
-        var serviceManager = botHandler.serviceManager;
+        var bot = botHandler.BotClient;
+        var serviceManager = botHandler.ServiceManager;
         switch (update.Type)
         {
             case UpdateType.Message:
                 var message = update.Message!;
                 var messageText = message.Text!;
-                var username = message.From!.Username!;
-                var userId = message.From.Id;
+                var userId = message.From!.Id;
                 var chat = message.Chat;
 
                 //если уже находится в ожидании какого то ответа
@@ -66,7 +47,7 @@ public class AddCommand : IBotCommandWithState
                     {
                         attributeInfo.FillingAction(state.AddUser,messageText);
 
-                        var addableWithRole = UserAttributesInfoManager.AddableAttributes.Where(attr=>state.AddUser.Role.ImplementsAttribute(attr)).ToArray();
+                        var addableWithRole = UserAttributesInfoManager.AddableAttributes.Where(attr => state.AddUser.Role.ImplementsAttribute(attr)).ToArray();
 
                         var index = Array.IndexOf(addableWithRole,state.UserAttribute);
                         index+=1;
@@ -78,57 +59,53 @@ public class AddCommand : IBotCommandWithState
                             return true;
                         }
                         //если нет то заканчиваем пытаясь добавить пользователя и выводим его в чат
+
+                        UserDtoModel dto = state.AddUser.Role == Role.Counsellor ?
+                            state.AddUser.ToCounsellorDto() :
+                            state.AddUser.ToChildDto();
+                        var result = await serviceManager.ManagementService.AddUserAsync(dto);
+                        if (result.IsFailed)
+                        {
+                            await bot.SendMessage(
+                                chat.Id,
+                                $"Не удалось добавить пользователя",
+                                replyMarkup: new ReplyKeyboardRemove(),
+                                parseMode: ParseMode.MarkdownV2
+                                );
+                        }
                         else
                         {
-                            UserDtoModel dto = (state.AddUser.Role==Role.Counsellor)?state.AddUser.ToCounsellorDto():state.AddUser.ToChildDto();
-                            var result = await serviceManager.ManagementService.AddUserAsync(dto);
-                            if (result.IsFailed)
-                            {
-                                await bot.SendMessage(
-                                    chat.Id,
-                                    $"Не удалось добавить пользователя",
-                                    replyMarkup: new ReplyKeyboardRemove(),
-                                    parseMode: ParseMode.MarkdownV2
-                                    );
-                            }
-                            else
-                            {
-                                await bot.SendMessage(
-                                    chat.Id,
-                                    $"Пользователь успешно добавлен",
-                                    replyMarkup: new ReplyKeyboardRemove(),
-                                    parseMode: ParseMode.MarkdownV2
-                                    );
-                                await botHandler.SendResultMessage(new UserDomain[] {state.AddUser},chat,userId,Role.Counsellor, "");
-                            }
-                            await TryCancelState(bot,chat,userId);
-                            return false;
+                            await bot.SendMessage(
+                                chat.Id,
+                                $"Пользователь успешно добавлен",
+                                replyMarkup: new ReplyKeyboardRemove(),
+                                parseMode: ParseMode.MarkdownV2
+                                );
+                            await botHandler.SendResultMessage(new UserDomain[] {state.AddUser},chat,userId,Role.Counsellor, "");
                         }
+                        await TryCancelState(bot,chat,userId);
+                        return false;
                     }
                     //если не подходит под регулярку то переспрашиваем
-                    else
-                    {
-                        await SendStateInfoMessage(chat,bot,stateDict[userId],state.UserAttribute,true);
-                        return true;
-                    }
-                }
-                //если нам написали /add
-                else
-                {
-                    await TryCancelState(bot,chat,userId);
 
-                    stateDict[userId] = new AddState();
-
-                    stateDict[userId].messagesIds.Push((await bot.SendMessage(
-                        chat.Id,
-                        "Начинаем создание пользователя, для отмены нажмите отмена",
-                        replyMarkup: new InlineKeyboardMarkup(
-                            InlineKeyboardButton.WithCallbackData("Отмена", "addCancel"))
-                        )).Id);
-
-                    await SendStateInfoMessage(chat,bot,stateDict[userId],UserAttribute.Role,false);
+                    await SendStateInfoMessage(chat,bot,stateDict[userId],state.UserAttribute,true);
                     return true;
                 }
+                //если нам написали /add
+
+                await TryCancelState(bot,chat,userId);
+
+                stateDict[userId] = new AddState();
+
+                stateDict[userId].messagesIds.Push((await bot.SendMessage(
+                    chat.Id,
+                    "Начинаем создание пользователя, для отмены нажмите отмена",
+                    replyMarkup: new InlineKeyboardMarkup(
+                        InlineKeyboardButton.WithCallbackData("Отмена", "addCancel"))
+                    )).Id);
+
+                await SendStateInfoMessage(chat,bot,stateDict[userId],UserAttribute.Role,false);
+                return true;
 
             case UpdateType.CallbackQuery:
                 var callback = update.CallbackQuery!;
@@ -166,45 +143,10 @@ public class AddCommand : IBotCommandWithState
         state.UserAttribute = attribute;
     }
 
-    class AddState
+    private class AddState
     {
         public UserAttribute UserAttribute = UserAttribute.Role;
-        public UserDomain AddUser = new UserDomain{FullName = new("", ""),PhoneNumber = ""};
-        public Stack<MessageId> messagesIds = new();
-    }
-}
-
-public static class Extention
-{
-    public static ChildDto ToChildDto(this UserDomain user)
-    {
-        if (user.ChildInfo == null) throw new ArgumentException();
-        return new ChildDto
-        {
-            Id = user.Id,
-            FullName = user.FullName,
-            TelegramInfo = user.TelegramInfo,
-            Birthday = user.Birthday,
-            City = user.City,
-            PhoneNumber = user.PhoneNumber,
-            Email = user.Email,
-            ChildInfo = user.ChildInfo
-        };
-    }
-
-    public static CounsellorDto ToCounsellorDto(this UserDomain user)
-    {
-        if (user.CounsellorInfo == null) throw new ArgumentException();
-        return new CounsellorDto
-        {
-            Id = user.Id,
-            FullName = user.FullName,
-            TelegramInfo = user.TelegramInfo,
-            Birthday = user.Birthday,
-            City = user.City,
-            PhoneNumber = user.PhoneNumber,
-            Email = user.Email,
-            CounsellorInfo = user.CounsellorInfo
-        };
+        public readonly UserDomain AddUser = new UserDomain{FullName = new("", ""),PhoneNumber = ""};
+        public readonly Stack<MessageId> messagesIds = new();
     }
 }

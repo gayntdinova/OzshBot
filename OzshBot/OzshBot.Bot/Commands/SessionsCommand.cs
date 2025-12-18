@@ -1,28 +1,13 @@
-using Telegram.Bot.Exceptions;
-using Telegram.Bot.Polling;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types;
 using Telegram.Bot;
-using System;
 using OzshBot.Domain.ValueObjects;
 using OzshBot.Domain.Enums;
-using Ninject;
-using OzshBot.Application.DtoModels;
 using OzshBot.Domain.Entities;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
-using System.Formats.Asn1;
-using UserDomain = OzshBot.Domain.Entities.User;
-using UserTg = Telegram.Bot.Types.User;
-using OzshBot.Application.RepositoriesInterfaces;
 using OzshBot.Application.Services.Interfaces;
 using Telegram.Bot.Types.ReplyMarkups;
-using OzshBot.Application.Services;
 using System.Data;
 using System.Text.RegularExpressions;
-using FluentResults;
-using System.Net.Http.Headers;
-using System.Windows.Input;
 namespace OzshBot.Bot;
 
 
@@ -31,16 +16,18 @@ public class SessionsCommand : IBotCommandWithState
     private readonly Role[] roles = new[]{Role.Counsellor};
     private readonly Dictionary<long, SessionsState> stateDict = new();
 
-    public string Name() => "/sessions";
-    public bool IsAvailible(Role role)
-    =>roles.Contains(role);
-    public string GetDescription() => "Добавить / Изменить смену";
+    public string Name
+    => "/sessions";
+    public bool IsAvailable(Role role)
+    => roles.Contains(role);
+    public string Description
+    => "Добавить / Изменить смену";
 
     public async Task<bool> ExecuteAsync(BotHandler botHandler,
                                         Update update)
     {
-        var bot = botHandler.botClient;
-        var serviceManager = botHandler.serviceManager;
+        var bot = botHandler.BotClient;
+        var serviceManager = botHandler.ServiceManager;
         
         switch (update.Type)
         {
@@ -67,18 +54,7 @@ public class SessionsCommand : IBotCommandWithState
         var role = await serviceManager.RoleService.GetUserRoleByTgAsync(
             new TelegramInfo { TgId = userId, TgUsername = message.From.Username! });
 
-        if (role == Role.Child)
-        {
-            await bot.SendMessage(
-                chat.Id,
-                "У вас нет прав пользоваться этой командой",
-                replyMarkup: new ReplyKeyboardRemove(),
-                parseMode: ParseMode.MarkdownV2
-                );
-
-            await TryCancelState(bot,chat,userId);
-            return false;
-        }
+        var sessions = await serviceManager.SessionService.GetAllSessionsAsync();
 
         if (stateDict.TryGetValue(userId, out var state))
         {
@@ -97,7 +73,6 @@ public class SessionsCommand : IBotCommandWithState
                         var start = DateOnly.ParseExact(splitted[0], "dd.MM.yyyy");
                         var end = DateOnly.ParseExact(splitted[1], "dd.MM.yyyy");
 
-                        var sessions = await serviceManager.SessionService.GetAllSessionsAsync();
                         if(sessions.Any(session=>session.SessionDates==new SessionDates(start, end)))
                         {
                             state.sessionToEdit = sessions.First(session=>session.SessionDates==new SessionDates(start, end));
@@ -120,55 +95,49 @@ public class SessionsCommand : IBotCommandWithState
                     return true;
                 }
                 //если мы выбрали какую редактировать
-                else
+
+                if (Regex.IsMatch(text,
+                    @"^(0[1-9]|[12]\d|3[01])\.(0[1-9]|1[0-2])\.(19\d{2}|20\d{2}) (0[1-9]|[12]\d|3[01])\.(0[1-9]|1[0-2])\.(19\d{2}|20\d{2})$"))
                 {
-                    if (Regex.IsMatch(text,
-                        @"^(0[1-9]|[12]\d|3[01])\.(0[1-9]|1[0-2])\.(19\d{2}|20\d{2}) (0[1-9]|[12]\d|3[01])\.(0[1-9]|1[0-2])\.(19\d{2}|20\d{2})$"))
+                    var splitted = text.Split(' ');
+                    var start = DateOnly.ParseExact(splitted[0], "dd.MM.yyyy");
+                    var end = DateOnly.ParseExact(splitted[1], "dd.MM.yyyy");
+
+                    state.sessionToEdit.SessionDates = new(start,end);
+                    var result = await serviceManager.SessionService.EditSessionAsync(state.sessionToEdit);
+
+                    if (result.IsFailed)
                     {
-                        var splitted = text.Split(' ');
-                        var start = DateOnly.ParseExact(splitted[0], "dd.MM.yyyy");
-                        var end = DateOnly.ParseExact(splitted[1], "dd.MM.yyyy");
-
-                        state.sessionToEdit.SessionDates = new(start,end);
-                        var result = await serviceManager.SessionService.EditSessionAsync(state.sessionToEdit);
-
-                        if (result.IsFailed)
-                        {
-                            await bot.SendMessage(
-                                chat.Id,
-                                result.Errors.First().GetExplanation(),
-                                replyMarkup: new ReplyKeyboardRemove(),
-                                parseMode: ParseMode.MarkdownV2
-                                ); 
-                        }
-                        else
-                        {
-                            await bot.SendMessage(
-                                chat.Id,
-                                "Смена успешно изменена",
-                                parseMode: ParseMode.MarkdownV2,
-                                replyMarkup: new ReplyKeyboardRemove());
-                        }
-                        await TryCancelState(bot,chat,userId);
-                        return false;
+                        await bot.SendMessage(
+                            chat.Id,
+                            result.Errors.First().GetExplanation(),
+                            replyMarkup: new ReplyKeyboardRemove(),
+                            parseMode: ParseMode.MarkdownV2
+                            ); 
                     }
                     else
                     {
-                        state.messagesIds.Push((await bot.SendMessage(
+                        await bot.SendMessage(
                             chat.Id,
-                            "Неверный формат даты",
+                            "Смена успешно изменена",
                             parseMode: ParseMode.MarkdownV2,
-                            replyMarkup: new ReplyKeyboardRemove())).Id);
-                        state.MessagesToDelete += 1;
-                        return true;
+                            replyMarkup: new ReplyKeyboardRemove());
                     }
+                    await TryCancelState(bot,chat,userId);
+                    return false;
                 }
 
+                state.messagesIds.Push((await bot.SendMessage(
+                    chat.Id,
+                    "Неверный формат даты",
+                    parseMode: ParseMode.MarkdownV2,
+                    replyMarkup: new ReplyKeyboardRemove())).Id);
+                state.MessagesToDelete += 1;
+                return true;
             }
 
             if (state.Mode == SessionsMode.Add)
             {
-                var sessions = await serviceManager.SessionService.GetAllSessionsAsync();
                 if (Regex.IsMatch(text,
                     @"^(0[1-9]|[12]\d|3[01])\.(0[1-9]|1[0-2])\.(19\d{2}|20\d{2}) (0[1-9]|[12]\d|3[01])\.(0[1-9]|1[0-2])\.(19\d{2}|20\d{2})$"))
                 {
@@ -209,41 +178,33 @@ public class SessionsCommand : IBotCommandWithState
                     return true;
                 }
             }
-            else
-            {
-                await TryCancelState(bot,chat,userId);
-                return false;
-            }
+            await TryCancelState(bot,chat,userId);
+            return false;
         }
         //если написали /sessions
-        else
-        {
-            var sessions = await serviceManager.SessionService.GetAllSessionsAsync();
-            await TryCancelState(bot, chat, userId);
 
-            stateDict[userId] = new SessionsState();
-            stateDict[userId].messagesIds.Push((await bot.SendMessage(
-                chat.Id,
-                sessions.FormateAnswer(),
-                replyMarkup: new InlineKeyboardMarkup(new[]
+        await TryCancelState(bot, chat, userId);
+
+        stateDict[userId] = new SessionsState();
+        stateDict[userId].messagesIds.Push((await bot.SendMessage(
+            chat.Id,
+            sessions.FormateAnswer(),
+            replyMarkup: new InlineKeyboardMarkup(new[]
+            {
+                new[]
                 {
-                    new[]
-                    {
-                        InlineKeyboardButton.WithCallbackData("Добавить", "sessionsAdd"),
-                        InlineKeyboardButton.WithCallbackData("Редактировать", "sessionsEdit")
-                    },
-                    new[]
-                    {
-                        InlineKeyboardButton.WithCallbackData("Отмена", "sessionsCancel")
-                    }
-                }),
-                parseMode: ParseMode.MarkdownV2
-            )).Id);
+                    InlineKeyboardButton.WithCallbackData("Добавить", "sessionsAdd"),
+                    InlineKeyboardButton.WithCallbackData("Редактировать", "sessionsEdit")
+                },
+                new[]
+                {
+                    InlineKeyboardButton.WithCallbackData("Отмена", "sessionsCancel")
+                }
+            }),
+            parseMode: ParseMode.MarkdownV2
+        )).Id);
 
-            return true;
-        }
-        
-        
+        return true;
     }
 
 
@@ -319,18 +280,18 @@ public class SessionsCommand : IBotCommandWithState
         }
     }
 
-    enum SessionsMode
+    private enum SessionsMode
     {
         None,
         Edit,
         Add
     }
 
-    class SessionsState
+    private class SessionsState
     {
         public Session? sessionToEdit = null; 
         public SessionsMode Mode = SessionsMode.None;
-        public Stack<MessageId> messagesIds = new();
+        public readonly Stack<MessageId> messagesIds = new();
         public int MessagesToDelete = 0;
     }
 }

@@ -1,30 +1,12 @@
-using Telegram.Bot.Exceptions;
-using Telegram.Bot.Polling;
 using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types;
 using Telegram.Bot;
-using System;
 using OzshBot.Domain.ValueObjects;
 using OzshBot.Domain.Enums;
-using Ninject;
-using OzshBot.Application.DtoModels;
 using OzshBot.Domain.Entities;
-using System.Linq.Expressions;
-using System.Threading.Tasks;
-using System.Formats.Asn1;
-using UserDomain = OzshBot.Domain.Entities.User;
-using UserTg = Telegram.Bot.Types.User;
-using OzshBot.Application.RepositoriesInterfaces;
-using OzshBot.Application.Services.Interfaces;
 using Telegram.Bot.Types.ReplyMarkups;
-using OzshBot.Application.Services;
 using System.Data;
 using System.Text.RegularExpressions;
-using FluentResults;
-using System.Net.Http.Headers;
-using System.Windows.Input;
-using System.ComponentModel.DataAnnotations;
-using OzshBot.Application.AppErrors;
 namespace OzshBot.Bot;
 
 
@@ -32,28 +14,27 @@ public class LoadCommand : IBotCommandWithState
 {
     private readonly Role[] roles = new[]{Role.Counsellor};
     private readonly Dictionary<long,LoadState> stateDict= new();
-    public string Name()
-    =>"/load";
+    public string Name
+    => "/load";
 
-    public bool IsAvailible(Role role)
-    =>roles.Contains(role);
+    public bool IsAvailable(Role role)
+    => roles.Contains(role);
 
-    public string GetDescription()
-    =>"Загрузить новых пользователей из таблицы в смену";
+    public string Description
+    => "Загрузить новых пользователей из таблицы в смену";
 
     public async Task<bool> ExecuteAsync(BotHandler botHandler,
                                         Update update)
     {
-        var bot = botHandler.botClient;
-        var serviceManager = botHandler.serviceManager;
+        var bot = botHandler.BotClient;
+        var serviceManager = botHandler.ServiceManager;
         
         switch (update.Type)
         {
             case UpdateType.Message:
                 var message = update.Message!;
                 var messageText = message.Text!;
-                var username = message.From!.Username!;
-                var userId = message.From.Id;
+                var userId = message.From!.Id;
                 var chat = message.Chat;
                 
                 var sessions = await serviceManager.SessionService.GetAllSessionsAsync();
@@ -89,64 +70,55 @@ public class LoadCommand : IBotCommandWithState
                                 return true;
                             }
                         }
-                        else
-                        {
-                            state.messagesIds.Push((await bot.SendMessage(
-                                chat.Id,
-                                "неправильный формат, верный формат: dd.MM.yyyy dd.MM.yyyy , но лучше просто нажать на вариант в клавиатуре",
-                                replyMarkup: GetSessionsKeyboard(sessions)
-                                )).Id);
-                            return true;
-                        }
+                        state.messagesIds.Push((await bot.SendMessage(
+                            chat.Id,
+                            "неправильный формат, верный формат: dd.MM.yyyy dd.MM.yyyy , но лучше просто нажать на вариант в клавиатуре",
+                            replyMarkup: GetSessionsKeyboard(sessions)
+                            )).Id);
+                        return true;
+                    }
+                    var result = await serviceManager.ManagementService.LoadTableAsync(messageText,state.SessionDates);
+                    if (result.IsFailed)
+                    {
+                        await bot.SendMessage(
+                            chat.Id,
+                            result.Errors.First().GetExplanation(),
+                            replyMarkup: new ReplyKeyboardRemove(),
+                            parseMode: ParseMode.MarkdownV2
+                            );
                     }
                     else
                     {
-                        var result = await serviceManager.ManagementService.LoadTableAsync(messageText,state.SessionDates);
-                        if (result.IsFailed)
-                        {
-                            await bot.SendMessage(
-                                chat.Id,
-                                result.Errors.First().GetExplanation(),
-                                replyMarkup: new ReplyKeyboardRemove(),
-                                parseMode: ParseMode.MarkdownV2
-                                );
-                        }
-                        else
-                        {
-                            await bot.SendMessage(
-                                chat.Id,
-                                "Таблица успешно загружена",
-                                replyMarkup: new ReplyKeyboardRemove(),
-                                parseMode: ParseMode.MarkdownV2
-                                );
-                            
-                        }
-                        await TryCancelState(bot,chat,userId);
-                        return false;
+                        await bot.SendMessage(
+                            chat.Id,
+                            "Таблица успешно загружена",
+                            replyMarkup: new ReplyKeyboardRemove(),
+                            parseMode: ParseMode.MarkdownV2
+                            );
+                        
                     }
+                    await TryCancelState(bot,chat,userId);
+                    return false;
                 }
                 //если нам написали /load
-                else
-                {
-                    await TryCancelState(bot,chat,userId);
-                    stateDict[userId] = new LoadState();
+                await TryCancelState(bot,chat,userId);
+                stateDict[userId] = new LoadState();
 
-                    stateDict[userId].messagesIds.Push((await bot.SendMessage(
-                        chat.Id,
-                        "Начинаем добавление людей из таблицы",
-                        replyMarkup: new InlineKeyboardMarkup(
-                            InlineKeyboardButton.WithCallbackData("Отмена", "loadCancel"))
-                        )).Id);
+                stateDict[userId].messagesIds.Push((await bot.SendMessage(
+                    chat.Id,
+                    "Начинаем добавление людей из таблицы",
+                    replyMarkup: new InlineKeyboardMarkup(
+                        InlineKeyboardButton.WithCallbackData("Отмена", "loadCancel"))
+                    )).Id);
 
-                    
+                
 
-                    stateDict[userId].messagesIds.Push((await bot.SendMessage(
-                        chat.Id,
-                        "Введите даты смены, в которую вы хотите добавить пользователей из таблицы",
-                        replyMarkup: GetSessionsKeyboard(sessions)
-                        )).Id);
-                    return true;
-                }
+                stateDict[userId].messagesIds.Push((await bot.SendMessage(
+                    chat.Id,
+                    "Введите даты смены, в которую вы хотите добавить пользователей из таблицы",
+                    replyMarkup: GetSessionsKeyboard(sessions)
+                    )).Id);
+                return true;
 
             case UpdateType.CallbackQuery:
                 var callback = update.CallbackQuery!;
