@@ -48,9 +48,9 @@ static class Program
         container.Bind<ISessionService>().To<SessionService>().InSingletonScope();
 
         container.Bind<ITableParser>().To<GoogleDocParser>().InSingletonScope();
-        container.Bind<IUserRepository>().To<DbRepository>().InSingletonScope();
-        container.Bind<ISessionRepository>().To<SessionsRepository>().InSingletonScope();
-        container.Bind<IBLogger>().To<LogsRepository>().InSingletonScope();
+        container.Bind<IUserRepository>().To<DbRepository>().InScope(ctx => ctx.Request);
+        container.Bind<ISessionRepository>().To<SessionsRepository>().InScope(ctx => ctx.Request);
+        container.Bind<IBLogger>().To<LogsRepository>().InScope(ctx => ctx.Request);
 
         container.Bind<MadeUpData>().ToConstant(new MadeUpData());
         
@@ -59,7 +59,7 @@ static class Program
                 .SelectAllClasses()
                 .InheritedFrom<IBotCommand>()
                 .BindAllInterfaces()
-                .Configure(b => b.InSingletonScope()));
+                .Configure(y => y.InTransientScope()));
 
 
         return container;
