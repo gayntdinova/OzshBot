@@ -7,7 +7,7 @@ public class LogsDbContext: DbContext
 {
     public DbSet<Log> Logs { get; set; }
 
-    public LogsDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+    public LogsDbContext(DbContextOptions<LogsDbContext> options) : base(options) { }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
