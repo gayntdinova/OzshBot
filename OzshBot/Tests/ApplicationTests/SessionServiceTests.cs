@@ -41,10 +41,12 @@ public class SessionServiceTests
     {
         var session = new Session
         {
+            Id = Guid.NewGuid(),
             SessionDates = new(new DateOnly(2025, 8, 10), new DateOnly(2025, 8, 24))
         };
         var session2 = new Session
         {
+            Id = Guid.NewGuid(),
             SessionDates = new(new DateOnly(2025, 8, 6), new DateOnly(2025, 8, 17))
         };
         A.CallTo(() => sessionRepository.GetSessionByDatesAsync(
@@ -106,10 +108,12 @@ public class SessionServiceTests
     {
         var session = new Session
         {
+            Id = Guid.NewGuid(),
             SessionDates = new(new DateOnly(2025, 8, 10), new DateOnly(2025, 8, 24))
         };
         var session2 = new Session
         {
+            Id = Guid.NewGuid(),
             SessionDates = new(new DateOnly(2025, 8, 6), new DateOnly(2025, 8, 17))
         };
         A.CallTo(() => sessionRepository.GetSessionByIdAsync(session.Id))
