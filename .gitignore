@@ -56,3 +56,5 @@ nunit-*.xml
 */.idea
 
 OzshBot/OzshBot.Bot/appsettings.json
+OzshBot/OzshBot.Infrastructure/Data/AppDbContextFactory.cs
+OzshBot/OzshBot.Infrastructure/DbTest/Program.cs
