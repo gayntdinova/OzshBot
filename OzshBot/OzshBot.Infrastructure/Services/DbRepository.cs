@@ -248,9 +248,11 @@ public class DbRepository(AppDbContext context) : IUserRepository, ISessionRepos
         if (user.ChildInfo != null && user.ChildInfo.Sessions.Count != 0)
         {
             UpdateStudentSessions(dbUser.Student, user.ChildInfo.Sessions);
+            UpdateStudentSessions(dbUser.Student, user.ChildInfo.Sessions);
         }
         if (user.CounsellorInfo != null && user.CounsellorInfo.Sessions.Count != 0)
         {
+            UpdateCounsellorSessions(dbUser.Counsellor, user.CounsellorInfo.Sessions);
             UpdateCounsellorSessions(dbUser.Counsellor, user.CounsellorInfo.Sessions);
         }
         await context.SaveChangesAsync();
@@ -331,6 +333,9 @@ public class DbRepository(AppDbContext context) : IUserRepository, ISessionRepos
             existingUser.Student.Phone = user.PhoneNumber;
             existingUser.Student.BirthDate = user.Birthday ?? default;
             existingUser.Student.UpdateFromChildInfo(user.ChildInfo);
+            await UpdateContactPeopleAsync(existingUser.Student, user.ChildInfo.ContactPeople);
+            UpdateStudentSessions(existingUser.Student, user.ChildInfo.Sessions);
+
             await UpdateContactPeopleAsync(existingUser.Student, user.ChildInfo.ContactPeople);
             UpdateStudentSessions(existingUser.Student, user.ChildInfo.Sessions);
 
