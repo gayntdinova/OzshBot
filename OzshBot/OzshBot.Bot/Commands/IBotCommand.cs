@@ -28,8 +28,13 @@ namespace OzshBot.Bot;
 public interface IBotCommand
 {
     public string Name();
-    public Role GetRole();
+    public bool IsAvailible(Role role);
     public string GetDescription();
     public Task<bool> ExecuteAsync(BotHandler botHandler,
                                     Update update);
+}
+
+public interface IBotCommandWithState : IBotCommand
+{
+    public Task TryCancelState(ITelegramBotClient bot, Chat chat,long userId);
 }

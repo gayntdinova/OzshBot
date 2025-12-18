@@ -4,7 +4,7 @@ using OzshBot.Application.Services.Interfaces;
 using IBLogger = OzshBot.Application.ToolsInterfaces.ILogger;
 namespace OzshBot.Bot;
 
-public class ServiseManager
+public class ServiceManager
 {
     public IUserManagementService ManagementService;
     public IUserRoleService RoleService;
@@ -12,7 +12,7 @@ public class ServiseManager
     public ISessionService SessionService;
     public IBLogger Logger;
 
-    public ServiseManager(
+    public ServiceManager(
         IUserManagementService managementService,
         IUserRoleService roleService,
         IUserFindService findService,

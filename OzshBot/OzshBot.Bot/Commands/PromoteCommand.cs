@@ -28,11 +28,12 @@ namespace OzshBot.Bot;
 
 public class PromoteCommand : IBotCommand
 {
+    private readonly Role[] roles = new[]{Role.Counsellor};
     public string Name()
     =>"/promote";
 
-    public Role GetRole()
-    =>Role.Counsellor;
+    public bool IsAvailible(Role role)
+    =>roles.Contains(role);
 
     public string GetDescription()
     =>"Выдать права вожатого";
@@ -41,25 +42,14 @@ public class PromoteCommand : IBotCommand
                                         Update update)
     {
         var bot = botHandler.botClient;
-        var serviseManager = botHandler.serviseManager;
+        var serviceManager = botHandler.serviceManager;
         
         var message = update.Message!;
         var messageText = message.Text!;
         var username = message.From!.Username!;
         var userId = message.From.Id;
         var chat = message.Chat;
-        var role = serviseManager.RoleService.GetUserRoleByTgAsync(new TelegramInfo { TgUsername = username, TgId = userId }).Result;
 
-        if (role == Role.Child)
-        {
-            await bot.SendMessage(
-                chat.Id,
-                "У вас нет прав пользоваться этой командой",
-                replyMarkup: new ReplyKeyboardRemove(),
-                parseMode: ParseMode.MarkdownV2
-                );
-            return false;
-        }
         var splitted = messageText.Split(" ");
 
         if (splitted.Length !=2 || !Regex.IsMatch(splitted[1], @"^(\+7|8)\s?\(?\d{3}\)?[\s-]?\d{3}[\s-]?\d{2}[\s-]?\d{2}$"))
@@ -73,12 +63,12 @@ public class PromoteCommand : IBotCommand
             return false;
         }
 
-        var result = await serviseManager.RoleService.PromoteToCounsellorAsync(splitted[1]);
+        var result = await serviceManager.RoleService.PromoteToCounsellorAsync(splitted[1]);
         if (result.IsFailed)
         {
             await bot.SendMessage(
                 chat.Id,
-                $"Не удалось повысить до вожатого",
+                result.Errors.First().GetExplanation(),
                 replyMarkup: new ReplyKeyboardRemove(),
                 parseMode: ParseMode.MarkdownV2
                 );

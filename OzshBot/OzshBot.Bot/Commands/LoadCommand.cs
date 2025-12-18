@@ -28,14 +28,15 @@ using OzshBot.Application.AppErrors;
 namespace OzshBot.Bot;
 
 
-public class LoadCommand : IBotCommand
+public class LoadCommand : IBotCommandWithState
 {
+    private readonly Role[] roles = new[]{Role.Counsellor};
     private readonly Dictionary<long,LoadState> stateDict= new();
     public string Name()
     =>"/load";
 
-    public Role GetRole()
-    =>Role.Counsellor;
+    public bool IsAvailible(Role role)
+    =>roles.Contains(role);
 
     public string GetDescription()
     =>"Загрузить новых пользователей из таблицы в смену";
@@ -44,7 +45,7 @@ public class LoadCommand : IBotCommand
                                         Update update)
     {
         var bot = botHandler.botClient;
-        var serviseManager = botHandler.serviseManager;
+        var serviceManager = botHandler.serviceManager;
         
         switch (update.Type)
         {
@@ -54,23 +55,8 @@ public class LoadCommand : IBotCommand
                 var username = message.From!.Username!;
                 var userId = message.From.Id;
                 var chat = message.Chat;
-                var role = serviseManager.RoleService.GetUserRoleByTgAsync(new TelegramInfo { TgUsername = username, TgId = userId }).Result;
-
-                //если студент то не может пользоваться этой командой
-                if (role == Role.Child)
-                {
-                    await bot.SendMessage(
-                        chat.Id,
-                        "У вас нет прав пользоваться этой командой",
-                        replyMarkup: new ReplyKeyboardRemove(),
-                        parseMode: ParseMode.MarkdownV2
-                        );
-
-                    await TryCancelState(bot,chat,userId);
-                    return false;
-                }
-
-                var sessions = await serviseManager.SessionService.GetAllSessionsAsync();
+                
+                var sessions = await serviceManager.SessionService.GetAllSessionsAsync();
 
                 //если уже находится в ожидании какого то ответа
                 if(stateDict.TryGetValue(update.Message!.From!.Id, out var state))
@@ -115,7 +101,7 @@ public class LoadCommand : IBotCommand
                     }
                     else
                     {
-                        var result = await serviseManager.ManagementService.LoadTableAsync(messageText,state.SessionDates);
+                        var result = await serviceManager.ManagementService.LoadTableAsync(messageText,state.SessionDates);
                         if (result.IsFailed)
                         {
                             await bot.SendMessage(
@@ -179,7 +165,7 @@ public class LoadCommand : IBotCommand
             .Select(session=>new KeyboardButton[]{new KeyboardButton($"{session.SessionDates.StartDate.ToString("dd.MM.yyyy")} {session.SessionDates.EndDate.ToString("dd.MM.yyyy")}")}))
         {ResizeKeyboard = true};
 
-    private async Task TryCancelState(ITelegramBotClient bot, Chat chat,long userId)
+    public async Task TryCancelState(ITelegramBotClient bot, Chat chat,long userId)
     {
         if (stateDict.ContainsKey(userId))
         {

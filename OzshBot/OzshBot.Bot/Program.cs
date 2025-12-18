@@ -26,7 +26,7 @@ static class Program
 
         container.Bind<ITelegramBotClient>().ToConstant(new TelegramBotClient("8445241215:AAE-fg7HdNllMonKukdR5T9e_8I4e4FwpXg"));
         container.Bind<ReceiverOptions>().ToConstant(new ReceiverOptions { AllowedUpdates = new[] { UpdateType.Message,UpdateType.CallbackQuery } });
-        container.Bind<ServiseManager>().ToSelf().InSingletonScope();
+        container.Bind<ServiceManager>().ToSelf().InSingletonScope();
         
         container.Bind<IUserManagementService>().To<UserManagementService>().InSingletonScope();
         container.Bind<IUserRoleService>().To<UserRoleService>().InSingletonScope();

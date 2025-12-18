@@ -28,11 +28,12 @@ namespace OzshBot.Bot;
 
 public class HelpCommand : IBotCommand
 {
+    private readonly Role[] roles = new[]{Role.Child, Role.Counsellor};
     public string Name()
     =>"/help";
 
-    public Role GetRole()
-    =>Role.Child;
+    public bool IsAvailible(Role role)
+    =>roles.Contains(role);
 
     public string GetDescription()
     =>"Помощь";
@@ -41,15 +42,14 @@ public class HelpCommand : IBotCommand
                                         Update update)
     {
         var bot = botHandler.botClient;
-        var serviseManager = botHandler.serviseManager;
+        var serviceManager = botHandler.serviceManager;
         
         var message = update.Message!;
         var messageText = message.Text!;
         var username = message.From!.Username!;
         var userId = message.From.Id;
         var chat = message.Chat;
-        var role = serviseManager.RoleService.GetUserRoleByTgAsync(new TelegramInfo { TgUsername = username, TgId = userId }).Result;
-
+        
         await bot.SendMessage(
             chat.Id,
             "🤖 *Помощь по боту*\n\n" +

@@ -27,14 +27,16 @@ using System.ComponentModel.DataAnnotations;
 namespace OzshBot.Bot;
 
 
-public class AddCommand : IBotCommand
+public class AddCommand : IBotCommandWithState
 {
+    private readonly Role[] roles = new[]{Role.Counsellor};
     private readonly Dictionary<long,AddState> stateDict= new();
+
     public string Name()
     =>"/add";
 
-    public Role GetRole()
-    =>Role.Counsellor;
+    public bool IsAvailible(Role role)
+    =>roles.Contains(role);
 
     public string GetDescription()
     =>"добавить нового пользователя";
@@ -43,7 +45,7 @@ public class AddCommand : IBotCommand
                                         Update update)
     {
         var bot = botHandler.botClient;
-        var serviseManager = botHandler.serviseManager;
+        var serviceManager = botHandler.serviceManager;
         switch (update.Type)
         {
             case UpdateType.Message:
@@ -52,21 +54,6 @@ public class AddCommand : IBotCommand
                 var username = message.From!.Username!;
                 var userId = message.From.Id;
                 var chat = message.Chat;
-                var role = serviseManager.RoleService.GetUserRoleByTgAsync(new TelegramInfo { TgUsername = username, TgId = userId }).Result;
-
-                //если студент то не может пользоваться этой командой
-                if (role == Role.Child)
-                {
-                    await bot.SendMessage(
-                        chat.Id,
-                        "У вас нет прав пользоваться этой командой",
-                        replyMarkup: new ReplyKeyboardRemove(),
-                        parseMode: ParseMode.MarkdownV2
-                        );
-
-                    await TryCancelState(bot,chat,userId);
-                    return false;
-                }
 
                 //если уже находится в ожидании какого то ответа
                 if(stateDict.TryGetValue(update.Message!.From!.Id, out var state))
@@ -79,7 +66,7 @@ public class AddCommand : IBotCommand
                     {
                         attributeInfo.FillingAction(state.AddUser,messageText);
 
-                        var addableWithRole = UserAttributesInfoManager.AddableAttributes.Where(attr=>role.ImplementsAttribute(attr)).ToArray();
+                        var addableWithRole = UserAttributesInfoManager.AddableAttributes.Where(attr=>state.AddUser.Role.ImplementsAttribute(attr)).ToArray();
 
                         var index = Array.IndexOf(addableWithRole,state.UserAttribute);
                         index+=1;
@@ -94,7 +81,7 @@ public class AddCommand : IBotCommand
                         else
                         {
                             UserDtoModel dto = (state.AddUser.Role==Role.Counsellor)?state.AddUser.ToCounsellorDto():state.AddUser.ToChildDto();
-                            var result = await serviseManager.ManagementService.AddUserAsync(dto);
+                            var result = await serviceManager.ManagementService.AddUserAsync(dto);
                             if (result.IsFailed)
                             {
                                 await bot.SendMessage(
@@ -155,7 +142,7 @@ public class AddCommand : IBotCommand
         }
     }
 
-    private async Task TryCancelState(ITelegramBotClient bot, Chat chat,long userId)
+    public async Task TryCancelState(ITelegramBotClient bot, Chat chat,long userId)
     {
         if (stateDict.ContainsKey(userId))
         {

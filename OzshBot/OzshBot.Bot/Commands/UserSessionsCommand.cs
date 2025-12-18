@@ -30,11 +30,12 @@ namespace OzshBot.Bot;
 
 public class UserSessionsCommand : IBotCommand
 {
+    private readonly Role[] roles = new[]{Role.Child, Role.Counsellor};
     public string Name()
     =>"userSessions";
 
-    public Role GetRole()
-    =>Role.Child;
+    public bool IsAvailible(Role role)
+    =>roles.Contains(role);
 
     public string GetDescription()
     =>"";
@@ -43,7 +44,7 @@ public class UserSessionsCommand : IBotCommand
                                         Update update)
     {
         var bot = botHandler.botClient;
-        var serviseManager = botHandler.serviseManager;
+        var serviceManager = botHandler.serviceManager;
         
         switch (update.Type)
         {
@@ -52,7 +53,7 @@ public class UserSessionsCommand : IBotCommand
                 var splitted = callback.Data!.Split();
                 var chat = callback.Message!.Chat;
 
-                var user = await serviseManager.FindService.FindUserByPhoneNumberAsync(splitted[1]);
+                var user = await serviceManager.FindService.FindUserByPhoneNumberAsync(splitted[1]);
 
                 if (user==null)
                 {

@@ -28,14 +28,15 @@ using System.Runtime.ExceptionServices;
 namespace OzshBot.Bot;
 
 
-public class EditCommand : IBotCommand
+public class EditCommand : IBotCommandWithState
 {
+    private readonly Role[] roles = new[]{Role.Counsellor};
     private readonly Dictionary<long,EditState> stateDict= new();
     public string Name()
     =>"edit";
 
-    public Role GetRole()
-    =>Role.Counsellor;
+    public bool IsAvailible(Role role)
+    =>roles.Contains(role);
 
     public string GetDescription()
     =>"";
@@ -44,7 +45,7 @@ public class EditCommand : IBotCommand
                                         Update update)
     {
         var bot = botHandler.botClient;
-        var serviseManager = botHandler.serviseManager;
+        var serviceManager = botHandler.serviceManager;
         
         switch (update.Type)
         {
@@ -54,23 +55,6 @@ public class EditCommand : IBotCommand
                 var username = message.From!.Username!;
                 var userId = message.From.Id;
                 var chat = message.Chat;
-                var role = serviseManager.RoleService.GetUserRoleByTgAsync(new TelegramInfo { TgUsername = username, TgId = userId }).Result;
-                
-                
-                
-                //если студент то не может пользоваться этой командой
-                if (role == Role.Child)
-                {
-                    await bot.SendMessage(
-                        chat.Id,
-                        "У вас нет прав пользоваться этой командой",
-                        replyMarkup: new ReplyKeyboardRemove(),
-                        parseMode: ParseMode.MarkdownV2
-                        );
-
-                    await TryCancelState(bot,chat,userId);
-                    return false;
-                }
 
                 //если уже находится в ожидании какого то ответа
                 if(stateDict.TryGetValue(update.Message!.From!.Id, out var state))
@@ -119,7 +103,7 @@ public class EditCommand : IBotCommand
                 switch (splitted[0])
                 {
                     case "edit":
-                        return await HandleEditMenu(bot,serviseManager, chat1,userId1, splitted[1]);
+                        return await HandleEditMenu(bot,serviceManager, chat1,userId1, splitted[1]);
 
                     case "editTheme":
                         return await HandleEditThemes(bot,chat1,callback.From.Id,(UserAttribute)int.Parse(splitted[1]));
@@ -127,13 +111,13 @@ public class EditCommand : IBotCommand
                     case "editApply":
                         if(!stateDict.TryGetValue(userId1,out var state1)) return false;//невозможный в теории случай но я на всякий оставлю
 
-                        var result = await serviseManager.ManagementService.EditUserAsync(state1.EditUser);
+                        var result = await serviceManager.ManagementService.EditUserAsync(state1.EditUser);
 
                         if (result.IsFailed)
                         {
                             await bot.SendMessage(
                                 chat1.Id,
-                                $"Не удалось отредактировать пользователя пользователя",
+                                result.Errors.First().GetExplanation(),
                                 replyMarkup: new ReplyKeyboardRemove(),
                                 parseMode: ParseMode.MarkdownV2
                                 );
@@ -160,11 +144,11 @@ public class EditCommand : IBotCommand
         }
     }
 
-    private async Task<bool> HandleEditMenu( ITelegramBotClient bot,ServiseManager serviseManager, Chat chat, long userId, string phoneNumber)
+    private async Task<bool> HandleEditMenu( ITelegramBotClient bot,ServiceManager serviceManager, Chat chat, long userId, string phoneNumber)
     {
         await TryCancelState(bot, chat, userId);
 
-        var editedUser = await serviseManager.FindService.FindUserByPhoneNumberAsync(phoneNumber);
+        var editedUser = await serviceManager.FindService.FindUserByPhoneNumberAsync(phoneNumber);
 
         if (editedUser==null)
         {
@@ -249,7 +233,7 @@ public class EditCommand : IBotCommand
     }
 
 
-    private async Task TryCancelState(ITelegramBotClient bot,Chat chat,long userId)
+    public async Task TryCancelState(ITelegramBotClient bot,Chat chat,long userId)
     {
         if (stateDict.ContainsKey(userId))
         {
