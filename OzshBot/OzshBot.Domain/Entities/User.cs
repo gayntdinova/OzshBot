@@ -6,13 +6,13 @@ namespace OzshBot.Domain.Entities;
 
 public class User
 {
-    public Guid Id { get; init; } = Guid.NewGuid();
+    public Guid Id { get; init; }
     public required FullName FullName { get; set; }
-    public required TelegramInfo TelegramInfo { get; set; }
+    public TelegramInfo? TelegramInfo { get; set; }
     public DateOnly? Birthday { get; set; }
     public string? City { get; set; }
     [Phone]
-    public string? PhoneNumber { get; set; }
+    public required string PhoneNumber { get; set; }
     [EmailAddress]
     public string? Email { get; set; }
     public ChildInfo? ChildInfo { get; set; }

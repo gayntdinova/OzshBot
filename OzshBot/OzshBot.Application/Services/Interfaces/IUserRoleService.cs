@@ -7,6 +7,8 @@ namespace OzshBot.Application.Services.Interfaces;
 
 public interface IUserRoleService
 {
-    public Task<Role> GetUserRole(TelegramInfo telegramInfo);
-    public Task<Result<User>> PromoteToCounsellor(TelegramInfo telegramInfo);
+    Task<Role> GetUserRoleByTgAsync(TelegramInfo telegramInfo);
+    Task<Role> ActivateUserByPhoneNumberAsync(string phoneNumber, TelegramInfo telegramInfo);
+    
+    Task<Result<User>> PromoteToCounsellorAsync(string phoneNumber);
  }

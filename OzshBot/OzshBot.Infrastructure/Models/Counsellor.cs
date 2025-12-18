@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using OzshBot.Domain.Entities;
 using OzshBot.Domain.ValueObjects;
 
 namespace OzshBot.Infrastructure.Models;
@@ -32,10 +33,10 @@ public class Counsellor
     public string? City { get; set; }
 
     [Column(name: "birth_date")]
-    public DateOnly BirthDate { get; set; } //TODO мне кажется можно и в домене сделать DateOnly?
+    public DateOnly? BirthDate { get; set; }
 
     [Column(name: "current_group")]
-    public int CurrentGroup { get; set; }
+    public int? CurrentGroup { get; set; }
 
     [Required]
     [Column(name: "email")]
@@ -46,42 +47,26 @@ public class Counsellor
     [Column(name: "phone")]
     [Phone]
     public string? Phone { get; set; }
+
+    public virtual List<CounsellorSession>? SessionRelations { get; set; }
+    [NotMapped]
+    public List<Session> Sessions => SessionRelations?.Select(r => r.Session).ToList() ?? [];
 }
 
 
 public static class CounsellorConverter
 {
-    public static Domain.Entities.CounsellorInfo ToCounsellorInfo(this Counsellor counsellor)
+    public static CounsellorInfo ToCounsellorInfo(this Counsellor counsellor)
     {
-        var fullName = new FullName
+        return new CounsellorInfo
         {
-            Name = counsellor.Name,
-            Surname = counsellor.Surname,
-            Patronymic = counsellor.Patronymic
-        };
-        var result = new Domain.Entities.CounsellorInfo
-        {
-            Id = counsellor.CounsellorId,
-            FullName = fullName,
-            Birthday = counsellor.BirthDate,
-            City = counsellor.City,
-            PhoneNumber = counsellor.Phone,
-            Email = counsellor.Email,
             Group = counsellor.CurrentGroup,
-            Sessions = []
+            Sessions = counsellor.Sessions.Select(s => s.ToDomainSession()).ToHashSet()
         };
-        return result;
     }
-    
-    public static Domain.Entities.User ToDomainUser (this Counsellor counsellor)
+
+    public static void UpdateFromCounsellorInfo(this Counsellor counsellor, CounsellorInfo counsellorInfo)
     {
-        var tgInfo = new TelegramInfo { TgUsername = counsellor.User.TgName, TgId = counsellor.User.TgId };
-        return new Domain.Entities.User
-        {
-            Id = counsellor.User.UserId,
-            TelegramInfo = tgInfo,
-            CounsellorInfo = counsellor.ToCounsellorInfo(),
-            Role = Domain.Enums.Role.Counsellor
-        };
+        counsellor.CurrentGroup = counsellorInfo.Group;
     }
 }

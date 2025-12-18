@@ -4,19 +4,11 @@ using OzshBot.Domain.ValueObjects;
 
 namespace OzshBot.Application.DtoModels;
 
-public class ChildDto: IUserDtoModel
+public class ChildDto: UserDtoModel
 {
-    public Guid Id { get; init; } = Guid.NewGuid();
-    public FullName FullName { get; set; }
-    public TelegramInfo TelegramInfo { get; set; }
-    public DateOnly? Birthday { get; set; }
-    public string? City { get; set; }
-    public string? PhoneNumber { get; set; }
-    public string? Email { get; set; }
-    
-    public ChildInfo ChildInfo { get; set; }
+    public required ChildInfo ChildInfo { get; set; }
 
-    public User ToUser()
+    public override User ToUser()
     {
         return new User
         {

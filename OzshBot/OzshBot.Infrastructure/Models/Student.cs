@@ -1,8 +1,8 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using OzshBot.Domain.Entities;
 using OzshBot.Domain.ValueObjects;
-using OzshBot.Infrastructure.Enums;
 
 namespace OzshBot.Infrastructure.Models;
 
@@ -43,7 +43,7 @@ public class Student
     [Column(name: "current_class")]
     public int CurrentClass { get; set; }
     [Column(name: "current_group")]
-    public int CurrentGroup { get; set; }
+    public int? CurrentGroup { get; set; }
 
     [Required]
     [Column(name: "email")]
@@ -55,48 +55,35 @@ public class Student
     [Phone]
     public required string Phone { get; set; }
 
-    public virtual List<ChildParent>? Relations { get; set; }
+    public virtual List<StudentSession>? SessionRelations { get; set; }
     [NotMapped]
-    public List<Parent> Parents => Relations?.Select(r => r.Parent).ToList() ?? [];
+    public List<Session> Sessions => SessionRelations?.Select(r => r.Session).ToList() ?? [];
+
+    public virtual List<ChildParent>? ParentRelations { get; set; }
+    [NotMapped]
+    public List<Parent> Parents => ParentRelations?.Select(r => r.Parent).ToList() ?? [];
 }
 
 
 public static class StudentConverter
 {
-    public static Domain.Entities.ChildInfo ToDomainChild(this Student student)
+    public static ChildInfo ToChildInfo(this Student student)
     {
-        var fullName = new FullName
-        {
-            Name = student.Name,
-            Surname = student.Surname,
-            Patronymic = student.Patronymic
-        };
         var educationInfo = new EducationInfo { Class = student.CurrentClass, School = student.School };
-        var result = new Domain.Entities.ChildInfo
+        var result = new ChildInfo
         {
-            Id = student.StudentId,
-            FullName = fullName,
-            Birthday = student.BirthDate,
-            City = student.City,
-            PhoneNumber = student.Phone,
-            Email = student.Email,
             Group = student.CurrentGroup,
             EducationInfo = educationInfo,
-            Parents = student.Parents.Select(p => p.ToDOmainContactPerson()).ToList(),
-            Sessions = []
+            ContactPeople = student.Parents.Select(p => p.ToContactPerson()).ToHashSet(),
+            Sessions = student.Sessions.Select(s => s.ToDomainSession()).ToHashSet()
         };
         return result;
     }
-    
-    public static Domain.Entities.User ToDomainUser (this Student student)
+
+    public static void UpdateFromChildInfo(this Student student, ChildInfo childInfo)
     {
-        var tgInfo = new TelegramInfo { TgUsername = student.User.TgName, TgId = student.User.TgId };
-        return new Domain.Entities.User
-        {
-            Id = student.User.UserId,
-            TelegramInfo = tgInfo,
-            ChildInfo = student.ToDomainChild(),
-            Role = Domain.Enums.Role.Child
-        };
+        student.School = childInfo.EducationInfo.School;
+        student.CurrentClass = childInfo.EducationInfo.Class;
+        student.CurrentGroup = childInfo.Group;
     }
 }

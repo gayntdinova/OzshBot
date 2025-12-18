@@ -1,4 +1,5 @@
 using FluentResults;
+using OzshBot.Application.AppErrors;
 using OzshBot.Application.RepositoriesInterfaces;
 using OzshBot.Application.Services.Interfaces;
 using OzshBot.Domain.Entities;
@@ -14,30 +15,39 @@ public class UserRoleService: IUserRoleService
     {
         this.userRepository = userRepository;
     }
-    public async Task<Role> GetUserRole(TelegramInfo telegramInfo)
+    public async Task<Role> GetUserRoleByTgAsync(TelegramInfo telegramInfo)
     {
         var user = await userRepository.GetUserByTgAsync(telegramInfo);
-        if (user != null) UpdateTelegramInfo(user, telegramInfo);
+        if (user != null) await UpdateTelegramInfo(user, telegramInfo);
         return user?.Role ?? Role.Unknown;
     }
 
-    public async Task<Result<User>> PromoteToCounsellor(TelegramInfo telegramInfo)
+    public async Task<Role> ActivateUserByPhoneNumberAsync(string phoneNumber, TelegramInfo telegramInfo)
     {
-        var user = await userRepository.GetUserByTgAsync(telegramInfo);
-        if (user == null) return Result.Fail("User not found");
+        var user = await userRepository.GetUserByPhoneNumberAsync(phoneNumber);
+        if (user != null) await UpdateTelegramInfo(user, telegramInfo);
+        return user?.Role ?? Role.Unknown; 
+    }
+
+    public async Task<Result<User>> PromoteToCounsellorAsync(string phoneNumber)
+    {
+        var user = await userRepository.GetUserByPhoneNumberAsync(phoneNumber);
+        if (user == null) return Result.Fail(new UserNotFoundError());
+        if (user.Role == Role.Counsellor) return Result.Fail(new UserAlreadyHasRoleError());
         var counsellorInfo = new CounsellorInfo
         {
             Group = null,
-            Sessions = null
+            Sessions = []
         };
         user.CounsellorInfo = counsellorInfo;
+        user.Role = Role.Counsellor;
         await userRepository.UpdateUserAsync(user);
         return Result.Ok(user);
     }
 
-    private void UpdateTelegramInfo(User user, TelegramInfo telegramInfo)
+    private async Task UpdateTelegramInfo(User user, TelegramInfo telegramInfo)
     {
         user.TelegramInfo = telegramInfo;
-        userRepository.UpdateUserAsync(user);
+        await userRepository.UpdateUserAsync(user);
     }
 }

@@ -13,14 +13,19 @@
         <Link>.dockerignore</Link>
       </Content>
     </ItemGroup>
-
     <ItemGroup>
       <ProjectReference Include="..\OzshBot.Application\OzshBot.Application.csproj" />
       <ProjectReference Include="..\OzshBot.Domain\OzshBot.Domain.csproj" />
+      <ProjectReference Include="..\OzshBot.Infrastructure\OzshBot.Infrastructure.csproj" />
     </ItemGroup>
-
     <ItemGroup>
+      <PackageReference Include="Microsoft.Extensions.Configuration" Version="10.0.1" />
+      <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="10.0.1" />
+      <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="10.0.1" />
+      <PackageReference Include="Ninject.Extensions.Conventions" Version="3.3.0" />
+      <PackageReference Include="Telegram.Bot" Version="22.7.4" />
       <PackageReference Include="FluentResults" Version="4.0.0" />
+      <PackageReference Include="Ninject" Version="3.3.6"/>
     </ItemGroup>
 
 </Project>

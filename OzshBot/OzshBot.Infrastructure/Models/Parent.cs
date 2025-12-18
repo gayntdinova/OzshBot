@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using OzshBot.Domain.Entities;
 using OzshBot.Domain.ValueObjects;
 
 namespace OzshBot.Infrastructure.Models;
@@ -34,20 +35,32 @@ public class Parent
 
 public static class ParentConverter
 {
-    public static Domain.Entities.ContactPerson ToDOmainContactPerson(this Parent parent)
+    public static ContactPerson ToContactPerson(this Parent parent)
     {
         var fullName = new FullName
-        {
-            Name = parent.Name,
-            Surname = parent.Surname,
-            Patronymic = parent.Patronymic
-        };
-        var result = new Domain.Entities.ContactPerson
+        (
+            name: parent.Name,
+            surname: parent.Surname,
+            patronymic: parent.Patronymic
+        );
+        var result = new ContactPerson
         {
             Id = parent.ParentId,
             FullName = fullName,
             PhoneNumber = parent.Phone
         };
         return result;
+    }
+
+    public static Parent FromParentInfo(ContactPerson parentInfo)
+    {
+        return new Parent
+        {
+            ParentId = parentInfo.Id,
+            Name = parentInfo.FullName.Name,
+            Surname = parentInfo.FullName.Surname,
+            Patronymic = parentInfo.FullName.Patronymic,
+            Phone = parentInfo.PhoneNumber
+        };
     }
 }

@@ -1,7 +1,9 @@
 using FluentResults;
+using OzshBot.Application.AppErrors;
 using OzshBot.Application.DtoModels;
 using OzshBot.Application.RepositoriesInterfaces;
 using OzshBot.Application.Services.Interfaces;
+using OzshBot.Application.ToolsInterfaces;
 using OzshBot.Domain.Entities;
 using OzshBot.Domain.ValueObjects;
 
@@ -10,53 +12,71 @@ namespace OzshBot.Application.Services;
 public class UserManagementService: IUserManagementService 
 {
     private readonly IUserRepository userRepository;
+    private readonly ISessionRepository sessionRepository;
     private readonly ITableParser tableParser;
-    public UserManagementService(IUserRepository userRepository, ITableParser tableParser)
+    public UserManagementService(IUserRepository userRepository, ISessionRepository sessionRepository, ITableParser tableParser)
     {
         this.userRepository = userRepository;
+        this.sessionRepository = sessionRepository;
         this.tableParser = tableParser;
     }
 
-    public async Task<Result<User>> AddUserAsync<T>(T user) where T: IUserDtoModel
+    public async Task<Result<User>> AddUserAsync<T>(T user) where T: UserDtoModel
     {
-        if (await userRepository.GetUserByTgAsync(user.TelegramInfo) != null) return Result.Fail("User has already been added");
-        await userRepository.AddUserAsync(user.ToUser());
-        return Result.Ok(user.ToUser());
+        if (await userRepository.GetUserByPhoneNumberAsync(user.PhoneNumber) != null) 
+            return Result.Fail(new UserAlreadyExistsError());
+        var newUser = user.ToUser();
+        await userRepository.AddUserAsync(newUser);
+        return Result.Ok(newUser);
     }
 
-    public async Task<Result<User>> EditUser(TelegramInfo telegramInfo, User user)
+    public async Task<Result<User>> EditUserAsync(User editedUser)
     {
-        if (await userRepository.GetUserByTgAsync(telegramInfo) == null) return Result.Fail("User not found");
+        var user = await userRepository.GetUserByIdAsync(editedUser.Id);
+        if (user == null)
+            return Result.Fail(new UserNotFoundError());
+        user.UpdateBy(editedUser);
         await userRepository.UpdateUserAsync(user);
         return Result.Ok(user);
     }
 
-    public async Task<Result> DeleteUserAsync(TelegramInfo telegramInfo)
+    public async Task<Result> DeleteUserAsync(string phoneNumber)
     {
-        if (await userRepository.GetUserByTgAsync(telegramInfo) == null) return Result.Fail("User not found");
-        await userRepository.DeleteUserAsync(telegramInfo);
+        if (await userRepository.GetUserByPhoneNumberAsync(phoneNumber) == null)
+            return Result.Fail(new UserNotFoundError());
+        await userRepository.DeleteUserAsync(phoneNumber);
         return Result.Ok();
     }
 
-    public async Task<Result> LoadTable(string link)
+    public async Task<Result> LoadTableAsync(string link, SessionDates sessionDates)
     {
-        var children = await tableParser.GetChildrenAsync(link);
-        if (children.IsSuccess)
+        var session = await sessionRepository.GetSessionByDatesAsync(sessionDates);
+        if (session == null) return Result.Fail(new SessionNotFoundError());
+        var result = await tableParser.GetChildrenAsync(link);
+        if (result.IsFailed)
         {
-            foreach (var child in children.Value)
+            if (result.HasError<IncorrectRowError>()
+                || result.HasError<IncorrectUrlError>()
+                || result.HasError<IncorrectTableFormatError>()) return Result.Fail(result.Errors);
+            return result.ToResult();
+        }
+        
+        foreach (var child in result.Value)
+        {
+            child.ChildInfo.Sessions.Add(session);
+            var existedUser = await userRepository.GetUserByPhoneNumberAsync(child.PhoneNumber);
+            var newUser = child.ToUser();
+            if (existedUser != null)
             {
-                var existUser = await userRepository.GetUserByTgAsync(child.TelegramInfo);
-                if (existUser == null)
-                    await userRepository.AddUserAsync(child.ToUser());
-                else
-                {
-                    existUser.UpdateBy(child.ToUser());
-                    await userRepository.UpdateUserAsync(existUser);
-                }
+                existedUser.UpdateBy(newUser);
+                await userRepository.UpdateUserAsync(existedUser);
+            }
+            else
+            {
+                await userRepository.AddUserAsync(newUser);
             }
         }
-        else return Result.Fail("Error loading and parsing table");
+        
         return Result.Ok();
-        // надо добавить про смены
     }
 }
