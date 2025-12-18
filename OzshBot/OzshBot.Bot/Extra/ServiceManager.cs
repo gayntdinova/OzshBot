@@ -1,16 +1,15 @@
-
 using OzshBot.Application.Services.Interfaces;
-
 using IBLogger = OzshBot.Application.ToolsInterfaces.ILogger;
-namespace OzshBot.Bot;
+
+namespace OzshBot.Bot.Extra;
 
 public class ServiceManager
 {
-    public IUserManagementService ManagementService;
-    public IUserRoleService RoleService;
-    public IUserFindService FindService;
-    public ISessionService SessionService;
-    public IBLogger Logger;
+    public readonly IUserManagementService ManagementService;
+    public readonly IUserRoleService RoleService;
+    public readonly IUserFindService FindService;
+    public readonly ISessionService SessionService;
+    public readonly IBLogger Logger;
 
     public ServiceManager(
         IUserManagementService managementService,

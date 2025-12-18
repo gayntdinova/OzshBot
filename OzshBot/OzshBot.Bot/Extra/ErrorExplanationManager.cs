@@ -1,6 +1,7 @@
 using FluentResults;
 using OzshBot.Application.AppErrors;
-namespace OzshBot.Bot;
+
+namespace OzshBot.Bot.Extra;
 
 public static class ErrorExplanationManager
 {
@@ -42,9 +43,8 @@ public static class ErrorExplanationManager
 
     public static string GetExplanation(this IError error)
     {
-        if (ReplyDict.TryGetValue(error.GetType(), out var factory))
-            return factory(error);
-
-        return "Неизвестная ошибка";
+        return ReplyDict.TryGetValue(error.GetType(), out var func)
+            ? func(error)
+            : "Неизвестная ошибка";
     }
 }

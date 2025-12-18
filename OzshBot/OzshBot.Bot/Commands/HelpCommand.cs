@@ -1,28 +1,31 @@
-using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types;
-using Telegram.Bot;
 using OzshBot.Domain.Enums;
+using Telegram.Bot;
+using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
-namespace OzshBot.Bot;
 
+namespace OzshBot.Bot.Commands;
 
 public class HelpCommand : IBotCommand
 {
-    private readonly Role[] roles = new[]{Role.Child, Role.Counsellor};
+    private readonly Role[] roles = [Role.Child, Role.Counsellor];
+
     public string Name
-    => "/help";
+        => "/help";
 
     public bool IsAvailable(Role role)
-    => roles.Contains(role);
+    {
+        return roles.Contains(role);
+    }
 
     public string Description
-    => "Помощь";
+        => "Помощь";
 
     public async Task<bool> ExecuteAsync(BotHandler botHandler,
-                                        Update update)
+        Update update)
     {
         var bot = botHandler.BotClient;
-        
+
         var message = update.Message!;
         var chat = message.Chat;
 
@@ -48,7 +51,7 @@ public class HelpCommand : IBotCommand
             "\\- понять, кто пишет сообщение в общем чате, если вы знаете только юзернейм телеграма\n",
             replyMarkup: new ReplyKeyboardRemove(),
             parseMode: ParseMode.MarkdownV2
-            );
+        );
         return false;
     }
 }

@@ -1,32 +1,35 @@
-using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types;
-using Telegram.Bot;
+using OzshBot.Bot.Extra;
 using OzshBot.Domain.Enums;
-using UserDomain = OzshBot.Domain.Entities.User;
+using Telegram.Bot;
+using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
-using System.Data;
-namespace OzshBot.Bot;
+using UserDomain = OzshBot.Domain.Entities.User;
 
+namespace OzshBot.Bot.Commands;
 
 public class EditCommand : IBotCommandWithState
 {
-    private readonly Role[] roles = new[]{Role.Counsellor};
-    private readonly Dictionary<long,EditState> stateDict= new();
+    private readonly Role[] roles = [Role.Counsellor];
+    private readonly Dictionary<long, EditState> stateDict = new();
+
     public string Name
-    => "edit";
+        => "edit";
 
     public bool IsAvailable(Role role)
-    => roles.Contains(role);
+    {
+        return roles.Contains(role);
+    }
 
     public string Description
-    => "";
+        => "";
 
     public async Task<bool> ExecuteAsync(BotHandler botHandler,
-                                        Update update)
+        Update update)
     {
         var bot = botHandler.BotClient;
         var serviceManager = botHandler.ServiceManager;
-        
+
         switch (update.Type)
         {
             case UpdateType.Message:
@@ -36,7 +39,7 @@ public class EditCommand : IBotCommandWithState
                 var chat = message.Chat;
 
                 //если уже находится в ожидании какого то ответа
-                if(stateDict.TryGetValue(update.Message!.From!.Id, out var state))
+                if (stateDict.TryGetValue(update.Message!.From!.Id, out var state))
                 {
                     //если во время редактирования, то записываем сообщения в удаляемые
                     state.messagesIds.Push(message.Id);
@@ -45,7 +48,7 @@ public class EditCommand : IBotCommandWithState
                     //если мы ждём нажатия на кнопку, то отменяем всё 
                     if (state.WaitingSelectField)
                     {
-                        await TryCancelState(bot,chat,userId);
+                        await TryCancelState(bot, chat, userId);
                         return false;
                     }
 
@@ -56,19 +59,21 @@ public class EditCommand : IBotCommandWithState
                     if (await attributeInfo.CorrectFormateFunction(messageText))
                     {
                         state.MessagesToDelete = 0;
-                        attributeInfo.FillingAction(state.EditUser,messageText);
+                        attributeInfo.FillingAction(state.EditUser, messageText);
                         state.WaitingSelectField = true;
 
-                        state.messagesIds.Push((await bot.SendMessage( 
+                        state.messagesIds.Push((await bot.SendMessage(
                             chat.Id,
                             "Изменено",
                             replyMarkup: new ReplyKeyboardRemove())).Id);
                         return true;
                     }
+
                     //если не подходит под регулярку то переспрашиваем
-                    await SendStateInfoMessage(bot,chat,stateDict[userId],state.UserAttribute,true);
+                    await SendStateInfoMessage(bot, chat, stateDict[userId], state.UserAttribute, true);
                     return true;
                 }
+
                 return false;
 
             case UpdateType.CallbackQuery:
@@ -79,13 +84,15 @@ public class EditCommand : IBotCommandWithState
                 switch (splitted[0])
                 {
                     case "edit":
-                        return await HandleEditMenu(bot,serviceManager, chat1,userId1, splitted[1]);
+                        return await HandleEditMenu(bot, serviceManager, chat1, userId1, splitted[1]);
 
                     case "editTheme":
-                        return await HandleEditThemes(bot,chat1,callback.From.Id,(UserAttribute)int.Parse(splitted[1]));
+                        return await HandleEditThemes(bot, chat1, callback.From.Id,
+                            (UserAttribute)int.Parse(splitted[1]));
 
                     case "editApply":
-                        if(!stateDict.TryGetValue(userId1,out var state1)) return false;//невозможный в теории случай но я на всякий оставлю
+                        if (!stateDict.TryGetValue(userId1, out var state1))
+                            return false; //невозможный в теории случай но я на всякий оставлю
 
                         var result = await serviceManager.ManagementService.EditUserAsync(state1.EditUser);
 
@@ -96,7 +103,7 @@ public class EditCommand : IBotCommandWithState
                                 result.Errors.First().GetExplanation(),
                                 replyMarkup: new ReplyKeyboardRemove(),
                                 parseMode: ParseMode.MarkdownV2
-                                );
+                            );
                         }
                         else
                         {
@@ -105,14 +112,16 @@ public class EditCommand : IBotCommandWithState
                                 $"Пользователь успешно отредактирован",
                                 replyMarkup: new ReplyKeyboardRemove(),
                                 parseMode: ParseMode.MarkdownV2
-                                );
-                            await botHandler.SendResultMessage(new UserDomain[]{state1.EditUser},chat1,userId1,Role.Counsellor, "");
+                            );
+                            await botHandler.SendResultMessage(new UserDomain[] { state1.EditUser }, chat1, userId1,
+                                Role.Counsellor, "");
                         }
-                        await TryCancelState(bot,chat1,userId1);
+
+                        await TryCancelState(bot, chat1, userId1);
                         return false;
 
                     default:
-                        await TryCancelState(bot,chat1,userId1);
+                        await TryCancelState(bot, chat1, userId1);
                         return false;
                 }
             default:
@@ -120,20 +129,21 @@ public class EditCommand : IBotCommandWithState
         }
     }
 
-    private async Task<bool> HandleEditMenu( ITelegramBotClient bot,ServiceManager serviceManager, Chat chat, long userId, string phoneNumber)
+    private async Task<bool> HandleEditMenu(ITelegramBotClient bot, ServiceManager serviceManager, Chat chat,
+        long userId, string phoneNumber)
     {
         await TryCancelState(bot, chat, userId);
 
         var editedUser = await serviceManager.FindService.FindUserByPhoneNumberAsync(phoneNumber);
 
-        if (editedUser==null)
+        if (editedUser == null)
         {
             await bot.SendMessage(
                 chat.Id,
                 "Телефон этого человека сменился или его уже не существует",
                 replyMarkup: new ReplyKeyboardRemove(),
                 parseMode: ParseMode.MarkdownV2
-                );
+            );
             return false;
         }
         else
@@ -145,7 +155,7 @@ public class EditCommand : IBotCommandWithState
                 replyMarkup: CreateKeyboard(editedUser.Role),
                 parseMode: ParseMode.MarkdownV2
             )).Id);
-            
+
             stateDict[userId] = state;
             return true;
         }
@@ -153,55 +163,56 @@ public class EditCommand : IBotCommandWithState
 
     private async Task<bool> HandleEditThemes(ITelegramBotClient bot, Chat chat, long userId, UserAttribute attribute)
     {
-        if(!stateDict.Keys.Contains(userId)) return false;//невозможный в теории случай но я на всякий оставлю
+        if (!stateDict.Keys.Contains(userId)) return false; //невозможный в теории случай но я на всякий оставлю
 
         var state = stateDict[userId];
-        if(!state.WaitingSelectField)
-            while(state.MessagesToDelete > 0)
+        if (!state.WaitingSelectField)
+            while (state.MessagesToDelete > 0)
             {
                 await bot.DeleteMessage(chat, state.messagesIds.Pop());
-                state.MessagesToDelete-=1;
+                state.MessagesToDelete -= 1;
             }
 
-        await SendStateInfoMessage(bot,chat,state,attribute,false);
+        await SendStateInfoMessage(bot, chat, state, attribute, false);
         state.WaitingSelectField = false;
         return true;
     }
 
     private InlineKeyboardMarkup CreateKeyboard(Role role)
     {
-
         var result = new List<InlineKeyboardButton[]>();
 
-        var editableWithRole = UserAttributesInfoManager.EditableAttributes.Where(attr=>role.ImplementsAttribute(attr)).ToArray();
+        var editableWithRole = UserAttributesInfoManager.EditableAttributes
+            .Where(attr => role.ImplementsAttribute(attr)).ToArray();
 
-        for(var i = 0;i<editableWithRole.Length;i+=2)
+        for (var i = 0; i < editableWithRole.Length; i += 2)
         {
             var attribute = UserAttributesInfoManager.EditableAttributes[i];
 
-                var first = UserAttributesInfoManager.EditableAttributes[i];
-                var second = UserAttributesInfoManager.EditableAttributes[i + 1];
+            var first = UserAttributesInfoManager.EditableAttributes[i];
+            var second = UserAttributesInfoManager.EditableAttributes[i + 1];
 
-                result.Add(new[]
-                {
-                    InlineKeyboardButton.WithCallbackData(first.GetInfo().Name,$"editTheme {(int)first}"),
-                    InlineKeyboardButton.WithCallbackData(second.GetInfo().Name, $"editTheme {(int)second}")
-                });
+            result.Add(new[]
+            {
+                InlineKeyboardButton.WithCallbackData(first.GetInfo().Name, $"editTheme {(int)first}"),
+                InlineKeyboardButton.WithCallbackData(second.GetInfo().Name, $"editTheme {(int)second}")
+            });
         }
+
         if (editableWithRole.Length % 2 == 1)
         {
-            var last = editableWithRole[editableWithRole.Length-1];
+            var last = editableWithRole[editableWithRole.Length - 1];
             result.Add(new[]
             {
                 InlineKeyboardButton.WithCallbackData(last.GetInfo().Name, $"editTheme {(int)last}")
             });
         }
 
-        result.Add(new []
+        result.Add(new[]
         {
             InlineKeyboardButton.WithCallbackData("Отмена", "editCancel")
         });
-        result.Add(new []
+        result.Add(new[]
         {
             InlineKeyboardButton.WithCallbackData("Применить", "editApply")
         });
@@ -209,27 +220,30 @@ public class EditCommand : IBotCommandWithState
     }
 
 
-    public async Task TryCancelState(ITelegramBotClient bot,Chat chat,long userId)
+    public async Task TryCancelState(ITelegramBotClient bot, Chat chat, long userId)
     {
         if (stateDict.ContainsKey(userId))
         {
-            while(stateDict[userId].messagesIds.Count!=0)
+            while (stateDict[userId].messagesIds.Count != 0)
                 await bot.DeleteMessage(chat, stateDict[userId].messagesIds.Pop());
             stateDict.Remove(userId);
         }
     }
 
-    private async Task SendStateInfoMessage(ITelegramBotClient bot,Chat chat,EditState state,UserAttribute attribute, bool wasIncorrect)
+    private async Task SendStateInfoMessage(ITelegramBotClient bot, Chat chat, EditState state, UserAttribute attribute,
+        bool wasIncorrect)
     {
         var attributeInfo = attribute.GetInfo();
-        ReplyMarkup markup = attributeInfo.KeyboardMarkup!=null?await attributeInfo.KeyboardMarkup(state.EditUser): new ReplyKeyboardRemove();
+        ReplyMarkup markup = attributeInfo.KeyboardMarkup != null
+            ? await attributeInfo.KeyboardMarkup(state.EditUser)
+            : new ReplyKeyboardRemove();
 
         state.messagesIds.Push((await bot.SendMessage(
             chat.Id,
-            ((wasIncorrect?"Некорректный формат\n":"")+attributeInfo.WritingInfo).FormateString(),
-            parseMode: ParseMode.MarkdownV2,
+            ((wasIncorrect ? "Некорректный формат\n" : "") + attributeInfo.WritingInfo).FormateString(),
+            ParseMode.MarkdownV2,
             replyMarkup: markup
-            )).Id);
+        )).Id);
         state.UserAttribute = attribute;
         state.MessagesToDelete += 1;
     }
@@ -248,4 +262,3 @@ public class EditCommand : IBotCommandWithState
         }
     }
 }
-

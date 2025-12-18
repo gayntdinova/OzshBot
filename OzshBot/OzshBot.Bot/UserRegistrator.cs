@@ -40,12 +40,10 @@ public class UserRegistrator
     private static string NormalizePhone(string input)
     {
         var digits = Regex.Replace(input, @"\D", "");
-        
-        if (digits.Length == 11 && (digits[0] == '7' || digits[1] == '8'))
-        {
-            digits = digits.Substring(1);
-            return "+7" + digits;
-        }
-        throw new ArgumentException("invalid phone number");
+
+        if (digits.Length != 11 || (digits[0] != '7' && digits[1] != '8'))
+            throw new ArgumentException("invalid phone number");
+        digits = digits.Substring(1);
+        return "+7" + digits;
     }
 }

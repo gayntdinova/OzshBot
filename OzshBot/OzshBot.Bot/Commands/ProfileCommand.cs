@@ -1,30 +1,34 @@
-using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Types;
-using Telegram.Bot;
-using OzshBot.Domain.ValueObjects;
+using OzshBot.Bot.Extra;
 using OzshBot.Domain.Enums;
+using OzshBot.Domain.ValueObjects;
+using Telegram.Bot;
+using Telegram.Bot.Types;
+using Telegram.Bot.Types.Enums;
 using Telegram.Bot.Types.ReplyMarkups;
-namespace OzshBot.Bot;
 
+namespace OzshBot.Bot.Commands;
 
 public class ProfileCommand : IBotCommand
 {
-    private readonly Role[] roles = new[]{Role.Child, Role.Counsellor};
+    private readonly Role[] roles = [Role.Child, Role.Counsellor];
+
     public string Name
-    => "/profile";
+        => "/profile";
 
     public bool IsAvailable(Role role)
-    => roles.Contains(role);
+    {
+        return roles.Contains(role);
+    }
 
     public string Description
-    => "Мой профиль";
+        => "Мой профиль";
 
     public async Task<bool> ExecuteAsync(BotHandler botHandler,
-                                        Update update)
+        Update update)
     {
         var bot = botHandler.BotClient;
         var serviceManager = botHandler.ServiceManager;
-        
+
         var message = update.Message!;
         var username = message.From!.Username!;
         var chat = message.Chat;
@@ -43,7 +47,7 @@ public class ProfileCommand : IBotCommand
         }
 
         await bot.SendMessage(
-            chat.Id, 
+            chat.Id,
             you.FormateAnswer(you.Role),
             replyMarkup: new ReplyKeyboardRemove(),
             parseMode: ParseMode.MarkdownV2);

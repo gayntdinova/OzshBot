@@ -1,6 +1,7 @@
 using OzshBot.Application.DtoModels;
 using UserDomain = OzshBot.Domain.Entities.User;
-namespace OzshBot.Bot;
+
+namespace OzshBot.Bot.Extra;
 
 public static class UserToDtoExtention
 {

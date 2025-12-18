@@ -7,6 +7,9 @@ using OzshBot.Domain.Enums;
 using UserDomain = OzshBot.Domain.Entities.User;
 using Telegram.Bot.Types.ReplyMarkups;
 using System.Data;
+using OzshBot.Bot.Commands;
+using OzshBot.Bot.Extra;
+
 namespace OzshBot.Bot;
 
 
@@ -63,9 +66,6 @@ public class BotHandler
 
                 case UpdateType.CallbackQuery:
                     await HandleCallbackQuery(update);
-                    break;
-
-                default:
                     break;
             }
         }

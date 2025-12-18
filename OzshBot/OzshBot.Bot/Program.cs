@@ -6,7 +6,8 @@ using OzshBot.Application.RepositoriesInterfaces;
 using OzshBot.Application.Services.Interfaces;
 using OzshBot.Application.Services;
 using OzshBot.Application.ToolsInterfaces;
-
+using OzshBot.Bot.Commands;
+using OzshBot.Bot.Extra;
 using IBLogger = OzshBot.Application.ToolsInterfaces.ILogger;
 
 namespace OzshBot.Bot;
@@ -25,7 +26,9 @@ static class Program
         var container = new StandardKernel();
 
         container.Bind<ITelegramBotClient>().ToConstant(new TelegramBotClient("8445241215:AAE-fg7HdNllMonKukdR5T9e_8I4e4FwpXg"));
-        container.Bind<ReceiverOptions>().ToConstant(new ReceiverOptions { AllowedUpdates = new[] { UpdateType.Message,UpdateType.CallbackQuery } });
+        container.Bind<ReceiverOptions>().ToConstant(new ReceiverOptions { AllowedUpdates = [UpdateType.Message,UpdateType.CallbackQuery
+            ]
+        });
         container.Bind<ServiceManager>().ToSelf().InSingletonScope();
         
         container.Bind<IUserManagementService>().To<UserManagementService>().InSingletonScope();
