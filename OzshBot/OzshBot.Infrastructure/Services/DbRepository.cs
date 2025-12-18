@@ -125,13 +125,13 @@ public class DbRepository(AppDbContext context) : IUserRepository, ISessionRepos
         return await context.Users
             .Include(u => u.Student)
                 .ThenInclude(s => s.ParentRelations)
-                .ThenInclude(r => r.Parent)
+                .ThenInclude(s => s.Parent)
             .Include(u => u.Student)
                 .ThenInclude(s => s.SessionRelations)
-                .ThenInclude(sr => sr.Session)
+                .ThenInclude(ss => ss.Session)
             .Include(u => u.Counsellor)
-                .ThenInclude(c => c.SessionRelations)
-                .ThenInclude(csr => csr.Session)
+                .ThenInclude(s => s.SessionRelations)
+                .ThenInclude(ss => ss.Session)
             .Where(u => (u.Student != null &&
                         u.Student.Surname == Surname) ||
                     (u.Counsellor != null &&
@@ -145,13 +145,13 @@ public class DbRepository(AppDbContext context) : IUserRepository, ISessionRepos
         return await context.Users
             .Include(u => u.Student)
                 .ThenInclude(s => s.ParentRelations)
-                .ThenInclude(r => r.Parent)
+                .ThenInclude(s => s.Parent)
             .Include(u => u.Student)
                 .ThenInclude(s => s.SessionRelations)
-                .ThenInclude(sr => sr.Session)
+                .ThenInclude(ss => ss.Session)
             .Include(u => u.Counsellor)
-                .ThenInclude(c => c.SessionRelations)
-                .ThenInclude(csr => csr.Session)
+                .ThenInclude(s => s.SessionRelations)
+                .ThenInclude(ss => ss.Session)
             .Where(u => (u.Student != null && u.Student.City == town) || (u.Counsellor != null && u.Counsellor.City == town))
             .Select(u => u.ToDomainUser())
             .ToArrayAsync();
@@ -162,13 +162,13 @@ public class DbRepository(AppDbContext context) : IUserRepository, ISessionRepos
         return await context.Users
             .Include(u => u.Student)
                 .ThenInclude(s => s.ParentRelations)
-                .ThenInclude(r => r.Parent)
+                .ThenInclude(s => s.Parent)
             .Include(u => u.Student)
                 .ThenInclude(s => s.SessionRelations)
-                .ThenInclude(sr => sr.Session)
+                .ThenInclude(ss => ss.Session)
             .Include(u => u.Counsellor)
-                .ThenInclude(c => c.SessionRelations)
-                .ThenInclude(csr => csr.Session)
+                .ThenInclude(s => s.SessionRelations)
+                .ThenInclude(ss => ss.Session)
             .Where(u => u.Student != null && u.Student.CurrentClass == classNumber)
             .Select(u => u.ToDomainUser())
             .ToArrayAsync();
@@ -179,13 +179,13 @@ public class DbRepository(AppDbContext context) : IUserRepository, ISessionRepos
         return await context.Users
             .Include(u => u.Student)
                 .ThenInclude(s => s.ParentRelations)
-                .ThenInclude(r => r.Parent)
+                .ThenInclude(s => s.Parent)
             .Include(u => u.Student)
                 .ThenInclude(s => s.SessionRelations)
-                .ThenInclude(sr => sr.Session)
+                .ThenInclude(ss => ss.Session)
             .Include(u => u.Counsellor)
-                .ThenInclude(c => c.SessionRelations)
-                .ThenInclude(csr => csr.Session)
+                .ThenInclude(s => s.SessionRelations)
+                .ThenInclude(ss => ss.Session)
             .Where(u => (u.Student != null && u.Student.CurrentGroup == group) || (u.Counsellor != null && u.Counsellor.CurrentGroup == group))
             .Select(u => u.ToDomainUser())
             .ToArrayAsync();
@@ -195,11 +195,14 @@ public class DbRepository(AppDbContext context) : IUserRepository, ISessionRepos
     {
         return await context.Users
             .Include(u => u.Student)
-                .ThenInclude(s => s.Parents)
+                .ThenInclude(s => s.ParentRelations)
+                .ThenInclude(s => s.Parent)
             .Include(u => u.Student)
                 .ThenInclude(s => s.SessionRelations)
+                .ThenInclude(ss => ss.Session)
             .Include(u => u.Counsellor)
-                .ThenInclude(c => c.Sessions)
+                .ThenInclude(s => s.SessionRelations)
+                .ThenInclude(ss => ss.Session)
             .Where(u => u.Student != null && u.Student.School == school)
             .Select(u => u.ToDomainUser())
             .ToArrayAsync();
