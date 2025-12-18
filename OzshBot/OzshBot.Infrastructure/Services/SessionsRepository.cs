@@ -39,6 +39,13 @@ public class SessionsRepository(AppDbContext context) : ISessionRepository
             .Select(s => s.ToDomainSession())
             .ToArrayAsync();
     }
+    public async Task<Domain.Entities.Session?> GetLastSessionAsync()
+    {
+        return await context.Sessions
+            .OrderBy(s => s.StartDate)
+            .Select(s => s.ToDomainSession())
+            .FirstOrDefaultAsync();
+    }
 
     public async Task<Domain.Entities.Session?> GetSessionByDatesAsync(SessionDates sessionDates)
     {

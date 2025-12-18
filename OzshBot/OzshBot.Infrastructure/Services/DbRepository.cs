@@ -320,6 +320,8 @@ public class DbRepository(AppDbContext context) : IUserRepository, ISessionRepos
                     CurrentGroup = user.ChildInfo.Group
                 };
                 context.Students.Add(newStudent);
+                await UpdateContactPeopleAsync(newStudent, user.ChildInfo.ContactPeople);
+                UpdateStudentSessions(newStudent, user.ChildInfo.Sessions);
             }
             existingUser.Student.Name = user.FullName.Name;
             existingUser.Student.Surname = user.FullName.Surname;
@@ -458,4 +460,6 @@ public class DbRepository(AppDbContext context) : IUserRepository, ISessionRepos
     public async Task<Domain.Entities.Session[]?> GetLastSessionsAsync(int numberOfSessions) => await sessionsRepository.GetLastSessionsAsync(numberOfSessions);
 
     public async Task<Domain.Entities.Session[]?> GetAllSessions() => await sessionsRepository.GetAllSessions();
+
+    public async Task<Domain.Entities.Session?> GetLastSessionAsync() => await sessionsRepository.GetLastSessionAsync();
 }
