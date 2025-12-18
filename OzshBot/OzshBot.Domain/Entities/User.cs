@@ -6,7 +6,7 @@ namespace OzshBot.Domain.Entities;
 
 public class User
 {
-    public Guid Id { get; init; } = Guid.NewGuid();
+    public Guid Id { get; init; }
     public required FullName FullName { get; set; }
     public TelegramInfo? TelegramInfo { get; set; }
     public DateOnly? Birthday { get; set; }
