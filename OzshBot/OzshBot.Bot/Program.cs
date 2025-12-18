@@ -9,6 +9,10 @@ using OzshBot.Application.ToolsInterfaces;
 using OzshBot.Bot.Commands;
 using OzshBot.Bot.Extra;
 using IBLogger = OzshBot.Application.ToolsInterfaces.ILogger;
+using Microsoft.Extensions.Configuration;
+using Ninject.Extensions.Conventions;
+using OzshBot.Infrastructure.Parser;
+using OzshBot.Infrastructure.Services;
 
 namespace OzshBot.Bot;
 
@@ -25,9 +29,16 @@ static class Program
     {
         var container = new StandardKernel();
 
-        container.Bind<ITelegramBotClient>().ToConstant(new TelegramBotClient("8445241215:AAE-fg7HdNllMonKukdR5T9e_8I4e4FwpXg"));
-        container.Bind<ReceiverOptions>().ToConstant(new ReceiverOptions { AllowedUpdates = [UpdateType.Message,UpdateType.CallbackQuery
-            ]
+        var configuration = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .Build();
+        var botToken = configuration["TelegramBot:Token"];
+
+        container.Bind<ITelegramBotClient>().ToConstant(new TelegramBotClient(botToken));
+        
+        container.Bind<ReceiverOptions>().ToConstant(new ReceiverOptions {
+            AllowedUpdates = [UpdateType.Message,UpdateType.CallbackQuery]
         });
         container.Bind<ServiceManager>().ToSelf().InSingletonScope();
         
@@ -36,24 +47,20 @@ static class Program
         container.Bind<IUserFindService>().To<UserFindService>().InSingletonScope();
         container.Bind<ISessionService>().To<SessionService>().InSingletonScope();
 
-        container.Bind<ITableParser>().ToConstant(new MyTableParser()).InSingletonScope();
-        container.Bind<IUserRepository>().To<MyUserRepository>().InSingletonScope();
-        container.Bind<ISessionRepository>().To<MySessionRepository>().InSingletonScope();
-        container.Bind<IBLogger>().To<MyLogger>().InSingletonScope();
+        container.Bind<ITableParser>().To<GoogleDocParser>().InSingletonScope();
+        container.Bind<IUserRepository>().To<DbRepository>().InSingletonScope();
+        container.Bind<ISessionRepository>().To<SessionsRepository>().InSingletonScope();
+        container.Bind<IBLogger>().To<LogsRepository>().InSingletonScope();
 
         container.Bind<MadeUpData>().ToConstant(new MadeUpData());
+        
+        container.Bind(x =>
+            x.FromThisAssembly()
+                .SelectAllClasses()
+                .InheritedFrom<IBotCommand>()
+                .BindAllInterfaces()
+                .Configure(b => b.InSingletonScope()));
 
-        container.Bind<IBotCommand>().To<AddCommand>().InSingletonScope();
-        container.Bind<IBotCommand>().To<DeleteCommand>().InSingletonScope();
-        container.Bind<IBotCommand>().To<EditCommand>().InSingletonScope();
-        container.Bind<IBotCommand>().To<HelpCommand>().InSingletonScope();
-        container.Bind<IBotCommand>().To<ProfileCommand>().InSingletonScope();
-        container.Bind<IBotCommand>().To<PromoteCommand>().InSingletonScope();
-        container.Bind<IBotCommand>().To<LoadCommand>().InSingletonScope();
-        container.Bind<IBotCommand>().To<GroupCommand>().InSingletonScope();
-        container.Bind<IBotCommand>().To<ClassCommand>().InSingletonScope();
-        container.Bind<IBotCommand>().To<UserSessionsCommand>().InSingletonScope();
-        container.Bind<IBotCommand>().To<SessionsCommand>().InSingletonScope();
 
         return container;
     }
