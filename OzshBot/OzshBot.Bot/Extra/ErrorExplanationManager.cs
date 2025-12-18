@@ -27,15 +27,17 @@ using System.ComponentModel.DataAnnotations;
 using OzshBot.Application.AppErrors;
 namespace OzshBot.Bot;
 
-public static class ErrorHandler
+public static class ErrorExplanationManager
 {
     static Dictionary<Type, string> ReplyDict = new()
     {
-        { typeof(IncorrectUrlError), "Некорректный url" },
         { typeof(IncorrectRowError), "Некорректный столбец" },
-        { typeof(SessionNotFoundError), "Сессий нету, ну вообще"},
+        { typeof(IncorrectUrlError), "Некорректный url" },
         { typeof(SessionAlreadyExistsError),"Сессия уже существует"},
-        { typeof(SessionIntersectError),"Нельзя чтобы даты сессий пересекались"}
+        { typeof(SessionIntersectError),"Нельзя чтобы даты сессий пересекались"},
+        { typeof(SessionNotFoundError), "Сессий нету, ну вообще"},
+        { typeof(UserAlreadyExistsError),"Пользователь уже существует"},
+        { typeof(UserNotFoundError),"Пользователь не найден"}
     };
 
     public static string GetExplanation(this IError error)

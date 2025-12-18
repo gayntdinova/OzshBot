@@ -26,17 +26,17 @@ static class Program
 
         container.Bind<ITelegramBotClient>().ToConstant(new TelegramBotClient("8445241215:AAE-fg7HdNllMonKukdR5T9e_8I4e4FwpXg"));
         container.Bind<ReceiverOptions>().ToConstant(new ReceiverOptions { AllowedUpdates = new[] { UpdateType.Message,UpdateType.CallbackQuery } });
-        container.Bind<ServiseManager>().ToSelf();
+        container.Bind<ServiseManager>().ToSelf().InSingletonScope();
         
         container.Bind<IUserManagementService>().To<UserManagementService>().InSingletonScope();
         container.Bind<IUserRoleService>().To<UserRoleService>().InSingletonScope();
         container.Bind<IUserFindService>().To<UserFindService>().InSingletonScope();
         container.Bind<ISessionService>().To<SessionService>().InSingletonScope();
 
-        container.Bind<ITableParser>().ToConstant(new MyTableParser());
-        container.Bind<IUserRepository>().To<MyUserRepository>();
-        container.Bind<ISessionRepository>().To<MySessionRepository>();
-        container.Bind<IBLogger>().To<MyLogger>();
+        container.Bind<ITableParser>().ToConstant(new MyTableParser()).InSingletonScope();
+        container.Bind<IUserRepository>().To<MyUserRepository>().InSingletonScope();
+        container.Bind<ISessionRepository>().To<MySessionRepository>().InSingletonScope();
+        container.Bind<IBLogger>().To<MyLogger>().InSingletonScope();
 
         container.Bind<MadeUpData>().ToConstant(new MadeUpData());
 
