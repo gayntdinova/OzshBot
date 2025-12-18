@@ -29,17 +29,47 @@ namespace OzshBot.Bot;
 
 public static class ErrorExplanationManager
 {
-    static Dictionary<Type, string> ReplyDict = new()
+    private static readonly Dictionary<Type, Func<IError, string>> ReplyDict = new()
     {
-        { typeof(IncorrectRowError), "Некорректный столбец" },
-        { typeof(IncorrectUrlError), "Некорректный url" },
-        { typeof(SessionAlreadyExistsError),"Сессия уже существует"},
-        { typeof(SessionIntersectError),"Нельзя чтобы даты сессий пересекались"},
-        { typeof(SessionNotFoundError), "Сессий нету, ну вообще"},
-        { typeof(UserAlreadyExistsError),"Пользователь уже существует"},
-        { typeof(UserNotFoundError),"Пользователь не найден"}
+        {
+            typeof(IncorrectRowError),
+            error =>
+            {
+                var e = (IncorrectRowError)error;
+                return $"Некорректный формат строки {e.Row}";
+            }
+        },
+        {
+            typeof(IncorrectUrlError),
+            _ => "Некорректный url"
+        },
+        {
+            typeof(SessionAlreadyExistsError),
+            _ => "Сессия уже существует"
+        },
+        {
+            typeof(SessionIntersectError),
+            _ => "Нельзя чтобы даты сессий пересекались"
+        },
+        {
+            typeof(SessionNotFoundError),
+            _ => "Сессий нету, ну вообще"
+        },
+        {
+            typeof(UserAlreadyExistsError),
+            _ => "Пользователь уже существует"
+        },
+        {
+            typeof(UserNotFoundError),
+            _ => "Пользователь не найден"
+        }
     };
 
     public static string GetExplanation(this IError error)
-        => ReplyDict[error.GetType()];
+    {
+        if (ReplyDict.TryGetValue(error.GetType(), out var factory))
+            return factory(error);
+
+        return "Неизвестная ошибка";
+    }
 }
