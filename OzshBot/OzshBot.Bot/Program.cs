@@ -25,7 +25,7 @@ static class Program
         await botHandler.Start();
     }
 
-    public static StandardKernel ConfigureContainer()
+    private static StandardKernel ConfigureContainer()
     {
         var container = new StandardKernel();
 
@@ -35,7 +35,8 @@ static class Program
             .Build();
         var botToken = configuration["TelegramBot:Token"];
 
-        container.Bind<ITelegramBotClient>().ToConstant(new TelegramBotClient(botToken));
+        //container.Bind<ITelegramBotClient>().ToConstant(new TelegramBotClient(botToken));
+        container.Bind<ITelegramBotClient>().ToConstant(new TelegramBotClient("8445241215:AAE-fg7HdNllMonKukdR5T9e_8I4e4FwpXg"));
         
         container.Bind<ReceiverOptions>().ToConstant(new ReceiverOptions {
             AllowedUpdates = [UpdateType.Message,UpdateType.CallbackQuery]
