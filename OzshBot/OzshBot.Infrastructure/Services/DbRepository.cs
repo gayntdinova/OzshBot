@@ -258,16 +258,16 @@ public class DbRepository(AppDbContext context) : IUserRepository, ISessionRepos
         existingUser.TgName = user.TelegramInfo.TgUsername;
         existingUser.TgId = user.TelegramInfo.TgId;
         existingUser.Role = user.Role;
-        if (existingUser.Counsellor != null)
+        existingUser.Counsellor = new Counsellor
         {
-            existingUser.Counsellor.Name = user.FullName.Name;
-            existingUser.Counsellor.Surname = user.FullName.Surname;
-            existingUser.Counsellor.Patronymic = user.FullName.Patronymic;
-            existingUser.Counsellor.City = user.City;
-            existingUser.Counsellor.Email = user.Email;
-            existingUser.Counsellor.Phone = user.PhoneNumber;
-            existingUser.Counsellor.BirthDate = user.Birthday ?? default;
-        }
+            Name = user.FullName.Name,
+            Surname = user.FullName.Surname,
+            Patronymic = user.FullName.Patronymic,
+            City = user.City,
+            Email = user.Email,
+            Phone = user.PhoneNumber,
+            BirthDate = user.Birthday ?? default
+        };
         if (existingUser.Student != null)
         {
             existingUser.Student.Name = user.FullName.Name;
