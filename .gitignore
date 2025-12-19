@@ -57,3 +57,5 @@ nunit-*.xml
 /OzshBot/OzshBot.Infrastructure/core-song-477709-a0-db7e8f5a3e78.json
 
 OzshBot/OzshBot.Bot/appsettings.json
+OzshBot/OzshBot.Infrastructure/Data/AppDbContextFactory.cs
+OzshBot/OzshBot.Infrastructure/DbTest/Program.cs
