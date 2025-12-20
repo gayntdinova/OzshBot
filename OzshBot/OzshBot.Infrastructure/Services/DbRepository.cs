@@ -271,12 +271,12 @@ public class DbRepository(AppDbContext context) : IUserRepository, ISessionRepos
             .Where(u => u.UserId == user.Id)
             .FirstOrDefaultAsync();
         if (existingUser == null) throw new InvalidOperationException("Нет пользователя с таким user_id");
-        existingUser.TgName = user.TelegramInfo.TgUsername;
-        existingUser.TgId = user.TelegramInfo.TgId;
+        existingUser.TgName = user.TelegramInfo?.TgUsername;
+        existingUser.TgId = user.TelegramInfo?.TgId;
         existingUser.Role = user.Role;
         if (existingUser.Role == Role.Counsellor)
         {
-            if (existingUser == null)
+            if (existingUser.Counsellor == null)
             {
                 var newCounsellor = new Counsellor
                 {

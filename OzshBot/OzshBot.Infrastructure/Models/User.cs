@@ -80,11 +80,12 @@ public static class UserConverter
     
     public static User FromDomainUser(Domain.Entities.User user)
     {
+        Console.WriteLine(user);
         var dbUser = new User
         {
             UserId = user.Id,
-            TgName = user.TelegramInfo.TgUsername,
-            TgId = user.TelegramInfo.TgId,
+            TgName = user.TelegramInfo?.TgUsername,
+            TgId = user.TelegramInfo?.TgId,
             Role = user.Role
         };
 
