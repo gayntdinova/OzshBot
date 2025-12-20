@@ -139,7 +139,10 @@ public class UserRoleServiceTests
         {
             FullName = new FullName("Иванов", "Иван", "Иванович"),
             PhoneNumber = "+79999999999",
-            Role = Role.Child
+            Role = Role.Child,
+            ChildInfo = new ChildInfo
+            {
+            }
         };
         A.CallTo(() => userRepository.GetUserByPhoneNumberAsync("+79999999999"))!
             .Returns(Task.FromResult(foundUser));
@@ -152,6 +155,7 @@ public class UserRoleServiceTests
             FullName = new FullName("Иванов", "Иван", "Иванович"),
             PhoneNumber = "+79999999999",
             Role = Role.Counsellor,
+            ChildInfo = foundUser.ChildInfo,
             CounsellorInfo = new CounsellorInfo
             {
                 Group = null,
