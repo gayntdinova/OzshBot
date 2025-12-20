@@ -20,6 +20,14 @@ public static class ErrorExplanationManager
             _ => "Некорректный url"
         },
         {
+            typeof(IncorrectDataError),
+            _ => "Некорректные данные"
+        },
+        {
+            typeof(IncorrectTableFormatError),
+            _ => "Некорректный формат таблицы"
+        },
+        {
             typeof(SessionAlreadyExistsError),
             _ => "Сессия уже существует"
         },
