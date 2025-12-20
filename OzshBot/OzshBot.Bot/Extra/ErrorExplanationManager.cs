@@ -21,7 +21,11 @@ public static class ErrorExplanationManager
         },
         {
             typeof(InvalidDataError),
-            _ => "Некорректные данные"
+            error =>
+            {
+                var e = (InvalidDataError)error;
+                return $"Некорректные данные: {e.Message}";
+            }
         },
         {
             typeof(InvalidTableFormatError),

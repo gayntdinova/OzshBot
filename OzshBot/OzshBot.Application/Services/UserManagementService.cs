@@ -61,7 +61,7 @@ public class UserManagementService: IUserManagementService
             return result.ToResult();
         }
         if (!CheckForDataCorrectness(result.Value))
-            return Result.Fail(new InvalidDataError("phoneNumbers should be unique"));
+            return Result.Fail(new InvalidDataError("Номера телефонов должны быть уникальными"));
         
         foreach (var child in result.Value)
         {

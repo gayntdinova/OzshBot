@@ -39,7 +39,7 @@ public class SessionService: ISessionService
         if (existedSession == null) 
             return Result.Fail(new SessionNotFoundError());
         if (!SessionDates.Validate(session.SessionDates))
-            return Result.Fail(new InvalidDataError("session start must be earlier then end"));
+            return Result.Fail(new InvalidDataError("Начало смены должно быть раньше чем конец"));
         if (await CheckIfSessionIntersectsAsync(session))
             return Result.Fail(new SessionIntersectError());
         await sessionRepository.UpdateSessionAsync(session);
