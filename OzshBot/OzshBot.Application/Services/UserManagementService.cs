@@ -60,6 +60,8 @@ public class UserManagementService: IUserManagementService
                 || result.HasError<IncorrectTableFormatError>()) return Result.Fail(result.Errors);
             return result.ToResult();
         }
+        if (!CheckForDataCorrectness(result.Value))
+            return Result.Fail(new IncorrectDataError("phoneNumbers should be unique"));
         
         foreach (var child in result.Value)
         {
@@ -78,5 +80,12 @@ public class UserManagementService: IUserManagementService
         }
         
         return Result.Ok();
+    }
+
+    private static bool CheckForDataCorrectness(ChildDto[] children)
+    {
+        var phoneNumbers = children.Select(child => child.PhoneNumber).ToArray();
+        return phoneNumbers.Length == phoneNumbers.Distinct().Count();
+        
     }
 }
