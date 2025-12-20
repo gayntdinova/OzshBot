@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using OzshBot.Application.DtoModels;
 using OzshBot.Infrastructure.Data;
 using OzshBot.Application.RepositoriesInterfaces;
 using OzshBot.Domain.ValueObjects;

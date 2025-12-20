@@ -1,3 +1,4 @@
+using OzshBot.Application.DtoModels;
 using OzshBot.Domain.Entities;
 using OzshBot.Domain.ValueObjects;
 

@@ -2,6 +2,7 @@ using OzshBot.Application.RepositoriesInterfaces;
 using OzshBot.Application.Services;
 using FakeItEasy;
 using FluentAssertions;
+using OzshBot.Application.DtoModels;
 using OzshBot.Domain.Entities;
 using OzshBot.Domain.Enums;
 using OzshBot.Domain.ValueObjects;

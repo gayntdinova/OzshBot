@@ -16,6 +16,7 @@ using FluentResults;
 using OzshBot.Application.Services.Interfaces;
 using UserDomain = OzshBot.Domain.Entities.User;
 using OzshBot.Application.RepositoriesInterfaces;
+using OzshBot.Application.Services;
 using Telegram.Bot.Types.Passport;
 using OzshBot.Application.ToolsInterfaces;
 namespace OzshBot.Bot;
