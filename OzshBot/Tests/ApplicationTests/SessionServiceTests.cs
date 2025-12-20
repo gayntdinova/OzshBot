@@ -35,13 +35,23 @@ public class SessionServiceTests
         result.IsSuccess.Should().BeFalse();
         result.HasError<SessionAlreadyExistsError>().Should().BeTrue();
     }
+    
+    [Test]
+    public async Task AddSessionAsync_InvalidDates_ReturnsResultFail()
+    {
+        var sessionDates = new SessionDates(new DateOnly(2025, 10, 10), new DateOnly(2025, 8, 24));
+        
+        var result = await sessionService.AddSessionAsync(sessionDates);
+        
+        result.IsSuccess.Should().BeFalse();
+        result.HasError<InvalidDataError>().Should().BeTrue();
+    }
 
     [Test]
     public async Task AddSessionAsync_SessionIntersectsWithOther_ReturnsResultFail()
     {
         var session = new Session
         {
-            Id = Guid.NewGuid(),
             SessionDates = new(new DateOnly(2025, 8, 10), new DateOnly(2025, 8, 24))
         };
         var session2 = new Session
@@ -101,6 +111,28 @@ public class SessionServiceTests
         
         result.IsSuccess.Should().BeFalse();
         result.HasError<SessionNotFoundError>().Should().BeTrue();
+    }
+    
+    [Test]
+    public async Task EditSessionAsync_InvalidDates_ReturnsResultFail()
+    {
+        var session = new Session
+        {
+            Id = Guid.NewGuid(),
+            SessionDates = new(new DateOnly(2025, 8, 10), new DateOnly(2025, 8, 24))
+        };
+        var editedSession = new Session
+        {
+            Id = session.Id,
+            SessionDates = new(new DateOnly(2025, 10, 10), new DateOnly(2025, 8, 24))
+        };
+        A.CallTo(() => sessionRepository.GetSessionByIdAsync(editedSession.Id))
+            .Returns(Task.FromResult<Session?>(session));
+        
+        var result = await sessionService.EditSessionAsync(editedSession);
+        
+        result.IsSuccess.Should().BeFalse();
+        result.HasError<InvalidDataError>().Should().BeTrue();
     }
 
     [Test]

@@ -18,9 +18,9 @@ public class SessionService: ISessionService
     
     public async Task<Result> AddSessionAsync(SessionDates sessionDates)
     {
+        if (!SessionDates.Validate(sessionDates)) return Result.Fail(new InvalidDataError());
         var existedSession = await sessionRepository.GetSessionByDatesAsync(sessionDates);
         if (existedSession != null) return Result.Fail(new SessionAlreadyExistsError());
-        if (!SessionDates.Validate(sessionDates)) return Result.Fail(new InvalidDataError());
         var session = new Session
         {
             SessionDates = sessionDates
