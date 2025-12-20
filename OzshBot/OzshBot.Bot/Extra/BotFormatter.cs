@@ -26,8 +26,14 @@ public static class BotFormatter
 
         answer += user.TelegramInfo.TgUsername == null ? "" : $"\n@{user.TelegramInfo.TgUsername}";
 
-        answer += childInfo?.Group == null ? "" : $"\nГруппа: `{childInfo.Group}`";
-        answer += counsellorInfo?.Group == null ? "" : $"\nГруппа: `{counsellorInfo.Group}`";
+        if (user.Role == Role.Child)
+        {
+            answer += childInfo?.Group == null ? "" : $"\nГруппа: `{childInfo.Group}`";
+        }
+        else
+        {
+            answer += counsellorInfo?.Group == null ? "" : $"\nГруппа: `{counsellorInfo.Group}`";
+        }
 
         answer += user.City == null ? "" : $"\nГород: `{user.City}`";
 
