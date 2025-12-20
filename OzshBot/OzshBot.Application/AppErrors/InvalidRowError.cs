@@ -2,10 +2,10 @@ using FluentResults;
 
 namespace OzshBot.Application.AppErrors;
 
-public class IncorrectRowError: Error
+public class InvalidRowError: Error
 {
     public int Row { get; }
-    public IncorrectRowError(int row, string message="can't parse row"): base(message)
+    public InvalidRowError(int row, string message="can't parse row"): base(message)
     {
         Row = row;
         WithMetadata("type", "IncorrectRowError");

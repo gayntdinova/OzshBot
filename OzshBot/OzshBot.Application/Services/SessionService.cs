@@ -3,6 +3,7 @@ using OzshBot.Application.AppErrors;
 using OzshBot.Application.RepositoriesInterfaces;
 using OzshBot.Application.Services.Interfaces;
 using OzshBot.Domain.Entities;
+using OzshBot.Domain.ValueObjects;
 
 namespace OzshBot.Application.Services;
 
@@ -15,10 +16,15 @@ public class SessionService: ISessionService
         this.sessionRepository = sessionRepository;
     }
     
-    public async Task<Result> AddSessionAsync(Session session)
+    public async Task<Result> AddSessionAsync(SessionDates sessionDates)
     {
-        var existedSession = await sessionRepository.GetSessionByDatesAsync(session.SessionDates);
+        var existedSession = await sessionRepository.GetSessionByDatesAsync(sessionDates);
         if (existedSession != null) return Result.Fail(new SessionAlreadyExistsError());
+        if (!SessionDates.Validate(sessionDates)) return Result.Fail(new InvalidDataError());
+        var session = new Session
+        {
+            SessionDates = sessionDates
+        };
         if (await CheckIfSessionIntersectsAsync(session))
             return Result.Fail(new SessionIntersectError());
         await sessionRepository.AddSessionAsync(session);
@@ -29,6 +35,7 @@ public class SessionService: ISessionService
     {
         var existedSession = await sessionRepository.GetSessionByIdAsync(session.Id);
         if (existedSession == null) return Result.Fail(new SessionNotFoundError());
+        if (!SessionDates.Validate(session.SessionDates)) return Result.Fail(new InvalidDataError());
         if (await CheckIfSessionIntersectsAsync(session))
             return Result.Fail(new SessionIntersectError());
         await sessionRepository.UpdateSessionAsync(session);

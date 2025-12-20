@@ -2,9 +2,9 @@ using FluentResults;
 
 namespace OzshBot.Application.AppErrors;
 
-public class IncorrectDataError: Error
+public class InvalidDataError: Error
 {
-    public IncorrectDataError(string message="incorrect data") : base(message)
+    public InvalidDataError(string message="incorrect data") : base(message)
     {
         WithMetadata("type", "IncorrectDataError");
     }

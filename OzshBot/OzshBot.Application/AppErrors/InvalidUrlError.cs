@@ -2,9 +2,9 @@ using FluentResults;
 
 namespace OzshBot.Application.AppErrors;
 
-public class IncorrectUrlError: Error
+public class InvalidUrlError: Error
 {
-    public IncorrectUrlError(string message="incorrect url") : base(message)
+    public InvalidUrlError(string message="incorrect url") : base(message)
     {
         WithMetadata("type", "IncorrectUrlError");
     }

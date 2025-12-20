@@ -49,11 +49,11 @@ public class TableParser
         }
         catch (InvalidOperationException)
         {
-            return Result.Fail(new IncorrectTableFormatError());
+            return Result.Fail(new InvalidTableFormatError());
         }
         catch (ArgumentOutOfRangeException)
         {
-            return Result.Fail(new IncorrectTableFormatError());
+            return Result.Fail(new InvalidTableFormatError());
         }
         
         var errors = new List<Error>();
@@ -76,7 +76,7 @@ public class TableParser
             }
             catch (Exception e)
             {
-                errors.Add(new IncorrectRowError(i + 1));
+                errors.Add(new InvalidRowError(i + 1));
             }
         }
         

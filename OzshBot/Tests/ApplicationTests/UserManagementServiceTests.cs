@@ -176,12 +176,12 @@ public class UserManagementServiceTests
         A.CallTo(() => sessionRepository.GetSessionByDatesAsync(sessionDates))
             .Returns(Task.FromResult<Session?>(session));
         A.CallTo(() => tableParser.GetChildrenAsync(""))
-            .Returns(Task.FromResult(Result.Fail<ChildDto[]>(new IncorrectUrlError())));
+            .Returns(Task.FromResult(Result.Fail<ChildDto[]>(new InvalidUrlError())));
         
         var result = await userManagementService.LoadTableAsync("", sessionDates);
         
         result.IsSuccess.Should().BeFalse();
-        result.HasError<IncorrectUrlError>().Should().BeTrue();
+        result.HasError<InvalidUrlError>().Should().BeTrue();
     }
 
     [Test]
@@ -195,12 +195,12 @@ public class UserManagementServiceTests
         A.CallTo(() => sessionRepository.GetSessionByDatesAsync(sessionDates))
             .Returns(Task.FromResult<Session?>(session));
         A.CallTo(() => tableParser.GetChildrenAsync(""))
-            .Returns(Task.FromResult(Result.Fail<ChildDto[]>(new IncorrectRowError(5))));
+            .Returns(Task.FromResult(Result.Fail<ChildDto[]>(new InvalidRowError(5))));
         
         var result = await userManagementService.LoadTableAsync("", sessionDates);
         
         result.IsSuccess.Should().BeFalse();
-        result.HasError<IncorrectRowError>().Should().BeTrue();
+        result.HasError<InvalidRowError>().Should().BeTrue();
     }
     
     [Test]

@@ -30,7 +30,7 @@ public class SessionServiceTests
         A.CallTo(() => sessionRepository.GetSessionByDatesAsync(new SessionDates(new DateOnly(2025, 8, 10), new DateOnly(2025, 8, 24))))
             .Returns(Task.FromResult<Session?>(session));
         
-        var result = await sessionService.AddSessionAsync(session);
+        var result = await sessionService.AddSessionAsync(session.SessionDates);
         
         result.IsSuccess.Should().BeFalse();
         result.HasError<SessionAlreadyExistsError>().Should().BeTrue();
@@ -57,7 +57,7 @@ public class SessionServiceTests
         A.CallTo(() => sessionRepository.GetAllSessions())
             .Returns(Task.FromResult<Session[]>([session2]));
         
-        var result = await sessionService.AddSessionAsync(session);
+        var result = await sessionService.AddSessionAsync(session.SessionDates);
         
         result.IsSuccess.Should().BeFalse();
         result.HasError<SessionIntersectError>().Should().BeTrue();
@@ -82,7 +82,7 @@ public class SessionServiceTests
         A.CallTo(() => sessionRepository.GetAllSessions())
             .Returns(Task.FromResult<Session[]>([session2]));
         
-        var result = await sessionService.AddSessionAsync(session);
+        var result = await sessionService.AddSessionAsync(session.SessionDates);
         
         result.IsSuccess.Should().BeTrue();
     }

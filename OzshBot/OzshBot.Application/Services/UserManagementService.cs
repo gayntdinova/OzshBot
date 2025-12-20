@@ -55,13 +55,13 @@ public class UserManagementService: IUserManagementService
         var result = await tableParser.GetChildrenAsync(link);
         if (result.IsFailed)
         {
-            if (result.HasError<IncorrectRowError>()
-                || result.HasError<IncorrectUrlError>()
-                || result.HasError<IncorrectTableFormatError>()) return Result.Fail(result.Errors);
+            if (result.HasError<InvalidRowError>()
+                || result.HasError<InvalidUrlError>()
+                || result.HasError<InvalidTableFormatError>()) return Result.Fail(result.Errors);
             return result.ToResult();
         }
         if (!CheckForDataCorrectness(result.Value))
-            return Result.Fail(new IncorrectDataError("phoneNumbers should be unique"));
+            return Result.Fail(new InvalidDataError("phoneNumbers should be unique"));
         
         foreach (var child in result.Value)
         {
