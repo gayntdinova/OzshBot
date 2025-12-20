@@ -18,9 +18,11 @@ public class SessionService: ISessionService
     
     public async Task<Result> AddSessionAsync(SessionDates sessionDates)
     {
-        if (!SessionDates.Validate(sessionDates)) return Result.Fail(new InvalidDataError());
+        if (!SessionDates.Validate(sessionDates)) 
+            return Result.Fail(new InvalidDataError("session start must be earlier then end"));
         var existedSession = await sessionRepository.GetSessionByDatesAsync(sessionDates);
-        if (existedSession != null) return Result.Fail(new SessionAlreadyExistsError());
+        if (existedSession != null) 
+            return Result.Fail(new SessionAlreadyExistsError());
         var session = new Session
         {
             SessionDates = sessionDates
@@ -34,8 +36,10 @@ public class SessionService: ISessionService
     public async Task<Result<Session>> EditSessionAsync(Session session)
     {
         var existedSession = await sessionRepository.GetSessionByIdAsync(session.Id);
-        if (existedSession == null) return Result.Fail(new SessionNotFoundError());
-        if (!SessionDates.Validate(session.SessionDates)) return Result.Fail(new InvalidDataError());
+        if (existedSession == null) 
+            return Result.Fail(new SessionNotFoundError());
+        if (!SessionDates.Validate(session.SessionDates))
+            return Result.Fail(new InvalidDataError("session start must be earlier then end"));
         if (await CheckIfSessionIntersectsAsync(session))
             return Result.Fail(new SessionIntersectError());
         await sessionRepository.UpdateSessionAsync(session);
