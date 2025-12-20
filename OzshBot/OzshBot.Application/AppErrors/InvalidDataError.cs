@@ -6,6 +6,6 @@ public class InvalidDataError: Error
 {
     public InvalidDataError(string message="incorrect data") : base(message)
     {
-        WithMetadata("type", "IncorrectDataError");
+        WithMetadata("type", "InvalidDataError");
     }
 }

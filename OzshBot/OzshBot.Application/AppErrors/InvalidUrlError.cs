@@ -6,6 +6,6 @@ public class InvalidUrlError: Error
 {
     public InvalidUrlError(string message="incorrect url") : base(message)
     {
-        WithMetadata("type", "IncorrectUrlError");
+        WithMetadata("type", "InvalidUrlError");
     }
 }

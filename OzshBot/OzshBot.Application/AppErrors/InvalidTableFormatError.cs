@@ -6,6 +6,6 @@ public class InvalidTableFormatError: Error
 {
     public InvalidTableFormatError(string message="incorrect table format") : base(message)
     {
-        WithMetadata("type", "IncorrectUrlError");
+        WithMetadata("type", "InvalidTableFormatError");
     }
 }

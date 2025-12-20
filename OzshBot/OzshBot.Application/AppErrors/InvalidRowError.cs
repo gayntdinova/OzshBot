@@ -8,6 +8,6 @@ public class InvalidRowError: Error
     public InvalidRowError(int row, string message="can't parse row"): base(message)
     {
         Row = row;
-        WithMetadata("type", "IncorrectRowError");
+        WithMetadata("type", "InvalidRowError");
     }
 }
