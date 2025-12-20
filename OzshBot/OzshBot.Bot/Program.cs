@@ -13,6 +13,10 @@ using Microsoft.Extensions.Configuration;
 using Ninject.Extensions.Conventions;
 using OzshBot.Infrastructure.Parser;
 using OzshBot.Infrastructure.Services;
+using OzshBot.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
+using OzshBot.Domain.Enums;
+using OzshBot.Infrastructure.Enums;
 
 namespace OzshBot.Bot;
 
@@ -30,13 +34,12 @@ static class Program
         var container = new StandardKernel();
 
         var configuration = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-            .Build();
+             .SetBasePath(Directory.GetCurrentDirectory())
+             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+             .Build();
         var botToken = configuration["TelegramBot:Token"];
 
-        //container.Bind<ITelegramBotClient>().ToConstant(new TelegramBotClient(botToken));
-        container.Bind<ITelegramBotClient>().ToConstant(new TelegramBotClient("8445241215:AAE-fg7HdNllMonKukdR5T9e_8I4e4FwpXg"));
+        container.Bind<ITelegramBotClient>().ToConstant(new TelegramBotClient(botToken));
         
         container.Bind<ReceiverOptions>().ToConstant(new ReceiverOptions {
             AllowedUpdates = [UpdateType.Message,UpdateType.CallbackQuery]
@@ -53,8 +56,31 @@ static class Program
         container.Bind<ISessionRepository>().To<SessionsRepository>().InScope(ctx => ctx.Request);
         container.Bind<IBLogger>().To<LogsRepository>().InScope(ctx => ctx.Request);
 
-        container.Bind<MadeUpData>().ToConstant(new MadeUpData());
-        
+        var appDbConnectionString = configuration.GetConnectionString("AppDb");
+        var logsDbConnectionString = configuration.GetConnectionString("LogsDb");
+
+        container.Bind<LogsDbContext>().ToMethod(ctx =>
+        {
+            var options = new DbContextOptionsBuilder<LogsDbContext>()
+            .UseNpgsql(
+                logsDbConnectionString,
+                o => o.MapEnum<Season>("season").MapEnum<Role>("role").MapEnum<Access>("access"))
+            .Options;
+
+            return new LogsDbContext(options);
+        }).InSingletonScope();
+
+        container.Bind<AppDbContext>().ToMethod(ctx =>
+        {
+            var options = new DbContextOptionsBuilder<AppDbContext>()
+            .UseNpgsql(
+                appDbConnectionString,
+                o => o.MapEnum<Season>("season").MapEnum<Role>("role").MapEnum<Access>("access"))
+            .Options;
+
+            return new AppDbContext(options);
+        }).InSingletonScope();
+
         container.Bind(x =>
             x.FromThisAssembly()
                 .SelectAllClasses()

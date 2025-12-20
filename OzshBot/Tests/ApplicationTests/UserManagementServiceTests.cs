@@ -204,6 +204,49 @@ public class UserManagementServiceTests
     }
     
     [Test]
+    public async Task LoadTableAsync_ChildrenHaveSamePhones_ReturnsResultFail()
+    {
+        var sessionDates = new SessionDates(new DateOnly(2025, 8, 10), new DateOnly(2025, 8, 24));
+        var session = new Session
+        {
+            SessionDates = sessionDates
+        };
+        var children = new ChildDto[]
+        {
+            new()
+            {
+                FullName = new FullName("Иванов", "Иван", "Иванович"),
+                PhoneNumber = "+79999999999",
+                ChildInfo = new ChildInfo
+                {
+                    Sessions = []
+                }
+            },
+            new()
+            {
+                FullName = new FullName("Иванов", "Федор", "Иванович"),
+                PhoneNumber = "+79999999999",
+                ChildInfo = new ChildInfo
+                {
+                    Sessions = []
+                }
+            }
+        };
+        A.CallTo(() => sessionRepository.GetSessionByDatesAsync(sessionDates))
+            .Returns(Task.FromResult<Session?>(session));
+        A.CallTo(() => tableParser.GetChildrenAsync(""))
+            .Returns(Task.FromResult(Result.Ok(children)));
+        var capturedUsers = new List<User>();
+        A.CallTo(() => userRepository.UpdateUserAsync(A<User>._))
+            .Invokes((User user) => capturedUsers.Add(user))
+            .Returns(Task.CompletedTask);
+        
+        var result = await userManagementService.LoadTableAsync("", sessionDates);
+
+        result.IsSuccess.Should().BeFalse();
+    }
+    
+    [Test]
     public async Task LoadTableAsync_ReturnsResultOk()
     {
         var sessionDates = new SessionDates(new DateOnly(2025, 8, 10), new DateOnly(2025, 8, 24));

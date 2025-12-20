@@ -10,7 +10,9 @@ public class LogsRepository(LogsDbContext dbContext) : ILogger
 
     public async Task Log(long tgId, DateOnly date, bool success)
     {
+        Console.WriteLine($"log: {tgId}, {date}, {(success? "success" : "fail")}");
         var newLog = new Log { TgId = tgId, Date = date, Success = success };
         await context.AddAsync(newLog);
+        await context.SaveChangesAsync();
     }
 }

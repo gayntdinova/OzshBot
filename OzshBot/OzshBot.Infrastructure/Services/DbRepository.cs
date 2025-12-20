@@ -36,7 +36,7 @@ public class DbRepository(AppDbContext context) : IUserRepository, ISessionRepos
 
     public async Task<Domain.Entities.User?> GetUserByPhoneNumberAsync(string phoneNumber)
     {
-        return await context.Users
+        var user = await context.Users
             .Include(u => u.Student)
                 .ThenInclude(s => s.ParentRelations)
                 .ThenInclude(r => r.Parent)
@@ -49,6 +49,8 @@ public class DbRepository(AppDbContext context) : IUserRepository, ISessionRepos
             .Where(u => (u.Student != null && u.Student.Phone == phoneNumber) || (u.Counsellor != null && u.Counsellor.Phone == phoneNumber))
             .Select(u => u.ToDomainUser())
             .FirstOrDefaultAsync();
+        Console.WriteLine(user);
+        return user;
     }
 
     public async Task<Domain.Entities.User?> GetUserByIdAsync(Guid userId)
@@ -260,6 +262,7 @@ public class DbRepository(AppDbContext context) : IUserRepository, ISessionRepos
 
     public async Task UpdateUserAsync(Domain.Entities.User user)
     {
+        Console.WriteLine($"UpdateUser {user}");
         var existingUser = await context.Users
             .Include(u => u.Student)
                 .ThenInclude(s => s.ParentRelations)
@@ -268,12 +271,12 @@ public class DbRepository(AppDbContext context) : IUserRepository, ISessionRepos
             .Where(u => u.UserId == user.Id)
             .FirstOrDefaultAsync();
         if (existingUser == null) throw new InvalidOperationException("Нет пользователя с таким user_id");
-        existingUser.TgName = user.TelegramInfo.TgUsername;
-        existingUser.TgId = user.TelegramInfo.TgId;
+        existingUser.TgName = user.TelegramInfo?.TgUsername;
+        existingUser.TgId = user.TelegramInfo?.TgId;
         existingUser.Role = user.Role;
         if (existingUser.Role == Role.Counsellor)
         {
-            if (existingUser == null)
+            if (existingUser.Counsellor == null)
             {
                 var newCounsellor = new Counsellor
                 {
@@ -335,11 +338,8 @@ public class DbRepository(AppDbContext context) : IUserRepository, ISessionRepos
             existingUser.Student.UpdateFromChildInfo(user.ChildInfo);
             await UpdateContactPeopleAsync(existingUser.Student, user.ChildInfo.ContactPeople);
             UpdateStudentSessions(existingUser.Student, user.ChildInfo.Sessions);
-
-            await UpdateContactPeopleAsync(existingUser.Student, user.ChildInfo.ContactPeople);
-            UpdateStudentSessions(existingUser.Student, user.ChildInfo.Sessions);
-
         }
+        await context.SaveChangesAsync();
     }
 
     public async Task DeleteUserAsync(TelegramInfo telegramInfo)
