@@ -20,7 +20,4 @@ public class Log
 
     [Column(name: "tg_id")]
     public long TgId { get; set; }
-
-    [Column(name: "content")]
-    public string? Content { get; set; }
 }
