@@ -31,4 +31,8 @@ public class User
         CounsellorInfo = userUpdate.CounsellorInfo ?? CounsellorInfo;
         Role = userUpdate.Role;
     }
+    public override string ToString()
+    {
+        return $"User({FullName}, {Role}, {TelegramInfo}, {PhoneNumber})";
+    }
 }
