@@ -24,16 +24,23 @@ public static class BotFormatter
         var answer = "";
         answer += $"{user.FullName.Formate()}";
 
-        answer += user.TelegramInfo == null ? "" : $"\n@{user.TelegramInfo.TgUsername}";
+        answer += user.TelegramInfo.TgUsername == null ? "" : $"\n@{user.TelegramInfo.TgUsername}";
 
         answer += childInfo?.Group == null ? "" : $"\nГруппа: `{childInfo.Group}`";
         answer += counsellorInfo?.Group == null ? "" : $"\nГруппа: `{counsellorInfo.Group}`";
 
         answer += user.City == null ? "" : $"\nГород: `{user.City}`";
 
-        answer += childInfo?.EducationInfo == null
-            ? ""
-            : $"\nШкола: `{childInfo.EducationInfo.School}`, {childInfo.EducationInfo.Class} класс";
+        if (childInfo?.EducationInfo == null) answer += "";
+        else
+        {
+            if (user.Role == Role.Counsellor)
+                answer += $"\nШкола: `{childInfo.EducationInfo.School}`";
+            else
+            { 
+                answer += $"\nШкола: `{childInfo.EducationInfo.School}`, {childInfo.EducationInfo.Class} класс";
+            }
+        }
 
         answer += user.Birthday == null ? "" : $"\n\nДата рождения: {user.Birthday}";
 
@@ -64,7 +71,7 @@ public static class BotFormatter
                       string.Join("\n", children
                           .Select(child =>
                               $" -`{child.FullName.Formate()}`" +
-                              (child.TelegramInfo == null ? "" : $" @{child.TelegramInfo.TgUsername}") +
+                              (child.TelegramInfo.TgUsername == null ? "" : $" @{child.TelegramInfo.TgUsername}") +
                               (child.ChildInfo?.Group == null ? "" : $" группа {child.ChildInfo.Group}")
                           )) + "\n\n";
         if (counsellors.Count() != 0)
@@ -72,7 +79,7 @@ public static class BotFormatter
                       string.Join("\n", counsellors
                           .Select(counsellor =>
                               $" -`{counsellor.FullName.Formate()}`" +
-                              (counsellor.TelegramInfo == null ? "" : $" @{counsellor.TelegramInfo.TgUsername}") +
+                              (counsellor.TelegramInfo.TgUsername == null ? "" : $" @{counsellor.TelegramInfo.TgUsername}") +
                               (counsellor.CounsellorInfo?.Group == null
                                   ? ""
                                   : $" группа {counsellor.CounsellorInfo.Group}")
