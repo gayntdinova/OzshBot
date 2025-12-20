@@ -14,9 +14,8 @@ public class User
     [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
     public Guid UserId { get; set; }
 
-    [Required]
     [Column(name: "tg_name")]
-    public required string TgName { get; set; }
+    public string? TgName { get; set; }
     [Column(name: "tg_id")]
     public long? TgId { get; set; }
 
@@ -94,6 +93,7 @@ public static class UserConverter
             dbUser.Student = new Student
             {
                 UserId = user.Id,
+
                 Name = user.FullName.Name,
                 Surname = user.FullName.Surname,
                 Patronymic = user.FullName.Patronymic,
@@ -103,7 +103,7 @@ public static class UserConverter
                 Phone = user.PhoneNumber,
                 BirthDate = user.Birthday ?? default,
                 CurrentClass = user.ChildInfo.EducationInfo.Class,
-                CurrentGroup = user.ChildInfo.Group
+                CurrentGroup = user.ChildInfo.Group,
             };
         }
         else if (user.Role == Role.Counsellor && user.CounsellorInfo != null)

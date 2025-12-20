@@ -241,7 +241,7 @@ public class DbRepository(AppDbContext context) : IUserRepository, ISessionRepos
     {
         var existingUser = await GetUserByPhoneNumberAsync(user.PhoneNumber);
         if (existingUser != null) throw new InvalidOperationException("Пользователь с таким номером телефона уже существует");
-
+        Console.WriteLine($"AddUSer {user}");
         var dbUser = UserConverter.FromDomainUser(user);
         await context.Users.AddAsync(dbUser);
         if (user.ChildInfo != null && user.ChildInfo.ContactPeople.Count != 0)
@@ -251,13 +251,12 @@ public class DbRepository(AppDbContext context) : IUserRepository, ISessionRepos
         if (user.ChildInfo != null && user.ChildInfo.Sessions.Count != 0)
         {
             UpdateStudentSessions(dbUser.Student, user.ChildInfo.Sessions);
-            UpdateStudentSessions(dbUser.Student, user.ChildInfo.Sessions);
         }
         if (user.CounsellorInfo != null && user.CounsellorInfo.Sessions.Count != 0)
         {
             UpdateCounsellorSessions(dbUser.Counsellor, user.CounsellorInfo.Sessions);
-            UpdateCounsellorSessions(dbUser.Counsellor, user.CounsellorInfo.Sessions);
         }
+        Console.WriteLine($"{dbUser.Student?.SessionRelations?.Count}");
         await context.SaveChangesAsync();
     }
 

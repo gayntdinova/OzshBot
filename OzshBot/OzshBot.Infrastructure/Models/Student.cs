@@ -29,12 +29,10 @@ public class Student
     [Column(name: "patronymic")]
     public string? Patronymic { get; set; }
 
-    [Required]
     [Column(name: "city")]
-    public required string City { get; set; }
-    [Required]
+    public string? City { get; set; }
     [Column(name: "school")]
-    public required string School { get; set; }
+    public string? School { get; set; }
 
     [Required]
     [Column(name: "birth_date")]
@@ -45,10 +43,9 @@ public class Student
     [Column(name: "current_group")]
     public int? CurrentGroup { get; set; }
 
-    [Required]
     [Column(name: "email")]
     [EmailAddress]
-    public required string Email { get; set; }
+    public string? Email { get; set; }
 
     [Required]
     [Column(name: "phone")]
