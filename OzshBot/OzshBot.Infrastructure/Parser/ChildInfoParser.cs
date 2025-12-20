@@ -40,20 +40,20 @@ public class ChildInfoParser
         return contactPeople;
     }
 
-    private ChildInfo GetChildInfo(string? scool, string? grade, string? comment, string? group)
+    private ChildInfo GetChildInfo(string? school, string? grade, string? comment, string? group)
     {
         int intGrade;
-        if (grade == null || scool == null || !Int32.TryParse(grade, out intGrade))
+        if (grade == null || school == null || !Int32.TryParse(grade, out intGrade))
             throw new ArgumentException();
-        var eucationInfo = new EducationInfo
+        var educationInfo = new EducationInfo
         {
             Class = intGrade,
-            School = scool.ToLower()
+            School = school.ToLower()
         };
         var contactPeople = GetContactPeople(comment);
         if (group != null && Int32.TryParse(group, out var intGroup))
-            return new ChildInfo{ EducationInfo = eucationInfo, ContactPeople = contactPeople, Group = intGroup };
-        return new ChildInfo{ EducationInfo = eucationInfo, ContactPeople = contactPeople, Group = null };
+            return new ChildInfo{ EducationInfo = educationInfo, ContactPeople = contactPeople, Group = intGroup };
+        return new ChildInfo{ EducationInfo = educationInfo, ContactPeople = contactPeople, Group = null };
     }
 
     public ChildDto CreateChildDto(List<string?> row)
