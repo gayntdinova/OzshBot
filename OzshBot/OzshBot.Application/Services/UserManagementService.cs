@@ -85,13 +85,11 @@ public class UserManagementService: IUserManagementService
 
     private static bool CheckForDataCorrectness(ChildDto[] children, out List<string> repeatingPhoneNumbers)
     {
-        var phoneNumbers = children.Select(child => child.PhoneNumber).ToList();
-        var uniquePhoneNumbers = phoneNumbers.Distinct();
-        foreach (var phoneNumber in uniquePhoneNumbers)
-        {
-            phoneNumbers.Remove(phoneNumber);
-        }
-        repeatingPhoneNumbers = phoneNumbers;
+        repeatingPhoneNumbers = children
+            .GroupBy(c => c.PhoneNumber)
+            .Where(g => g.Count() > 1)
+            .Select(g => g.Key)
+            .ToList();
         return repeatingPhoneNumbers.Count == 0;
     }
 }
