@@ -1,3 +1,4 @@
+using System.Globalization;
 using OzshBot.Application.DtoModels;
 using OzshBot.Domain.Entities;
 using OzshBot.Domain.ValueObjects;
@@ -21,7 +22,7 @@ public class ChildInfoParser
     }
     private FullName GetFullNameFromString(string? nameInfo)
     {
-        if (nameInfo== null)
+        if (nameInfo == null)
             throw new ArgumentException("имени нет");
         var name = nameInfo.Trim().Split();
         if (name.Length == 3)
@@ -36,7 +37,7 @@ public class ChildInfoParser
         if (comment == null) return new HashSet<ContactPerson>();
         var phoneNumbers = PhoneParser.ExtractAllPhones(comment);
         var contactPeople = phoneNumbers.Select(number
-            => new ContactPerson{PhoneNumber = number, FullName = new FullName("-", "-")}).ToHashSet();
+            => new ContactPerson { PhoneNumber = number, FullName = new FullName("-", "-") }).ToHashSet();
         return contactPeople;
     }
 
@@ -52,8 +53,29 @@ public class ChildInfoParser
         };
         var contactPeople = GetContactPeople(comment);
         if (group != null && Int32.TryParse(group, out var intGroup))
-            return new ChildInfo{ EducationInfo = educationInfo, ContactPeople = contactPeople, Group = intGroup };
-        return new ChildInfo{ EducationInfo = educationInfo, ContactPeople = contactPeople, Group = null };
+            return new ChildInfo { EducationInfo = educationInfo, ContactPeople = contactPeople, Group = intGroup };
+        return new ChildInfo { EducationInfo = educationInfo, ContactPeople = contactPeople, Group = null };
+    }
+
+    private DateOnly? GetBirthDate(List<string?> row)
+    {
+        string[] formats = { "dd.MM.yyyy", "yyyy-MM-dd" };
+
+        if (DateOnly.TryParseExact(
+            row[columnIndexes["день рождения"]].Trim(),
+            formats,
+            CultureInfo.InvariantCulture,
+            DateTimeStyles.None,
+            out var birthDate))
+        {
+            return birthDate;
+        }
+        else
+        {
+            return null;
+            //Console.WriteLine($"Неверный формат даты: {row[columnIndexes["день рождения"]]}");
+        }
+
     }
 
     public ChildDto CreateChildDto(List<string?> row)
@@ -61,20 +83,20 @@ public class ChildInfoParser
         string? group = null;
         if (columnIndexes.ContainsKey("отряд"))
             group = row[columnIndexes["отряд"]];
-        var childInfo = GetChildInfo(row[columnIndexes["школа"]], 
+        var childInfo = GetChildInfo(row[columnIndexes["школа"]],
             row[columnIndexes["класс"]], row[columnIndexes["комментарий"]], group);
-        
+
         var fullName = GetFullNameFromString(row[columnIndexes["фио"]]);
-        
+
         if (row[columnIndexes["город"]] is null || row[columnIndexes["день рождения"]] is null)
             throw new ArgumentException();
         var city = row[columnIndexes["город"]].ToLower();
-        var birthDate = DateOnly.Parse(row[columnIndexes["день рождения"]]);
-        
+        var birthDate = GetBirthDate(row);
+
         var phoneNumber = PhoneParser.NormalizePhone(row[columnIndexes["телефон"]]);
         var email = row[columnIndexes["email"]];
-        
-        
+
+
         return new ChildDto
         {
             FullName = fullName,
