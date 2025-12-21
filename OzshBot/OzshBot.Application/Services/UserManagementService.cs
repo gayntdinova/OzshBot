@@ -62,7 +62,7 @@ public class UserManagementService: IUserManagementService
         }
         if (!CheckForDataCorrectness(result.Value, out var repeatingPhoneNumbers))
             return Result.Fail(new InvalidDataError(
-                $"Номера телефонов должны быть уникальными:\n{string.Join("\n", repeatingPhoneNumbers)}"));
+                $"Номера телефонов должны быть уникальными:\n{string.Join("\n", repeatingPhoneNumbers.Select(phone => phone.Replace("+", "\\+")))}"));
         
         foreach (var child in result.Value)
         {
