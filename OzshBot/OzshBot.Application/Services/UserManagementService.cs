@@ -60,8 +60,9 @@ public class UserManagementService: IUserManagementService
                 || result.HasError<InvalidTableFormatError>()) return Result.Fail(result.Errors);
             return result.ToResult();
         }
-        if (!CheckForDataCorrectness(result.Value))
-            return Result.Fail(new InvalidDataError("Номера телефонов должны быть уникальными"));
+        if (!CheckForDataCorrectness(result.Value, out var repeatingPhoneNumbers))
+            return Result.Fail(new InvalidDataError(
+                $"Номера телефонов должны быть уникальными:\n{string.Join("\n", repeatingPhoneNumbers)}"));
         
         foreach (var child in result.Value)
         {
@@ -82,10 +83,15 @@ public class UserManagementService: IUserManagementService
         return Result.Ok();
     }
 
-    private static bool CheckForDataCorrectness(ChildDto[] children)
+    private static bool CheckForDataCorrectness(ChildDto[] children, out List<string> repeatingPhoneNumbers)
     {
-        var phoneNumbers = children.Select(child => child.PhoneNumber).ToArray();
-        return phoneNumbers.Length == phoneNumbers.Distinct().Count();
-        
+        var phoneNumbers = children.Select(child => child.PhoneNumber).ToList();
+        var uniquePhoneNumbers = phoneNumbers.Distinct();
+        foreach (var phoneNumber in uniquePhoneNumbers)
+        {
+            phoneNumbers.Remove(phoneNumber);
+        }
+        repeatingPhoneNumbers = phoneNumbers;
+        return repeatingPhoneNumbers.Count == 0;
     }
 }
