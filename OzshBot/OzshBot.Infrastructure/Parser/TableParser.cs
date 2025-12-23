@@ -64,9 +64,9 @@ public class TableParser
             {
                 var row = data[i];
                 if (IsRowEmpty(row)) continue;
-                if (row.Count == 12)
+                if (columnIndexes.ContainsKey("статус заявки на сайте"))
                 {
-                    if (row[11].ToString()?.Trim() == "Отклонена" || 
+                    if (row[columnIndexes["статус заявки на сайте"]].ToString()?.Trim() == "Отклонена" || 
                         row[columnIndexes["статус заявки на сайте"]].ToString()?.Trim() == "Рассматривается")
                         continue;
                 }

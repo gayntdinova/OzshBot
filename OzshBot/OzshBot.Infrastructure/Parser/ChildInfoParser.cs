@@ -11,7 +11,7 @@ public class ChildInfoParser
     private readonly List<string> requiredColumnNames = new()
     {
         "фио", "класс", "город", "школа", "день рождения",
-        "телефон", "email", "комментарий", "статус заявки на сайте"
+        "телефон", "email", "комментарий"
     };
 
     public ChildInfoParser(Dictionary<string, int> columnIndexes)
