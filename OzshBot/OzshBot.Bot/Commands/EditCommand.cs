@@ -186,7 +186,7 @@ public class EditCommand : IBotCommandWithState
         var editableWithRole = UserAttributesInfoManager.EditableAttributes
             .Where(attr => role.ImplementsAttribute(attr)).ToArray();
 
-        for (var i = 0; i < editableWithRole.Length; i += 2)
+        for (var i = 0; i < editableWithRole.Length - 1; i += 2)
         {
             var attribute = UserAttributesInfoManager.EditableAttributes[i];
 

@@ -13,7 +13,7 @@ public class Formatter: IFormatter
         if (fullName.Surname != null) result += $" {fullName.Surname}";
         if (fullName.Name != null) result += $" {fullName.Name}";
         if (fullName.Patronymic != null) result += $" {fullName.Patronymic}";
-        return FormatString(result);
+        return result;
     }
 
     public string FormatUser(UserDomain user, Role role)
