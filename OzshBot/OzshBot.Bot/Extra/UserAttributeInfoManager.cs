@@ -265,7 +265,7 @@ public static class UserAttributesInfoManager
                 new UserAttributeInfo(
                     "ФИО",
                     "Введите полное имя полностью (корректный формат: Фамилия Имя Отчество или Фамилия Имя)",
-                    async str => Regex.IsMatch(str, @"^[А-ЯЁ][а-яё]+ [А-ЯЁ][а-яё]+( [А-ЯЁ][а-яё]+)?$"),
+                    async str => Regex.IsMatch(str, @"^[А-ЯЁа-яё\-]+ [А-ЯЁа-яё\-]+( [А-ЯЁа-яё\-]+)?$"),
                     (UserDomain user, string message) =>
                     {
                         var splittedMessage = message.Split(" ");
@@ -367,7 +367,7 @@ public static class UserAttributesInfoManager
                     "Родители",
                     "Для удаления родителя напишите remove и номер телефона, для добавления add, номер телефона и фио(через пробел)",
                     async str 
-                    =>Regex.IsMatch(str, @"^(remove\s+(\+7|8)\d{10})|(add\s+(\+7|8)\d{10}\s+[А-ЯЁ][а-яё]+ [А-ЯЁ][а-яё]+( [А-ЯЁ][а-яё]+)?)$"),
+                    =>Regex.IsMatch(str, @"^(remove\s+(\+7|8)\d{10})|(add\s+(\+7|8)\d{10}\s+[А-ЯЁа-яё\-]+ [А-ЯЁа-яё\-]+( [А-ЯЁа-яё\-]+)?)$"),
 
                     async (UserDomain user, string message) =>
                     {
