@@ -25,7 +25,6 @@ public class AppDbContext : DbContext
             entity.HasKey(u => u.UserId);
             entity.HasIndex(u => u.TgId).IsUnique();
             entity.HasIndex(u => u.TgName).IsUnique();
-            entity.Property(u => u.TgName).IsRequired();
         });
 
         modelBuilder.Entity<Session>(entity =>

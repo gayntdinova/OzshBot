@@ -1,4 +1,4 @@
-namespace OzshBot.Domain.ValueObjects;
+namespace OzshBot.Application.DtoModels;
 
 public record NameSearch
 {

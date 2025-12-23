@@ -17,7 +17,7 @@ public class GoogleDocParser: ITableParser
         }
         catch (ArgumentException)
         {
-            return Result.Fail(new IncorrectUrlError(url));
+            return Result.Fail(new InvalidUrlError(url));
         }
     }
 }

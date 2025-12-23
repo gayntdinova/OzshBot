@@ -1,3 +1,4 @@
+using OzshBot.Application.DtoModels;
 using OzshBot.Application.RepositoriesInterfaces;
 using OzshBot.Application.Services.Interfaces;
 using OzshBot.Domain.Entities;
@@ -51,10 +52,10 @@ public class UserFindService: IUserFindService
             if (userByTg is not null) return [userByTg];
         }
 
-        var usersByCity = await FindUsersByCityAsync(input);
+        var usersByCity = await FindUsersByCityAsync(input.ToLower());
         if (usersByCity.Length != 0) return usersByCity;
         
-        var usersBySchool = await FindUsersBySchoolAsync(input);
+        var usersBySchool = await FindUsersBySchoolAsync(input.ToLower());
         if (usersBySchool.Length != 0) return usersBySchool;
         
         var combinations = GenerateFullNameCombinationsByInput(splitedInput);
@@ -93,6 +94,7 @@ public class UserFindService: IUserFindService
     private static List<NameSearch> GenerateFullNameCombinationsByInput(string[] splitedTarget)
     {
         var fullNameCombinations = new List<NameSearch>();
+        splitedTarget = splitedTarget.Select(Capitalize).ToArray();
         switch (splitedTarget.Length)
         {
             case 1:
@@ -111,5 +113,10 @@ public class UserFindService: IUserFindService
         }
 
         return fullNameCombinations;
+    }
+
+    private static string Capitalize(string str)
+    {
+        return str[..1].ToUpper() + str[1..].ToLower();
     }
 }

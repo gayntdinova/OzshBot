@@ -34,6 +34,7 @@ public class UserRoleService: IUserRoleService
         var user = await userRepository.GetUserByPhoneNumberAsync(phoneNumber);
         if (user == null) return Result.Fail(new UserNotFoundError());
         if (user.Role == Role.Counsellor) return Result.Fail(new UserAlreadyHasRoleError());
+        user.ChildInfo.Group = null;
         var counsellorInfo = new CounsellorInfo
         {
             Group = null,

@@ -121,10 +121,14 @@ public static class UserAttributesInfoManager
                         var session = sessions.First(session =>
                             session.SessionDates.StartDate == startDate && session.SessionDates.EndDate == endDate);
 
-                        if (user.ChildInfo != null)
+                        if (user.Role == Role.Child)
+                        {
                             user.ChildInfo.Sessions.Add(session);
-                        if (user.CounsellorInfo != null)
+                        }
+                        else
+                        {
                             user.CounsellorInfo.Sessions.Add(session);
+                        }
                     },
                     async (user) => new ReplyKeyboardMarkup((await sessionService.GetAllSessionsAsync())
                             .Select(session => new KeyboardButton[]
@@ -172,17 +176,27 @@ public static class UserAttributesInfoManager
 
                         if (command == "add")
                         {
-                            if (user.ChildInfo != null)
+                            if (user.Role == Role.Child)
+                            {
                                 user.ChildInfo.Sessions.Add(session);
-                            if (user.CounsellorInfo != null)
+                            }
+
+                            else
+                            {
                                 user.CounsellorInfo.Sessions.Add(session);
+                            }
                         }
                         else
                         {
-                            if (user.ChildInfo != null)
+                            if (user.Role == Role.Child)
+                            {
                                 user.ChildInfo.Sessions.Remove(session);
-                            if (user.CounsellorInfo != null)
+                            }
+
+                            else
+                            {
                                 user.CounsellorInfo.Sessions.Remove(session);
+                            }
                         }
                     },
                     async (user) =>
@@ -310,11 +324,15 @@ public static class UserAttributesInfoManager
                     {
                         int? group = message == "_" ? null : int.Parse(message);
 
-                        if (user.ChildInfo != null)
+                        if (user.Role == Role.Child)
+                        {
                             user.ChildInfo.Group = group;
+                        }
 
-                        if (user.CounsellorInfo != null)
+                        else
+                        {
                             user.CounsellorInfo.Group = group;
+                        }
                     })
             },
             {

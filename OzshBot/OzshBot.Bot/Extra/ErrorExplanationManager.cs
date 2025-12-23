@@ -8,16 +8,28 @@ public static class ErrorExplanationManager
     private static readonly Dictionary<Type, Func<IError, string>> ReplyDict = new()
     {
         {
-            typeof(IncorrectRowError),
+            typeof(InvalidRowError),
             error =>
             {
-                var e = (IncorrectRowError)error;
+                var e = (InvalidRowError)error;
                 return $"Некорректный формат строки {e.Row}";
             }
         },
         {
-            typeof(IncorrectUrlError),
+            typeof(InvalidUrlError),
             _ => "Некорректный url"
+        },
+        {
+            typeof(InvalidDataError),
+            error =>
+            {
+                var e = (InvalidDataError)error;
+                return $"Некорректные данные: {e.Message}";
+            }
+        },
+        {
+            typeof(InvalidTableFormatError),
+            _ => "Некорректный формат таблицы"
         },
         {
             typeof(SessionAlreadyExistsError),

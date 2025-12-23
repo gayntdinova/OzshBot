@@ -147,8 +147,7 @@ public class SessionsCommand : IBotCommandWithState
                     var splitted = text.Split(' ');
                     var start = DateOnly.ParseExact(splitted[0], "dd.MM.yyyy");
                     var end = DateOnly.ParseExact(splitted[1], "dd.MM.yyyy");
-                    var result = await serviceManager.SessionService.AddSessionAsync(new Session
-                        { SessionDates = new SessionDates(start, end) });
+                    var result = await serviceManager.SessionService.AddSessionAsync(new SessionDates(start, end));
 
                     if (result.IsFailed)
                         await bot.SendMessage(

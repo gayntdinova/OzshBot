@@ -38,7 +38,6 @@ public class Counsellor
     [Column(name: "current_group")]
     public int? CurrentGroup { get; set; }
 
-    [Required]
     [Column(name: "email")]
     [EmailAddress]
     public string? Email { get; set; }

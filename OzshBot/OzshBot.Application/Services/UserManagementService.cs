@@ -55,11 +55,14 @@ public class UserManagementService: IUserManagementService
         var result = await tableParser.GetChildrenAsync(link);
         if (result.IsFailed)
         {
-            if (result.HasError<IncorrectRowError>()
-                || result.HasError<IncorrectUrlError>()
-                || result.HasError<IncorrectTableFormatError>()) return Result.Fail(result.Errors);
+            if (result.HasError<InvalidRowError>()
+                || result.HasError<InvalidUrlError>()
+                || result.HasError<InvalidTableFormatError>()) return Result.Fail(result.Errors);
             return result.ToResult();
         }
+        if (!CheckForDataCorrectness(result.Value, out var repeatingPhoneNumbers))
+            return Result.Fail(new InvalidDataError(
+                $"Номера телефонов должны быть уникальными:\n{string.Join("\n", repeatingPhoneNumbers.Select(phone => phone.Replace("+", "\\+")))}"));
         
         foreach (var child in result.Value)
         {
@@ -78,5 +81,15 @@ public class UserManagementService: IUserManagementService
         }
         
         return Result.Ok();
+    }
+
+    private static bool CheckForDataCorrectness(ChildDto[] children, out List<string> repeatingPhoneNumbers)
+    {
+        repeatingPhoneNumbers = children
+            .GroupBy(c => c.PhoneNumber)
+            .Where(g => g.Count() > 1)
+            .Select(g => g.Key)
+            .ToList();
+        return repeatingPhoneNumbers.Count == 0;
     }
 }
