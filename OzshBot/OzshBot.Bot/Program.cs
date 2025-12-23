@@ -36,6 +36,8 @@ static class Program
         container.Bind<IUserFindService>().To<UserFindService>().InSingletonScope();
         container.Bind<ISessionService>().To<SessionService>().InSingletonScope();
 
+        container.Bind<IFormatter>().To<Formatter>().InSingletonScope();
+
         container.Bind<ITableParser>().ToConstant(new MyTableParser()).InSingletonScope();
         container.Bind<IUserRepository>().To<MyUserRepository>().InSingletonScope();
         container.Bind<ISessionRepository>().To<MySessionRepository>().InSingletonScope();
