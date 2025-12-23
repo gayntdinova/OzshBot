@@ -28,6 +28,7 @@ public class UserSessionsCommand : IBotCommand
     {
         var bot = botHandler.BotClient;
         var serviceManager = botHandler.ServiceManager;
+        var formatter = botHandler.Formatter;
 
         switch (update.Type)
         {
@@ -57,7 +58,7 @@ public class UserSessionsCommand : IBotCommand
 
                 await bot.SendMessage(
                     chat.Id,
-                    sessions.FormateAnswer(user),
+                    formatter.FormatSessions(sessions, user),
                     replyMarkup: new ReplyKeyboardRemove(),
                     parseMode: ParseMode.MarkdownV2
                 );
