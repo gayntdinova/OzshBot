@@ -213,7 +213,7 @@ public class BotHandler
         }
         else
         {
-            await ServiceManager.Logger.Log(userId,DateOnly.FromDateTime(DateTime.Now),false);
+            await ServiceManager.Logger.Log(userId,DateOnly.FromDateTime(DateTime.Now),true);
             await BotClient.SendMessage(
                 chat.Id,
                 users.FormateAnswer(messageText),
