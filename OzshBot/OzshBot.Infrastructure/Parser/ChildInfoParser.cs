@@ -11,7 +11,7 @@ public class ChildInfoParser
     private readonly List<string> requiredColumnNames = new()
     {
         "фио", "класс", "город", "школа", "день рождения",
-        "телефон", "email", "комментарий"
+        "телефон", "email"
     };
 
     public ChildInfoParser(Dictionary<string, int> columnIndexes)
@@ -83,8 +83,14 @@ public class ChildInfoParser
         string? group = null;
         if (columnIndexes.ContainsKey("отряд"))
             group = row[columnIndexes["отряд"]];
+        
+        string? comment = null;
+        if (columnIndexes.TryGetValue("комментарий", out var index))
+        {
+            comment = row[index];
+        }
         var childInfo = GetChildInfo(row[columnIndexes["школа"]],
-            row[columnIndexes["класс"]], row[columnIndexes["комментарий"]], group);
+            row[columnIndexes["класс"]], comment, group);
 
         var fullName = GetFullNameFromString(row[columnIndexes["фио"]]);
 
