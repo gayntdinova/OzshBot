@@ -27,18 +27,22 @@ public class BotHandler
 
     public readonly ServiceManager ServiceManager;
 
+    public readonly IFormatter Formatter;
+
     public BotHandler(
         ITelegramBotClient botClient,
         ReceiverOptions receiverOptions,
         ServiceManager serviceManager,
         IBotCommand[] commands,
-        UserRegistrator userRegistrator)
+        UserRegistrator userRegistrator,
+        IFormatter formatter)
     {
         BotClient = botClient;
         this.receiverOptions = receiverOptions;
         ServiceManager = serviceManager;
         commandsDict = commands.ToDictionary(command=>command.Name);
         this.userRegistrator = userRegistrator;
+        Formatter = formatter;
     }
 
     public async Task Start()
@@ -194,7 +198,7 @@ public class BotHandler
             if(role == Role.Counsellor)
                 await BotClient.SendMessage(
                     chat.Id,
-                    users[0].FormateAnswer(role),
+                    Formatter.FormatUser(users[0],role),
                     replyMarkup: new InlineKeyboardMarkup(
                         InlineKeyboardButton.WithCallbackData("Посещённые смены", "userSessions "+users[0].PhoneNumber),
                         InlineKeyboardButton.WithCallbackData("Редактировать", "edit "+users[0].PhoneNumber)
@@ -204,7 +208,7 @@ public class BotHandler
             else
                 await BotClient.SendMessage(
                     chat.Id,
-                    users[0].FormateAnswer(role),
+                    Formatter.FormatUser(users[0],role),
                     replyMarkup: new InlineKeyboardMarkup(
                         InlineKeyboardButton.WithCallbackData("Посещённые смены", "userSessions "+users[0].PhoneNumber)
                         ),
@@ -216,7 +220,7 @@ public class BotHandler
             await ServiceManager.Logger.Log(userId,true);
             await BotClient.SendMessage(
                 chat.Id,
-                users.FormateAnswer(messageText),
+                Formatter.FormatUsers(users,messageText),
                 replyMarkup: new ReplyKeyboardRemove(),
                 parseMode: ParseMode.MarkdownV2
                 );

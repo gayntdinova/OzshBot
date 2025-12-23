@@ -13,5 +13,6 @@ public enum UserAttribute
     City,
     Class,
     School,
+    ContactPeople,
     Group
 }

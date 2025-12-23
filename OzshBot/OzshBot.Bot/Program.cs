@@ -50,6 +50,7 @@ static class Program
         container.Bind<IUserRoleService>().To<UserRoleService>().InSingletonScope();
         container.Bind<IUserFindService>().To<UserFindService>().InSingletonScope();
         container.Bind<ISessionService>().To<SessionService>().InSingletonScope();
+        container.Bind<IFormatter>().To<Formatter>().InSingletonScope();
 
         container.Bind<ITableParser>().To<GoogleDocParser>().InSingletonScope();
         container.Bind<IUserRepository>().To<DbRepository>().InScope(ctx => ctx.Request);

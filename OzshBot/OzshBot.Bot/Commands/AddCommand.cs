@@ -31,6 +31,7 @@ public class AddCommand : IBotCommandWithState
     {
         var bot = botHandler.BotClient;
         var serviceManager = botHandler.ServiceManager;
+        var formatter = botHandler.Formatter;
         switch (update.Type)
         {
             case UpdateType.Message:
@@ -59,7 +60,7 @@ public class AddCommand : IBotCommandWithState
                         //если этот атрибут нашёлся(при условии что он есть у роли создаваемого человека)
                         if (index < addableWithRole.Length)
                         {
-                            await SendStateInfoMessage(chat, bot, stateDict[userId], addableWithRole[index], false);
+                            await SendStateInfoMessage(chat, formatter, bot, stateDict[userId], addableWithRole[index], false);
                             return true;
                         }
                         //если нет то заканчиваем пытаясь добавить пользователя и выводим его в чат
@@ -94,7 +95,7 @@ public class AddCommand : IBotCommandWithState
                     }
                     //если не подходит под регулярку то переспрашиваем
 
-                    await SendStateInfoMessage(chat, bot, stateDict[userId], state.UserAttribute, true);
+                    await SendStateInfoMessage(chat, formatter, bot, stateDict[userId], state.UserAttribute, true);
                     return true;
                 }
                 //если нам написали /add
@@ -110,7 +111,7 @@ public class AddCommand : IBotCommandWithState
                         InlineKeyboardButton.WithCallbackData("Отмена", "addCancel"))
                 )).Id);
 
-                await SendStateInfoMessage(chat, bot, stateDict[userId], UserAttribute.Role, false);
+                await SendStateInfoMessage(chat, formatter, bot, stateDict[userId], UserAttribute.Role, false);
                 return true;
 
             case UpdateType.CallbackQuery:
@@ -135,8 +136,8 @@ public class AddCommand : IBotCommandWithState
         }
     }
 
-    private async Task SendStateInfoMessage(Chat chat, ITelegramBotClient bot, AddState state, UserAttribute attribute,
-        bool wasIncorrect)
+    private async Task SendStateInfoMessage(Chat chat, IFormatter formatter, ITelegramBotClient bot, AddState state,
+        UserAttribute attribute, bool wasIncorrect)
     {
         var attributeInfo = attribute.GetInfo();
         ReplyMarkup markup = attributeInfo.KeyboardMarkup != null
@@ -145,7 +146,7 @@ public class AddCommand : IBotCommandWithState
 
         state.messagesIds.Push((await bot.SendMessage(
             chat.Id,
-            ((wasIncorrect ? "Некорректный формат\n" : "") + attributeInfo.WritingInfo).FormateString(),
+            formatter.FormatString((wasIncorrect ? "Некорректный формат\n" : "") + attributeInfo.WritingInfo),
             ParseMode.MarkdownV2,
             replyMarkup: markup
         )).Id);

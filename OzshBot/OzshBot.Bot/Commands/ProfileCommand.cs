@@ -28,6 +28,7 @@ public class ProfileCommand : IBotCommand
     {
         var bot = botHandler.BotClient;
         var serviceManager = botHandler.ServiceManager;
+        var formatter = botHandler.Formatter;
 
         var message = update.Message!;
         var username = message.From!.Username!;
@@ -48,7 +49,7 @@ public class ProfileCommand : IBotCommand
 
         await bot.SendMessage(
             chat.Id,
-            you.FormateAnswer(you.Role),
+            formatter.FormatUser(you,you.Role),
             replyMarkup: new ReplyKeyboardRemove(),
             parseMode: ParseMode.MarkdownV2);
 

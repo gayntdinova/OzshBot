@@ -32,14 +32,15 @@ public class SessionsCommand : IBotCommandWithState
     {
         var bot = botHandler.BotClient;
         var serviceManager = botHandler.ServiceManager;
+        var formatter = botHandler.Formatter;
 
         switch (update.Type)
         {
             case UpdateType.Message:
-                return await HandleMessage(update.Message!, bot, serviceManager);
+                return await HandleMessage(update.Message!, bot, formatter, serviceManager);
 
             case UpdateType.CallbackQuery:
-                return await HandleCallback(update.CallbackQuery!, bot, serviceManager);
+                return await HandleCallback(update.CallbackQuery!, bot, formatter, serviceManager);
 
             default:
                 return false;
@@ -49,6 +50,7 @@ public class SessionsCommand : IBotCommandWithState
     private async Task<bool> HandleMessage(
         Message message,
         ITelegramBotClient bot,
+        IFormatter formatter,
         ServiceManager serviceManager)
     {
         var chat = message.Chat;
@@ -84,7 +86,7 @@ public class SessionsCommand : IBotCommandWithState
 
                             state.messagesIds.Push((await bot.SendMessage(
                                 chat.Id,
-                                "Введите новые даты смены в формате dd.MM.yyyy dd.MM.yyyy".FormateString(),
+                                formatter.FormatString("Введите новые даты смены в формате dd.MM.yyyy dd.MM.yyyy"),
                                 ParseMode.MarkdownV2,
                                 replyMarkup: new ReplyKeyboardRemove())).Id);
                             state.MessagesToDelete += 1;
@@ -188,7 +190,7 @@ public class SessionsCommand : IBotCommandWithState
         stateDict[userId] = new SessionsState();
         stateDict[userId].messagesIds.Push((await bot.SendMessage(
             chat.Id,
-            sessions.FormateAnswer(),
+            formatter.FormatSessions(sessions),
             replyMarkup: new InlineKeyboardMarkup(new[]
             {
                 new[]
@@ -211,6 +213,7 @@ public class SessionsCommand : IBotCommandWithState
     private async Task<bool> HandleCallback(
         CallbackQuery callback,
         ITelegramBotClient bot,
+        IFormatter formatter,
         ServiceManager serviceManager)
     {
         var chat = callback.Message!.Chat;
@@ -231,7 +234,7 @@ public class SessionsCommand : IBotCommandWithState
                     state.Mode = SessionsMode.Add;
                     state.messagesIds.Push((await bot.SendMessage(
                         chat.Id,
-                        "Введите даты новой смены в формате dd.MM.yyyy dd.MM.yyyy".FormateString(),
+                        formatter.FormatString("Введите даты новой смены в формате dd.MM.yyyy dd.MM.yyyy"),
                         replyMarkup: new ReplyKeyboardRemove(),
                         parseMode: ParseMode.MarkdownV2
                     )).Id);
@@ -249,7 +252,7 @@ public class SessionsCommand : IBotCommandWithState
 
                     state.messagesIds.Push((await bot.SendMessage(
                         chat.Id,
-                        "Выберите смену для редактирования:".FormateString(),
+                        formatter.FormatString("Выберите смену для редактирования:"),
                         replyMarkup: await GetSessionsKeyboard(serviceManager.SessionService),
                         parseMode: ParseMode.MarkdownV2
                     )).Id);
