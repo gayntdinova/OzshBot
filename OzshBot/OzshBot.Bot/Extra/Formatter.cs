@@ -77,7 +77,7 @@ public class Formatter: IFormatter
                       string.Join("\n", children
                           .Select(child =>
                               $" -`{FormatFullName(child.FullName)}`" +
-                              (child.TelegramInfo == null ? "" : $" @{child.TelegramInfo.TgUsername}") +
+                              (child.TelegramInfo.TgUsername == null ? "" : $" @{child.TelegramInfo.TgUsername}") +
                               (child.ChildInfo?.Group == null ? "" : $" группа {child.ChildInfo.Group}")
                           )) + "\n\n";
         if (counsellors.Count() != 0)
@@ -85,7 +85,7 @@ public class Formatter: IFormatter
                       string.Join("\n", counsellors
                           .Select(counsellor =>
                               $" -`{FormatFullName(counsellor.FullName)}`" +
-                              (counsellor.TelegramInfo == null ? "" : $" @{counsellor.TelegramInfo.TgUsername}") +
+                              (counsellor.TelegramInfo.TgUsername == null ? "" : $" @{counsellor.TelegramInfo.TgUsername}") +
                               (counsellor.CounsellorInfo?.Group == null
                                   ? ""
                                   : $" группа {counsellor.CounsellorInfo.Group}")
