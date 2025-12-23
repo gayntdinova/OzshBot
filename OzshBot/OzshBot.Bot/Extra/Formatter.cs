@@ -5,24 +5,24 @@ using UserDomain = OzshBot.Domain.Entities.User;
 
 namespace OzshBot.Bot.Extra;
 
-public static class BotFormatter
+public class Formatter: IFormatter
 {
-    public static string Formate(this FullName fullName)
+    public string FormatFullName(FullName fullName)
     {
-        var resultString = string.Empty;
-        if (fullName.Surname != null) resultString += $" {fullName.Surname}";
-        if (fullName.Name != null) resultString += $" {fullName.Name}";
-        if (fullName.Patronymic != null) resultString += $" {fullName.Patronymic}";
-        return resultString;
+        var result = string.Empty;
+        if (fullName.Surname != null) result += $" {fullName.Surname}";
+        if (fullName.Name != null) result += $" {fullName.Name}";
+        if (fullName.Patronymic != null) result += $" {fullName.Patronymic}";
+        return FormatString(result);
     }
 
-    public static string FormateAnswer(this UserDomain user, Role role)
+    public string FormatUser(UserDomain user, Role role)
     {
         var childInfo = user.ChildInfo;
         var counsellorInfo = user.CounsellorInfo;
 
         var answer = "";
-        answer += $"{user.FullName.Formate()}";
+        answer += $"{FormatFullName(user.FullName)}";
 
         answer += user.TelegramInfo == null ? "" : $"\n@{user.TelegramInfo.TgUsername}";
 
@@ -37,7 +37,7 @@ public static class BotFormatter
 
         answer += user.Birthday == null ? "" : $"\n\nДата рождения: {user.Birthday}";
 
-        if (role != Role.Counsellor) return FormateString(answer);
+        if (role != Role.Counsellor) return FormatString(answer);
         answer += "\n";
 
         answer += user.Email == null ? "" : $"\nПочта: `{user.Email}`";
@@ -49,12 +49,12 @@ public static class BotFormatter
                       "Родители:\n" +
                       string.Join("\n", childInfo.ContactPeople
                           .Select(parent =>
-                              $" - {parent.FullName.Formate()}\n" +
+                              $" - {FormatFullName(parent.FullName)}\n" +
                               $"   `{parent.PhoneNumber}`"));
-        return FormateString(answer);
+        return FormatString(answer);
     }
 
-    public static string FormateAnswer(this IEnumerable<UserDomain> users, string message)
+    public string FormatUsers(IEnumerable<UserDomain> users, string message)
     {
         var children = users.Where(user => user.Role == Role.Child);
         var counsellors = users.Where(user => user.Role == Role.Counsellor);
@@ -63,7 +63,7 @@ public static class BotFormatter
             answer += "Дети:\n" +
                       string.Join("\n", children
                           .Select(child =>
-                              $" -`{child.FullName.Formate()}`" +
+                              $" -`{FormatFullName(child.FullName)}`" +
                               (child.TelegramInfo == null ? "" : $" @{child.TelegramInfo.TgUsername}") +
                               (child.ChildInfo?.Group == null ? "" : $" группа {child.ChildInfo.Group}")
                           )) + "\n\n";
@@ -71,34 +71,34 @@ public static class BotFormatter
             answer += "Вожатые:\n" +
                       string.Join("\n", counsellors
                           .Select(counsellor =>
-                              $" -`{counsellor.FullName.Formate()}`" +
+                              $" -`{FormatFullName(counsellor.FullName)}`" +
                               (counsellor.TelegramInfo == null ? "" : $" @{counsellor.TelegramInfo.TgUsername}") +
                               (counsellor.CounsellorInfo?.Group == null
                                   ? ""
                                   : $" группа {counsellor.CounsellorInfo.Group}")
                           ));
-        return FormateString(answer);
+        return FormatString(answer);
     }
 
-    public static string FormateAnswer(this Session[] sessions, UserDomain user)
+    public string FormatSessions(Session[] sessions, UserDomain user)
     {
         var answer = $"Смены, на которых был {user.FullName.Name}:\n" +
                      string.Join("\n", sessions
                          .Select(session =>
                              $" - `{session.SessionDates.StartDate.ToString("dd.MM.yyyy")} {session.SessionDates.EndDate.ToString("dd.MM.yyyy")}`"));
-        return FormateString(answer);
+        return FormatString(answer);
     }
 
-    public static string FormateAnswer(this Session[] sessions)
+    public string FormatSessions(Session[] sessions)
     {
         var answer = $"Смены:\n" +
                      string.Join("\n", sessions
                          .Select(session =>
                              $" - `{session.SessionDates.StartDate.ToString("dd.MM.yyyy")} {session.SessionDates.EndDate.ToString("dd.MM.yyyy")}`"));
-        return FormateString(answer);
+        return FormatString(answer);
     }
 
-    public static string FormateString(this string text)
+    public string FormatString(string text)
     {
         return text.Replace(".", "\\.").Replace("-", "\\-").Replace("+", "\\+").Replace("*", "\\*")
             .Replace("(", "\\(").Replace(")", "\\)").Replace("_", "\\_");

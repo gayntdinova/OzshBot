@@ -29,6 +29,7 @@ public class EditCommand : IBotCommandWithState
     {
         var bot = botHandler.BotClient;
         var serviceManager = botHandler.ServiceManager;
+        var formatter = botHandler.Formatter;
 
         switch (update.Type)
         {
@@ -70,7 +71,7 @@ public class EditCommand : IBotCommandWithState
                     }
 
                     //если не подходит под регулярку то переспрашиваем
-                    await SendStateInfoMessage(bot, chat, stateDict[userId], state.UserAttribute, true);
+                    await SendStateInfoMessage(bot,formatter, chat, stateDict[userId], state.UserAttribute, true);
                     return true;
                 }
 
@@ -87,7 +88,7 @@ public class EditCommand : IBotCommandWithState
                         return await HandleEditMenu(bot, serviceManager, chat1, userId1, splitted[1]);
 
                     case "editTheme":
-                        return await HandleEditThemes(bot, chat1, callback.From.Id,
+                        return await HandleEditThemes(bot, formatter, chat1, callback.From.Id,
                             (UserAttribute)int.Parse(splitted[1]));
 
                     case "editApply":
@@ -161,7 +162,7 @@ public class EditCommand : IBotCommandWithState
         }
     }
 
-    private async Task<bool> HandleEditThemes(ITelegramBotClient bot, Chat chat, long userId, UserAttribute attribute)
+    private async Task<bool> HandleEditThemes(ITelegramBotClient bot,IFormatter formatter, Chat chat, long userId, UserAttribute attribute)
     {
         if (!stateDict.Keys.Contains(userId)) return false; //невозможный в теории случай но я на всякий оставлю
 
@@ -173,7 +174,7 @@ public class EditCommand : IBotCommandWithState
                 state.MessagesToDelete -= 1;
             }
 
-        await SendStateInfoMessage(bot, chat, state, attribute, false);
+        await SendStateInfoMessage(bot,formatter, chat, state, attribute, false);
         state.WaitingSelectField = false;
         return true;
     }
@@ -230,7 +231,7 @@ public class EditCommand : IBotCommandWithState
         }
     }
 
-    private async Task SendStateInfoMessage(ITelegramBotClient bot, Chat chat, EditState state, UserAttribute attribute,
+    private async Task SendStateInfoMessage(ITelegramBotClient bot,IFormatter formatter, Chat chat, EditState state, UserAttribute attribute,
         bool wasIncorrect)
     {
         var attributeInfo = attribute.GetInfo();
@@ -240,7 +241,7 @@ public class EditCommand : IBotCommandWithState
 
         state.messagesIds.Push((await bot.SendMessage(
             chat.Id,
-            ((wasIncorrect ? "Некорректный формат\n" : "") + attributeInfo.WritingInfo).FormateString(),
+            formatter.FormatString((wasIncorrect ? "Некорректный формат\n" : "") + attributeInfo.WritingInfo),
             ParseMode.MarkdownV2,
             replyMarkup: markup
         )).Id);
