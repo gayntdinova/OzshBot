@@ -32,7 +32,8 @@ public static class UserAttributesInfoManager
                 UserAttribute.City,
                 UserAttribute.Group,
                 UserAttribute.School,
-                UserAttribute.Class
+                UserAttribute.Class,
+                UserAttribute.ContactPeople
             ]
         },
         {
@@ -63,7 +64,8 @@ public static class UserAttributesInfoManager
         UserAttribute.City,
         UserAttribute.Group,
         UserAttribute.School,
-        UserAttribute.Class
+        UserAttribute.Class,
+        UserAttribute.ContactPeople
     };
 
     public static readonly UserAttribute[] AddableAttributes = new[]
@@ -138,7 +140,7 @@ public static class UserAttributesInfoManager
                 UserAttribute.SessionEdit,
                 new UserAttributeInfo(
                     "Смены",
-                    "Выберите как и какую смену менять, для этого напишите remove или add и даты смены(или просто выберите из списка)",
+                    "Напишите remove или add и даты смены(или просто выберите из списка)",
                     async str =>
                     {
                         if (Regex.IsMatch(str,
@@ -193,13 +195,13 @@ public static class UserAttributesInfoManager
                         if (user.CounsellorInfo != null)
                             userSessions = user.CounsellorInfo.Sessions;
 
-                        var toAdd = userSessions
+                        var toRemove = userSessions
                             .Select(session => new KeyboardButton[]
                             {
                                 new(
                                     $"remove {session.SessionDates.StartDate.ToString("dd.MM.yyyy")} {session.SessionDates.EndDate.ToString("dd.MM.yyyy")}")
                             });
-                        var toDelete = (await sessionService.GetAllSessionsAsync())
+                        var toAdd = (await sessionService.GetAllSessionsAsync())
                             .Where(ses => !userSessions.Any(sess => sess.Id == ses.Id))
                             .Select(session => new KeyboardButton[]
                             {
@@ -207,7 +209,7 @@ public static class UserAttributesInfoManager
                                     $"add {session.SessionDates.StartDate.ToString("dd.MM.yyyy")} {session.SessionDates.EndDate.ToString("dd.MM.yyyy")}")
                             });
 
-                        return new ReplyKeyboardMarkup(toAdd.Concat(toDelete))
+                        return new ReplyKeyboardMarkup(toAdd.Concat(toRemove))
                             { ResizeKeyboard = true };
                     })
             },
@@ -339,6 +341,44 @@ public static class UserAttributesInfoManager
                     {
                         user.ChildInfo!.EducationInfo = new EducationInfo()
                             { Class = int.Parse(message), School = user.ChildInfo!.EducationInfo!.School };
+                    })
+            },
+            {
+                UserAttribute.ContactPeople,
+                new UserAttributeInfo(
+                    "Родители",
+                    "Для удаления родителя напишите remove и номер телефона, для добавления add, номер телефона и фио(через пробел)",
+                    async str 
+                    =>Regex.IsMatch(str, @"^(remove\s+(\+7|8)\d{10})|(add\s+(\+7|8)\d{10}\s+[А-ЯЁ][а-яё]+ [А-ЯЁ][а-яё]+( [А-ЯЁ][а-яё]+)?)$"),
+
+                    async (UserDomain user, string message) =>
+                    {
+                        var splitted = message.Split(" ");
+                        var command = splitted[0];
+                        if (command == "add")
+                        {
+                            var phone = splitted[1];
+                            var fullName = new FullName(splitted[2],splitted[3],splitted.Length==5?splitted[4]:null);
+
+                            user.ChildInfo!.ContactPeople.Add(new ContactPerson(){PhoneNumber = phone,FullName = fullName});
+                        }
+                        else
+                        {
+                            var phone = splitted[1];
+                            var personToRemove = user.ChildInfo!.ContactPeople.FirstOrDefault(person => person.PhoneNumber == phone);
+                            if(personToRemove != null)
+                                user.ChildInfo!.ContactPeople.Remove(personToRemove);
+                        }
+                    },
+                    async (user) =>
+                    {
+                        var toRemove = user.ChildInfo!.ContactPeople
+                            .Select(person => new KeyboardButton[]
+                            {
+                                new($"remove {person.PhoneNumber}")
+                            });
+                        return new ReplyKeyboardMarkup(toRemove)
+                            { ResizeKeyboard = true };
                     })
             }
         };
