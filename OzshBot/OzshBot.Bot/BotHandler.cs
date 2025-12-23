@@ -180,7 +180,7 @@ public class BotHandler
     {
         if (users.Length==0)
         {
-            await ServiceManager.Logger.Log(userId,DateOnly.FromDateTime(DateTime.Now),false);
+            await ServiceManager.Logger.Log(userId,false);
             await BotClient.SendMessage(
                 chat.Id,
                 $"Никто не найден",
@@ -190,7 +190,7 @@ public class BotHandler
         }
         else if (users.Length == 1)
         {
-            await ServiceManager.Logger.Log(userId,DateOnly.FromDateTime(DateTime.Now),true);
+            await ServiceManager.Logger.Log(userId,true);
             if(role == Role.Counsellor)
                 await BotClient.SendMessage(
                     chat.Id,
@@ -213,7 +213,7 @@ public class BotHandler
         }
         else
         {
-            await ServiceManager.Logger.Log(userId,DateOnly.FromDateTime(DateTime.Now),true);
+            await ServiceManager.Logger.Log(userId,true);
             await BotClient.SendMessage(
                 chat.Id,
                 users.FormateAnswer(messageText),
