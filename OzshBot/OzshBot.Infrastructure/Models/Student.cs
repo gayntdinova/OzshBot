@@ -36,7 +36,7 @@ public class Student
 
     [Required]
     [Column(name: "birth_date")]
-    public DateOnly BirthDate { get; set; }
+    public DateOnly? BirthDate { get; set; }
 
     [Column(name: "current_class")]
     public int CurrentClass { get; set; }

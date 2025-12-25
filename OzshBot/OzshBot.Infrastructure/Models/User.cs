@@ -35,7 +35,7 @@ public static class UserConverter
         string city = null;
         string phone = null;
         string email = null;
-        DateOnly? birthDate = new();
+        DateOnly? birthDate = null;
         if (user.Role == Role.Counsellor && user.Counsellor != null)
         {
             fullName = new FullName
@@ -101,7 +101,7 @@ public static class UserConverter
                 School = user.ChildInfo.EducationInfo.School,
                 Email = user.Email,
                 Phone = user.PhoneNumber,
-                BirthDate = user.Birthday ?? default,
+                BirthDate = user.Birthday,
                 CurrentClass = user.ChildInfo.EducationInfo.Class,
                 CurrentGroup = user.ChildInfo.Group,
             };
@@ -117,7 +117,7 @@ public static class UserConverter
                 City = user.City,
                 Email = user.Email,
                 Phone = user.PhoneNumber,
-                BirthDate = user.Birthday ?? default,
+                BirthDate = user.Birthday,
                 CurrentGroup = user.CounsellorInfo.Group,
             };
         }
