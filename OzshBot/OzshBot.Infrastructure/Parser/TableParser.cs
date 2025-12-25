@@ -47,13 +47,13 @@ public class TableParser
             columnIndexes = GetColumnsIndexes(data[0]);
             childInfoParser = new ChildInfoParser(columnIndexes);
         }
-        catch (InvalidOperationException)
+        catch (InvalidOperationException e)
         {
-            return Result.Fail(new InvalidTableFormatError());
+            return Result.Fail(new InvalidTableFormatError(e.Message));
         }
         catch (ArgumentOutOfRangeException)
         {
-            return Result.Fail(new InvalidTableFormatError());
+            return Result.Fail(new InvalidTableFormatError("первый ряд таблицы пустой"));
         }
         
         var errors = new List<Error>();

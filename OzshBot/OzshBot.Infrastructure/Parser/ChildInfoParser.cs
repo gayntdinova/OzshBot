@@ -17,7 +17,8 @@ public class ChildInfoParser
     public ChildInfoParser(Dictionary<string, int> columnIndexes)
     {
         if (requiredColumnNames.Any(name => !columnIndexes.ContainsKey(name)))
-            throw new InvalidOperationException("Неверный формат таблицы");
+            throw new InvalidOperationException("Неверный формат таблицы: необходимы столбцы с названиями " +
+                                                "[фио, класс, город, школа, день рождения, телефон, email]");
         this.columnIndexes = columnIndexes;
     }
     private FullName GetFullNameFromString(string? nameInfo)
