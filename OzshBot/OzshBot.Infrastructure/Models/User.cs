@@ -101,7 +101,7 @@ public static class UserConverter
                 School = user.ChildInfo.EducationInfo.School,
                 Email = user.Email,
                 Phone = user.PhoneNumber,
-                BirthDate = user.Birthday ?? default,
+                BirthDate = user.Birthday,
                 CurrentClass = user.ChildInfo.EducationInfo.Class,
                 CurrentGroup = user.ChildInfo.Group,
             };
@@ -117,7 +117,7 @@ public static class UserConverter
                 City = user.City,
                 Email = user.Email,
                 Phone = user.PhoneNumber,
-                BirthDate = user.Birthday ?? default,
+                BirthDate = user.Birthday,
                 CurrentGroup = user.CounsellorInfo.Group,
             };
         }
