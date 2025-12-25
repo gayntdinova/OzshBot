@@ -29,7 +29,8 @@ public static class ErrorExplanationManager
         },
         {
             typeof(InvalidTableFormatError),
-            _ => "Некорректный формат таблицы"
+            _ => "Некорректный формат таблицы" + "необходимы столбцы с названиями " +
+                 "[фио, класс, город, школа, день рождения, телефон, email]"
         },
         {
             typeof(SessionAlreadyExistsError),
