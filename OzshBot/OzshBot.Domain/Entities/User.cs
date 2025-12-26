@@ -10,7 +10,13 @@ public class User
     public required FullName FullName { get; set; }
     public TelegramInfo? TelegramInfo { get; set; }
     public DateOnly? Birthday { get; set; }
-    public string? City { get; set; }
+
+    public string? City
+    {
+        get => city;
+        set => city = value?.ToLower();
+    }
+
     [Phone]
     public required string PhoneNumber { get; set; }
     [EmailAddress]
@@ -18,6 +24,9 @@ public class User
     public ChildInfo? ChildInfo { get; set; }
     public CounsellorInfo? CounsellorInfo { get; set; }
     public Role Role { get; set; }
+
+    private string? city;
+    
 
     public void UpdateBy(User userUpdate)
     {

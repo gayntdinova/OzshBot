@@ -2,13 +2,18 @@ namespace OzshBot.Domain.ValueObjects;
 
 public record FullName
 {
-    public string Surname { get; init; }
-    public string Name { get; init; }
-    public string? Patronymic { get; init; }
+    public string Surname { get; private init; }
+    public string Name { get; private init; }
+    public string? Patronymic { get; private init; }
+
     public FullName(string surname, string name,  string? patronymic=null)
     {
-        Name = name;
-        Surname = surname;
-        Patronymic = patronymic;
+        Name = Capitalize(name);
+        Surname = Capitalize(surname);
+        Patronymic = patronymic != null ? Capitalize(patronymic) : null;
+    }
+        private static string Capitalize(string str)
+    {
+        return str[..1].ToUpper() + str[1..].ToLower();
     }
 }

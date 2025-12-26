@@ -50,7 +50,7 @@ public class ChildInfoParser
         var educationInfo = new EducationInfo
         {
             Class = intGrade,
-            School = school.ToLower()
+            School = school
         };
         var contactPeople = GetContactPeople(comment);
         if (group != null && Int32.TryParse(group, out var intGroup))
@@ -97,7 +97,7 @@ public class ChildInfoParser
 
         if (row[columnIndexes["город"]] is null || row[columnIndexes["день рождения"]] is null)
             throw new ArgumentException();
-        var city = row[columnIndexes["город"]].ToLower();
+        var city = row[columnIndexes["город"]];
         var birthDate = GetBirthDate(row);
 
         var phoneNumber = PhoneParser.NormalizePhone(row[columnIndexes["телефон"]]);
