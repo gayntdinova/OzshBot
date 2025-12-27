@@ -95,7 +95,7 @@ public static class UserAttributesInfoManager
                     async str =>
                     {
                         if (Regex.IsMatch(str,
-                                @"^(0[1-9]|[12]\d|3[01])\.(0[1-9]|1[0-2])\.(19\d{2}|20\d{2}) (0[1-9]|[12]\d|3[01])\.(0[1-9]|1[0-2])\.(19\d{2}|20\d{2})$"))
+                                @"^(0[1-9]|[12]\d|3[01])\.(0[1-9]|1[0-2])\.(19\d{2}|20\d{2})\s(0[1-9]|[12]\d|3[01])\.(0[1-9]|1[0-2])\.(19\d{2}|20\d{2})$"))
                         {
                             Console.WriteLine("тут проходит");
                             var splitted = str.Split(" ");
@@ -124,13 +124,10 @@ public static class UserAttributesInfoManager
                             session.SessionDates.StartDate == startDate && session.SessionDates.EndDate == endDate);
 
                         if (user.Role == Role.Child)
-                        {
-                            user.ChildInfo.Sessions.Add(session);
-                        }
-                        else
-                        {
-                            user.CounsellorInfo.Sessions.Add(session);
-                        }
+                            user.ChildInfo!.Sessions.Add(session);
+
+                        else if(user.Role == Role.Counsellor)
+                            user.CounsellorInfo!.Sessions.Add(session);
                     },
                     async (user) => new ReplyKeyboardMarkup((await sessionService.GetAllSessionsAsync())
                             .Select(session => new KeyboardButton[]
@@ -179,26 +176,18 @@ public static class UserAttributesInfoManager
                         if (command == "add")
                         {
                             if (user.Role == Role.Child)
-                            {
-                                user.ChildInfo.Sessions.Add(session);
-                            }
+                                user.ChildInfo!.Sessions.Add(session);
 
-                            else
-                            {
-                                user.CounsellorInfo.Sessions.Add(session);
-                            }
+                            else if(user.Role == Role.Counsellor)
+                                user.CounsellorInfo!.Sessions.Add(session);
                         }
                         else
                         {
                             if (user.Role == Role.Child)
-                            {
-                                user.ChildInfo.Sessions.Remove(session);
-                            }
+                                user.ChildInfo!.Sessions.Remove(session);
 
-                            else
-                            {
-                                user.CounsellorInfo.Sessions.Remove(session);
-                            }
+                            else if(user.Role == Role.Counsellor)
+                                user.CounsellorInfo!.Sessions.Remove(session);
                         }
                     },
                     async (user) =>
@@ -319,22 +308,18 @@ public static class UserAttributesInfoManager
             {
                 UserAttribute.Group,
                 new UserAttributeInfo(
-                    "Группа",
-                    "Введите номер группы или _",
+                    "Отряд",
+                    "Введите номер отряда или _",
                     async str => Regex.IsMatch(str, @"^(_|\d+)$"),
                     (user, message) =>
                     {
                         int? group = message == "_" ? null : int.Parse(message);
 
                         if (user.Role == Role.Child)
-                        {
-                            user.ChildInfo.Group = group;
-                        }
+                            user.ChildInfo!.Group = group;
 
-                        else
-                        {
-                            user.CounsellorInfo.Group = group;
-                        }
+                        else if(user.Role == Role.Counsellor)
+                            user.CounsellorInfo!.Group = group;
                     })
             },
             {

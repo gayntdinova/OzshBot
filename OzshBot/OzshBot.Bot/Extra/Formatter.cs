@@ -22,42 +22,46 @@ public class Formatter: IFormatter
         var counsellorInfo = user.CounsellorInfo;
 
         var answer = "";
+
+        //ФИО
         answer += $"{FormatFullName(user.FullName)}";
 
-        answer += user.TelegramInfo.TgUsername == null ? "" : $"\n@{user.TelegramInfo.TgUsername}";
+        //ТГ инфо
+        answer += user.TelegramInfo?.TgUsername == null ? "" : $"\n@{user.TelegramInfo.TgUsername}";
 
+        //Отряд
         if (user.Role == Role.Child)
-        {
-            answer += childInfo?.Group == null ? "" : $"\nГруппа: `{childInfo.Group}`";
-        }
+            answer += childInfo?.Group == null ? "" : $"\nОтряд: `{childInfo.Group}`";
         else
-        {
-            answer += counsellorInfo?.Group == null ? "" : $"\nГруппа: `{counsellorInfo.Group}`";
-        }
+            answer += counsellorInfo?.Group == null ? "" : $"\nОтряд: `{counsellorInfo.Group}`";
 
-        answer += user.City == null ? "" : $"\nГород: `{user.City}`";
+        answer += user.City == null ? "" : $"\nГород: `{user.City.Capitalize()}`";
 
-        if (childInfo?.EducationInfo == null) answer += "";
-        else
+        //Школа и класс
+        if (user.Role == Role.Child && childInfo?.EducationInfo != null)
         {
             if (user.Role == Role.Counsellor)
-                answer += $"\nШкола: `{childInfo.EducationInfo.School}`";
+                answer += $"\nШкола: `{childInfo.EducationInfo.School.Capitalize()}`";
             else
             { 
                 answer += $"\nШкола: `{childInfo.EducationInfo.School}`, {childInfo.EducationInfo.Class} класс";
             }
         }
 
+        //Дата рождения
         answer += user.Birthday == null ? "" : $"\n\nДата рождения: {user.Birthday}";
 
         if (role != Role.Counsellor) return FormatString(answer);
         answer += "\n";
 
+        //Почта
         answer += user.Email == null ? "" : $"\nПочта: `{user.Email}`";
 
+        //Телефон
         answer += user.PhoneNumber == null ? "" : $"\nТелефон: `{user.PhoneNumber}`";
 
-        if (childInfo != null && childInfo.ContactPeople.Count != 0)
+        //Родители
+        if (user.Role == Role.Child && childInfo!.ContactPeople.Count != 0)
             answer += "\n\n" +
                       "Родители:\n" +
                       string.Join("\n", childInfo.ContactPeople
@@ -77,18 +81,18 @@ public class Formatter: IFormatter
                       string.Join("\n", children
                           .Select(child =>
                               $" -`{FormatFullName(child.FullName)}`" +
-                              (child.TelegramInfo.TgUsername == null ? "" : $" @{child.TelegramInfo.TgUsername}") +
-                              (child.ChildInfo?.Group == null ? "" : $" группа {child.ChildInfo.Group}")
+                              (child.TelegramInfo?.TgUsername == null ? "" : $" @{child.TelegramInfo.TgUsername}") +
+                              (child.ChildInfo?.Group == null ? "" : $" отряд {child.ChildInfo.Group}")
                           )) + "\n\n";
         if (counsellors.Count() != 0)
             answer += "Вожатые:\n" +
                       string.Join("\n", counsellors
                           .Select(counsellor =>
                               $" -`{FormatFullName(counsellor.FullName)}`" +
-                              (counsellor.TelegramInfo.TgUsername == null ? "" : $" @{counsellor.TelegramInfo.TgUsername}") +
+                              (counsellor.TelegramInfo?.TgUsername == null ? "" : $" @{counsellor.TelegramInfo.TgUsername}") +
                               (counsellor.CounsellorInfo?.Group == null
                                   ? ""
-                                  : $" группа {counsellor.CounsellorInfo.Group}")
+                                  : $" отряд {counsellor.CounsellorInfo.Group}")
                           ));
         return FormatString(answer);
     }
@@ -98,7 +102,7 @@ public class Formatter: IFormatter
         var answer = $"Смены, на которых был {user.FullName.Name}:\n" +
                      string.Join("\n", sessions
                          .Select(session =>
-                             $" - `{session.SessionDates.StartDate.ToString("dd.MM.yyyy")} {session.SessionDates.EndDate.ToString("dd.MM.yyyy")}`"));
+                             $" - *{session.SessionDates.StartDate.ToString("dd.MM.yyyy")} - {session.SessionDates.EndDate.ToString("dd.MM.yyyy")}*"));
         return FormatString(answer);
     }
 
@@ -107,7 +111,7 @@ public class Formatter: IFormatter
         var answer = $"Смены:\n" +
                      string.Join("\n", sessions
                          .Select(session =>
-                             $" - `{session.SessionDates.StartDate.ToString("dd.MM.yyyy")} {session.SessionDates.EndDate.ToString("dd.MM.yyyy")}`"));
+                             $" - *{session.SessionDates.StartDate.ToString("dd.MM.yyyy")} - {session.SessionDates.EndDate.ToString("dd.MM.yyyy")}*"));
         return FormatString(answer);
     }
 

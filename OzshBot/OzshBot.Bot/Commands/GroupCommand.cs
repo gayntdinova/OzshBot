@@ -21,7 +21,7 @@ public class GroupCommand : IBotCommand
     }
 
     public string Description
-        => "поиск пользователей по группе";
+        => "поиск пользователей по отряду";
 
     public async Task<bool> ExecuteAsync(BotHandler botHandler,
         Update update)
@@ -45,7 +45,7 @@ public class GroupCommand : IBotCommand
                 {
                     await bot.SendMessage(
                         chat.Id,
-                        $"Использование: /group номер группы",
+                        $"Использование: /group номер отряда",
                         replyMarkup: new ReplyKeyboardRemove(),
                         parseMode: ParseMode.MarkdownV2
                     );
